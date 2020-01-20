@@ -11,6 +11,7 @@ from .angular import (AngleKind,
                       to_angle_kind,
                       to_orientation)
 from .point import (Point,
+                    _is_real_point,
                     _to_real_point)
 
 Segment = NamedTuple('Segment', [('start', Point), ('end', Point)])
@@ -145,6 +146,7 @@ def _in_segment(point: Point, segment: Segment) -> bool:
 
 
 def find_intersections(first_segment: Segment, second_segment: Segment,
+                       _origin: Point = Point(0, 0)
                        ) -> Union[Tuple[()], Tuple[Point],
                                   Tuple[Point, Point]]:
     relationship = to_segments_relationship(first_segment, second_segment)
@@ -158,28 +160,33 @@ def find_intersections(first_segment: Segment, second_segment: Segment,
         elif first_end == second_start or first_end == second_end:
             return first_end,
         else:
-            first_start_real, first_end_real = (_to_real_point(first_start),
-                                                _to_real_point(first_end))
-            second_start_real, second_end_real = (_to_real_point(second_start),
-                                                  _to_real_point(second_end))
-            numerator = parallelogram.signed_area(first_start_real,
-                                                  second_start_real,
-                                                  second_start_real,
-                                                  second_end_real)
-            denominator = parallelogram.signed_area(first_start_real,
-                                                    first_end_real,
-                                                    second_start_real,
-                                                    second_end_real)
+            are_real_segments = _is_real_point(first_start)
+            if not are_real_segments:
+                first_start, first_end = (_to_real_point(first_start),
+                                          _to_real_point(first_end))
+                second_start, second_end = (_to_real_point(second_start),
+                                            _to_real_point(second_end))
+            denominator = parallelogram.signed_area(first_start, first_end,
+                                                    second_start, second_end)
+            first_cross_product = parallelogram.signed_area(
+                    _origin, first_start, _origin, first_end)
+            second_cross_product = parallelogram.signed_area(
+                    _origin, second_start, _origin, second_end)
             first_start_x, first_start_y = first_start
             first_end_x, first_end_y = first_end
-            first_delta_x, first_delta_y = (first_end_x - first_start_x,
-                                            first_end_y - first_start_y)
+            second_start_x, second_start_y = second_start
+            second_end_x, second_end_y = second_end
             denominator_inv = 1 / denominator
-            x = ((first_start_x * denominator + first_delta_x * numerator)
+            x = ((first_cross_product * (second_start_x - second_end_x)
+                  - second_cross_product * (first_start_x - first_end_x))
                  * denominator_inv)
-            y = ((first_start_y * denominator + first_delta_y * numerator)
+            y = ((first_cross_product * (second_start_y - second_end_y)
+                  - second_cross_product * (first_start_y - first_end_y))
                  * denominator_inv)
-            return Point(x, y),
+            intersection_point = Point(x, y)
+            return (intersection_point
+                    if are_real_segments
+                    else _to_real_point(intersection_point)),
     else:
         _, first_intersection_point, second_intersection_point, _ = sorted(
                 first_segment + second_segment)

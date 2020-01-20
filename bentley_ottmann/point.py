@@ -6,10 +6,11 @@ from .hints import Scalar
 Point = NamedTuple('Point', [('x', Scalar), ('y', Scalar)])
 
 
+def _is_real_point(point: Point) -> bool:
+    x, y = point
+    return isinstance(x, Real)
+
+
 def _to_real_point(point: Point) -> Point:
     x, y = point
-    return Point(_scalar_to_real(x), _scalar_to_real(y))
-
-
-def _scalar_to_real(scalar: Scalar) -> Real:
-    return scalar if isinstance(scalar, Real) else float(scalar)
+    return Point(float(x), float(y))
