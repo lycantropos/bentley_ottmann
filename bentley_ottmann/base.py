@@ -1,8 +1,9 @@
+from itertools import combinations
 from reprlib import recursive_repr
-from typing import (Dict,
+from typing import (Iterable,
                     Optional,
                     Sequence,
-                    Set)
+                    Tuple)
 
 from dendroid import red_black
 from prioq.base import PriorityQueue
@@ -155,74 +156,74 @@ def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[SweepEvent]:
     return events_queue
 
 
-def sweep(segments: Sequence[Segment]) -> Dict[Point, Set[int]]:
+def sweep(segments: Sequence[Segment]
+          ) -> Iterable[Tuple[Point, Tuple[int, int]]]:
     events_queue = _to_events_queue(segments)
-    result = {}
     sweep_line = red_black.tree(key=SweepLineKey)
     while events_queue:
         event = events_queue.pop()
-        if event.is_left:
-            sweep_line.add(event)
-            try:
-                next_event = sweep_line.next(event)
-            except ValueError:
-                next_event = None
-            try:
-                previous_event = sweep_line.prev(event)
-            except ValueError:
-                previous_event = None
-            if next_event is not None:
-                detect_intersection(event, next_event,
-                                    events_queue=events_queue,
-                                    intersections=result)
-            if previous_event is not None:
-                detect_intersection(previous_event, event,
-                                    events_queue=events_queue,
-                                    intersections=result)
-        else:
-            event = event.complement
-            if event not in sweep_line:
-                continue
-            try:
-                next_event = sweep_line.next(event)
-            except ValueError:
-                next_event = None
-            try:
-                previous_event = sweep_line.prev(event)
-            except ValueError:
-                previous_event = None
-            sweep_line.remove(event)
-            if next_event is not None and previous_event is not None:
-                detect_intersection(previous_event, next_event,
-                                    events_queue=events_queue,
-                                    intersections=result)
-    return result
+        point, same_point_events = event.point, [event]
+        while events_queue and events_queue.peek().point == point:
+            same_point_events.append(events_queue.pop())
+        for event, other_event in combinations(same_point_events, 2):
+            if event.segment_id != other_event.segment_id:
+                yield point, _to_sorted_pair(event.segment_id,
+                                             other_event.segment_id)
+        for event in same_point_events:
+            if event.is_left:
+                sweep_line.add(event)
+                try:
+                    next_event = sweep_line.next(event)
+                except ValueError:
+                    next_event = None
+                try:
+                    previous_event = sweep_line.prev(event)
+                except ValueError:
+                    previous_event = None
+                if next_event is not None:
+                    yield from _detect_intersection(event, next_event,
+                                                    events_queue=events_queue)
+                if previous_event is not None:
+                    yield from _detect_intersection(previous_event, event,
+                                                    events_queue=events_queue)
+            else:
+                event = event.complement
+                if event not in sweep_line:
+                    continue
+                try:
+                    next_event = sweep_line.next(event)
+                except ValueError:
+                    next_event = None
+                try:
+                    previous_event = sweep_line.prev(event)
+                except ValueError:
+                    previous_event = None
+                sweep_line.remove(event)
+                if next_event is not None and previous_event is not None:
+                    yield from _detect_intersection(previous_event, next_event,
+                                                    events_queue=events_queue)
 
 
-def detect_intersection(first_event: SweepEvent,
-                        second_event: SweepEvent,
-                        events_queue: PriorityQueue,
-                        intersections: Dict[Point, Set[int]]
-                        ) -> None:
-    def divide_segment(event: SweepEvent, point: Point) -> None:
+def _detect_intersection(first_event: SweepEvent, second_event: SweepEvent,
+                         events_queue: PriorityQueue
+                         ) -> Iterable[Tuple[Point, Tuple[int, int]]]:
+    def divide_segment(event: SweepEvent, point: Point,
+                       other_segment_id: int) -> None:
         # "left event" of the "right line segment"
         # resulting from dividing event.segment
         left_event = SweepEvent(True, point, event.complement,
                                 event.segment_id)
         # "right event" of the "left line segment"
         # resulting from dividing event.segment
-        right_event = SweepEvent(False, point, event,
-                                 event.segment_id)
+        right_event = SweepEvent(False, point, event, other_segment_id)
         if EventsQueueKey(left_event) < EventsQueueKey(event.complement):
             # avoid a rounding error,
             # the left event would be processed after the right event
             event.complement.is_left = True
             left_event.is_left = False
-        event.complement.complement = left_event
-        event.complement = right_event
+        event.complement.complement, event.complement = left_event, right_event
         events_queue.push(left_event)
         events_queue.push(right_event)
-        intersections.setdefault(point, set()).add(event.segment_id)
 
     intersections_points = find_intersections(first_event.segment,
                                               second_event.segment)
@@ -236,17 +237,15 @@ def detect_intersection(first_event: SweepEvent,
         if (first_event.point != point
                 and first_event.complement.point != point):
             # if the intersection point is not an endpoint of le1.segment
-            divide_segment(first_event, point)
-        else:
-            intersections.setdefault(point,
-                                     set()).add(first_event.segment_id)
+            divide_segment(first_event, point, second_event.segment_id)
+            yield point, _to_sorted_pair(first_event.segment_id,
+                                         second_event.segment_id)
         if (second_event.point != point
                 and second_event.complement.point != point):
             # if the intersection point is not an endpoint of le2.segment
-            divide_segment(second_event, point)
-        else:
-            intersections.setdefault(point,
-                                     set()).add(second_event.segment_id)
+            divide_segment(second_event, point, first_event.segment_id)
+            yield point, _to_sorted_pair(first_event.segment_id,
+                                         second_event.segment_id)
         return
 
     # The line segments associated to le1 and le2 overlap
@@ -273,21 +272,37 @@ def detect_intersection(first_event: SweepEvent,
     if len(sorted_events) == 2:
         # both line segments are equal
         return
-    elif len(sorted_events) == 3:
+    for point in intersections_points:
+        yield point, _to_sorted_pair(first_event.segment_id,
+                                     second_event.segment_id)
+    if len(sorted_events) == 3:
         if sorted_events[2]:
             # line segments share the left endpoint
             divide_segment(sorted_events[2].complement,
-                           sorted_events[1].point)
+                           sorted_events[1].point,
+                           sorted_events[1].segment_id)
         else:
             # line segments share the right endpoint
-            divide_segment(sorted_events[0], sorted_events[1].point)
+            divide_segment(sorted_events[0], sorted_events[1].point,
+                           sorted_events[1].segment_id)
         return
     else:
         if sorted_events[0] is not sorted_events[3].complement:
             # no line segment includes totally the other one
-            divide_segment(sorted_events[0], sorted_events[1].point)
-            divide_segment(sorted_events[1], sorted_events[2].point)
+            divide_segment(sorted_events[0], sorted_events[1].point,
+                           sorted_events[1].segment_id)
+            divide_segment(sorted_events[1], sorted_events[2].point,
+                           sorted_events[2].segment_id)
             return
         # one line segment includes the other one
-        divide_segment(sorted_events[0], sorted_events[1].point)
-        divide_segment(sorted_events[3].complement, sorted_events[2].point)
+        divide_segment(sorted_events[0], sorted_events[1].point,
+                       sorted_events[1].segment_id)
+        divide_segment(sorted_events[3].complement, sorted_events[2].point,
+                       sorted_events[2].segment_id)
+
+
+def _to_sorted_pair(left_coordinate: int,
+                    right_coordinate: int) -> Tuple[int, int]:
+    return ((left_coordinate, right_coordinate)
+            if left_coordinate < right_coordinate
+            else (right_coordinate, left_coordinate))
