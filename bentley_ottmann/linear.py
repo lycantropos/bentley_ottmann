@@ -1,5 +1,7 @@
 from enum import (IntEnum,
                   unique)
+from fractions import Fraction
+from numbers import Real
 from typing import (NamedTuple,
                     Tuple,
                     Union)
@@ -11,8 +13,8 @@ from .angular import (AngleKind,
                       to_angle_kind,
                       to_orientation)
 from .point import (Point,
-                    _is_real_point,
-                    _to_real_point)
+                    _to_real_point,
+                    _to_scalar_point)
 
 Segment = NamedTuple('Segment', [('start', Point), ('end', Point)])
 
@@ -153,8 +155,22 @@ def find_intersections(first_segment: Segment, second_segment: Segment,
             return first_start,
         elif first_end == second_start or first_end == second_end:
             return first_end,
+        elif to_orientation(first_start, first_end,
+                            second_start) is Orientation.COLLINEAR:
+            return second_start,
+        elif to_orientation(first_start, first_end,
+                            second_end) is Orientation.COLLINEAR:
+            return second_end,
+        elif to_orientation(second_start, second_end,
+                            first_start) is Orientation.COLLINEAR:
+            return first_start,
+        elif to_orientation(second_start, second_end,
+                            first_end) is Orientation.COLLINEAR:
+            return first_end,
         else:
-            are_real_segments = _is_real_point(first_start)
+            coordinate, _ = first_start
+            coordinate_type = type(coordinate)
+            are_real_segments = issubclass(coordinate_type, Real)
             if not are_real_segments:
                 first_start, first_end = (_to_real_point(first_start),
                                           _to_real_point(first_end))
@@ -170,7 +186,9 @@ def find_intersections(first_segment: Segment, second_segment: Segment,
             first_end_x, first_end_y = first_end
             second_start_x, second_start_y = second_start
             second_end_x, second_end_y = second_end
-            denominator_inv = 1 / denominator
+            denominator_inv = (Fraction(1, denominator)
+                               if issubclass(coordinate_type, int)
+                               else 1 / denominator)
             x = ((first_cross_product * (second_start_x - second_end_x)
                   - second_cross_product * (first_start_x - first_end_x))
                  * denominator_inv)
@@ -180,7 +198,8 @@ def find_intersections(first_segment: Segment, second_segment: Segment,
             intersection_point = Point(x, y)
             return (intersection_point
                     if are_real_segments
-                    else _to_real_point(intersection_point)),
+                    else _to_scalar_point(intersection_point,
+                                          coordinate_type)),
     else:
         _, first_intersection_point, second_intersection_point, _ = sorted(
                 first_segment + second_segment)
