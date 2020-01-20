@@ -2,64 +2,17 @@ from reprlib import recursive_repr
 from typing import (Dict,
                     Optional,
                     Sequence,
-                    Set,
-                    Tuple,
-                    Union)
+                    Set)
 
 from dendroid import red_black
 from prioq.base import PriorityQueue
 from reprit.base import generate_repr
-from robust import parallelogram
 
 from .angular import (Orientation,
                       to_orientation)
 from .linear import (Segment,
-                     SegmentsRelationship,
-                     to_segments_relationship)
-from .point import (Point,
-                    _to_real_point)
-
-
-def find_intersections(first_segment: Segment, second_segment: Segment,
-                       ) -> Union[Tuple[()], Tuple[Point],
-                                  Tuple[Point, Point]]:
-    relationship = to_segments_relationship(first_segment, second_segment)
-    if relationship is SegmentsRelationship.NONE:
-        return ()
-    elif relationship is SegmentsRelationship.CROSS:
-        first_start, first_end = first_segment
-        second_start, second_end = second_segment
-        if first_start == second_start or first_start == second_end:
-            return first_start,
-        elif first_end == second_start or first_end == second_end:
-            return first_end,
-        else:
-            first_start_real, first_end_real = (_to_real_point(first_start),
-                                                _to_real_point(first_end))
-            second_start_real, second_end_real = (_to_real_point(second_start),
-                                                  _to_real_point(second_end))
-            numerator = parallelogram.signed_area(first_start_real,
-                                                  second_start_real,
-                                                  second_start_real,
-                                                  second_end_real)
-            denominator = parallelogram.signed_area(first_start_real,
-                                                    first_end_real,
-                                                    second_start_real,
-                                                    second_end_real)
-            first_start_x, first_start_y = first_start
-            first_end_x, first_end_y = first_end
-            first_delta_x, first_delta_y = (first_end_x - first_start_x,
-                                            first_end_y - first_start_y)
-            denominator_inv = 1 / denominator
-            x = ((first_start_x * denominator + first_delta_x * numerator)
-                 * denominator_inv)
-            y = ((first_start_y * denominator + first_delta_y * numerator)
-                 * denominator_inv)
-            return Point(x, y),
-    else:
-        _, first_intersection_point, second_intersection_point, _ = sorted(
-                first_segment + second_segment)
-        return first_intersection_point, second_intersection_point
+                     find_intersections)
+from .point import Point
 
 
 class SweepEvent:
