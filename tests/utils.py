@@ -18,6 +18,10 @@ def to_pairs(strategy: Strategy[Domain]) -> Strategy[Tuple[Domain, Domain]]:
     return strategies.tuples(strategy, strategy)
 
 
+def identity(value: Domain) -> Domain:
+    return value
+
+
 def pack(function: Callable[..., Range]
          ) -> Callable[[Iterable[Domain]], Range]:
     return partial(apply, function)

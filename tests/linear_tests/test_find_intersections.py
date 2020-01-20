@@ -26,3 +26,10 @@ def test_commutativity(segments_pair: Tuple[Segment, Segment]) -> None:
     result = find_intersections(first_segment, second_segment)
 
     assert result == find_intersections(second_segment, first_segment)
+
+
+@given(strategies.segments)
+def test_self(segment: Segment) -> None:
+    result = find_intersections(segment, segment)
+
+    assert result == tuple(sorted(segment))
