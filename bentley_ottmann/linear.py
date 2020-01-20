@@ -122,12 +122,6 @@ def point_orientation_with_segment(segment, point: Point) -> Orientation:
     return to_orientation(end, start, point)
 
 
-def to_segment(start: Point, end: Point) -> Segment:
-    if start == end:
-        raise ValueError('Degenerate segment found.')
-    return Segment(start, end)
-
-
 def _in_segment(point: Point, segment: Segment) -> bool:
     segment_start, segment_end = segment
     if point == segment_start or point == segment_end:
