@@ -17,19 +17,21 @@ from .point import Point
 
 
 class SweepEvent:
-    __slots__ = ('is_left', 'point', 'complement', 'segment', 'segment_id')
+    __slots__ = ('is_left', 'point', 'complement', 'segment_id')
 
     def __init__(self, is_left: bool, point: Point,
                  complement: Optional['SweepEvent'],
-                 segment: Segment,
                  segment_id: int) -> None:
         self.is_left = is_left
         self.point = point
         self.complement = complement
-        self.segment = segment
         self.segment_id = segment_id
 
     __repr__ = recursive_repr()(generate_repr(__init__))
+
+    @property
+    def segment(self) -> Segment:
+        return Segment(self.point, self.complement.point)
 
     def is_above(self, point: Point) -> bool:
         return ((to_orientation(self.point, point, self.complement.point)
@@ -146,10 +148,8 @@ def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[SweepEvent]:
                                  reverse=True)
     for segment_id, segment in enumerate(segments):
         segment_start, segment_end = segment
-        source_event = SweepEvent(True, segment_start, None, segment,
-                                  segment_id)
-        end_event = SweepEvent(True, segment_end, source_event,
-                               Segment(segment_end, segment_start), segment_id)
+        source_event = SweepEvent(True, segment_start, None, segment_id)
+        end_event = SweepEvent(True, segment_end, source_event, segment_id)
         source_event.complement = end_event
         if min(segment) == segment_start:
             end_event.is_left = False
@@ -218,12 +218,11 @@ def _detect_intersection(first_event: SweepEvent, second_event: SweepEvent,
     def divide_segment(event: SweepEvent, point: Point) -> None:
         # "left event" of the "right line segment"
         # resulting from dividing event.segment
-        left_event = SweepEvent(True, point, event.complement, event.segment,
+        left_event = SweepEvent(True, point, event.complement,
                                 event.segment_id)
         # "right event" of the "left line segment"
         # resulting from dividing event.segment
-        right_event = SweepEvent(False, point, event, event.complement.segment,
-                                 event.segment_id)
+        right_event = SweepEvent(False, point, event, event.segment_id)
         if EventsQueueKey(left_event) < EventsQueueKey(event.complement):
             # avoid a rounding error,
             # the left event would be processed after the right event
