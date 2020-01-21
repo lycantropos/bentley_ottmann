@@ -85,9 +85,13 @@ class EventsQueueKey:
             return event.is_left
         # same point, both events are left endpoints
         # or both are right endpoints
-        else:
+        elif (to_orientation(event.point, other_event.complement.point,
+                             event.complement.point)
+              is not Orientation.COLLINEAR):  # not collinear
             # the event associate to the bottom segment is processed first
             return event.is_above(other_event.complement.point)
+        else:
+            return event.segment_id == other_event.segment_id
 
 
 class SweepLineKey:
