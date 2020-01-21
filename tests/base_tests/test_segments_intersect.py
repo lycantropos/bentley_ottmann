@@ -1,11 +1,10 @@
-from fractions import Fraction
 from typing import List
 
 from hypothesis import given
 
 from bentley_ottmann.base import segments_intersect
-from bentley_ottmann.linear import Segment, find_intersections
-from bentley_ottmann.point import Point
+from bentley_ottmann.linear import (Segment,
+                                    find_intersections)
 from . import strategies
 
 
