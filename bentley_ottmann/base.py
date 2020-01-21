@@ -1,8 +1,11 @@
+from collections import OrderedDict
 from itertools import combinations
 from reprlib import recursive_repr
-from typing import (Iterable,
+from typing import (Dict,
+                    Iterable,
                     Optional,
                     Sequence,
+                    Set,
                     Tuple)
 
 from dendroid import red_black
@@ -160,8 +163,28 @@ def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[SweepEvent]:
     return events_queue
 
 
-def sweep(segments: Sequence[Segment]
-          ) -> Iterable[Tuple[Point, Tuple[int, int]]]:
+def segments_intersect(segments: Sequence[Segment]) -> bool:
+    return any(_sweep(segments))
+
+
+def edges_intersect(edges: Sequence[Segment]) -> bool:
+    last_edge_index = len(edges) - 1
+    return any(next_segment_id - segment_id > 1
+               and (segment_id != 0 or next_segment_id != last_edge_index)
+               for segment_id, next_segment_id in _sweep(edges))
+
+
+def segments_intersections(segments: Sequence[Segment]
+                           ) -> Dict[Point, Set[Tuple[int, int]]]:
+    result = OrderedDict()
+    for segment_id, next_segment_id in _sweep(segments):
+        for point in find_intersections(segments[segment_id],
+                                        segments[next_segment_id]):
+            result.setdefault(point, set()).add((segment_id, next_segment_id))
+    return result
+
+
+def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
     events_queue = _to_events_queue(segments)
     sweep_line = red_black.tree(key=SweepLineKey)
     while events_queue:
@@ -175,8 +198,7 @@ def sweep(segments: Sequence[Segment]
             if (segment_id != other_segment_id
                     and point in segments[segment_id]
                     and point in segments[other_segment_id]):
-                yield point, _to_sorted_pair(segment_id,
-                                             other_segment_id)
+                yield _to_sorted_pair(segment_id, other_segment_id)
         for event in same_point_events:
             if event.is_left:
                 sweep_line.add(event)
@@ -253,8 +275,8 @@ def _detect_intersection(first_event: SweepEvent, second_event: SweepEvent,
             # if the intersection point is not an endpoint of le2.segment
             divide_segment(second_event, point)
         if not_first_event_endpoint or not_first_event_endpoint:
-            yield point, _to_sorted_pair(first_event.segment_id,
-                                         second_event.segment_id)
+            yield _to_sorted_pair(first_event.segment_id,
+                                  second_event.segment_id)
         return
 
     # The line segments associated to le1 and le2 overlap
@@ -281,9 +303,7 @@ def _detect_intersection(first_event: SweepEvent, second_event: SweepEvent,
     if len(sorted_events) == 2:
         # both line segments are equal
         return
-    for point in intersections_points:
-        yield point, _to_sorted_pair(first_event.segment_id,
-                                     second_event.segment_id)
+    yield _to_sorted_pair(first_event.segment_id, second_event.segment_id)
     if len(sorted_events) == 3:
         # line segments share endpoint
         if sorted_events[2]:
