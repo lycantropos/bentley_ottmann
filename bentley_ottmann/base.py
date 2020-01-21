@@ -17,21 +17,19 @@ from .point import Point
 
 
 class SweepEvent:
-    __slots__ = ('is_left', 'point', 'complement', 'segment_id')
+    __slots__ = ('is_left', 'point', 'complement', 'segment', 'segment_id')
 
     def __init__(self, is_left: bool, point: Point,
                  complement: Optional['SweepEvent'],
+                 segment: Segment,
                  segment_id: int) -> None:
         self.is_left = is_left
         self.point = point
         self.complement = complement
+        self.segment = segment
         self.segment_id = segment_id
 
     __repr__ = recursive_repr()(generate_repr(__init__))
-
-    @property
-    def segment(self) -> Segment:
-        return Segment(self.point, self.complement.point)
 
     def is_above(self, point: Point) -> bool:
         return ((to_orientation(self.point, point, self.complement.point)
@@ -144,8 +142,10 @@ def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[SweepEvent]:
                                  reverse=True)
     for segment_id, segment in enumerate(segments):
         segment_start, segment_end = segment
-        source_event = SweepEvent(True, segment_start, None, segment_id)
-        end_event = SweepEvent(True, segment_end, source_event, segment_id)
+        source_event = SweepEvent(True, segment_start, None, segment,
+                                  segment_id)
+        end_event = SweepEvent(True, segment_end, source_event,
+                               Segment(segment_end, segment_start), segment_id)
         source_event.complement = end_event
         if min(segment) == segment_start:
             end_event.is_left = False
@@ -166,9 +166,13 @@ def sweep(segments: Sequence[Segment]
         while events_queue and events_queue.peek().point == point:
             same_point_events.append(events_queue.pop())
         for event, other_event in combinations(same_point_events, 2):
-            if event.segment_id != other_event.segment_id:
-                yield point, _to_sorted_pair(event.segment_id,
-                                             other_event.segment_id)
+            segment_id, other_segment_id = (event.segment_id,
+                                            other_event.segment_id)
+            if (segment_id != other_segment_id
+                    and point in segments[segment_id]
+                    and point in segments[other_segment_id]):
+                yield point, _to_sorted_pair(segment_id,
+                                             other_segment_id)
         for event in same_point_events:
             if event.is_left:
                 sweep_line.add(event)
@@ -207,15 +211,15 @@ def sweep(segments: Sequence[Segment]
 def _detect_intersection(first_event: SweepEvent, second_event: SweepEvent,
                          events_queue: PriorityQueue
                          ) -> Iterable[Tuple[Point, Tuple[int, int]]]:
-    def divide_segment(event: SweepEvent, point: Point,
-                       other_segment_id: int) -> None:
+    def divide_segment(event: SweepEvent, point: Point) -> None:
         # "left event" of the "right line segment"
         # resulting from dividing event.segment
-        left_event = SweepEvent(True, point, event.complement,
+        left_event = SweepEvent(True, point, event.complement, event.segment,
                                 event.segment_id)
         # "right event" of the "left line segment"
         # resulting from dividing event.segment
-        right_event = SweepEvent(False, point, event, other_segment_id)
+        right_event = SweepEvent(False, point, event, event.complement.segment,
+                                 event.segment_id)
         if EventsQueueKey(left_event) < EventsQueueKey(event.complement):
             # avoid a rounding error,
             # the left event would be processed after the right event
@@ -237,13 +241,13 @@ def _detect_intersection(first_event: SweepEvent, second_event: SweepEvent,
         if (first_event.point != point
                 and first_event.complement.point != point):
             # if the intersection point is not an endpoint of le1.segment
-            divide_segment(first_event, point, second_event.segment_id)
+            divide_segment(first_event, point)
             yield point, _to_sorted_pair(first_event.segment_id,
                                          second_event.segment_id)
         if (second_event.point != point
                 and second_event.complement.point != point):
             # if the intersection point is not an endpoint of le2.segment
-            divide_segment(second_event, point, first_event.segment_id)
+            divide_segment(second_event, point)
             yield point, _to_sorted_pair(first_event.segment_id,
                                          second_event.segment_id)
         return
@@ -276,29 +280,22 @@ def _detect_intersection(first_event: SweepEvent, second_event: SweepEvent,
         yield point, _to_sorted_pair(first_event.segment_id,
                                      second_event.segment_id)
     if len(sorted_events) == 3:
+        # line segments share endpoint
         if sorted_events[2]:
             # line segments share the left endpoint
-            divide_segment(sorted_events[2].complement,
-                           sorted_events[1].point,
-                           sorted_events[1].segment_id)
+            divide_segment(sorted_events[2].complement, sorted_events[1].point)
         else:
             # line segments share the right endpoint
-            divide_segment(sorted_events[0], sorted_events[1].point,
-                           sorted_events[1].segment_id)
+            divide_segment(sorted_events[0], sorted_events[1].point)
         return
+    elif sorted_events[0] is not sorted_events[3].complement:
+        # no line segment includes totally the other one
+        divide_segment(sorted_events[0], sorted_events[1].point)
+        divide_segment(sorted_events[1], sorted_events[2].point)
     else:
-        if sorted_events[0] is not sorted_events[3].complement:
-            # no line segment includes totally the other one
-            divide_segment(sorted_events[0], sorted_events[1].point,
-                           sorted_events[1].segment_id)
-            divide_segment(sorted_events[1], sorted_events[2].point,
-                           sorted_events[2].segment_id)
-            return
         # one line segment includes the other one
-        divide_segment(sorted_events[0], sorted_events[1].point,
-                       sorted_events[1].segment_id)
-        divide_segment(sorted_events[3].complement, sorted_events[2].point,
-                       sorted_events[2].segment_id)
+        divide_segment(sorted_events[0], sorted_events[1].point)
+        divide_segment(sorted_events[3].complement, sorted_events[2].point)
 
 
 def _to_sorted_pair(left_coordinate: int,
