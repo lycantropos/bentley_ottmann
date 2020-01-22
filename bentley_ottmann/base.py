@@ -20,34 +20,38 @@ from .point import Point
 
 
 class SweepEvent:
-    __slots__ = ('is_left', 'point', 'complement', 'segment_id')
+    __slots__ = ('is_left', 'start', 'complement', 'segment_id')
 
-    def __init__(self, is_left: bool, point: Point,
+    def __init__(self, is_left: bool, start: Point,
                  complement: Optional['SweepEvent'],
                  segment_id: int) -> None:
         self.is_left = is_left
-        self.point = point
+        self.start = start
         self.complement = complement
         self.segment_id = segment_id
 
     __repr__ = recursive_repr()(generate_repr(__init__))
 
     @property
+    def end(self) -> Point:
+        return self.complement.start
+
+    @property
     def segment(self) -> Segment:
-        return Segment(self.point, self.complement.point)
+        return Segment(self.start, self.end)
 
     def is_above(self, point: Point) -> bool:
-        return ((to_orientation(self.point, point, self.complement.point)
+        return ((to_orientation(self.start, point, self.end)
                  is Orientation.CLOCKWISE)
                 if self.is_left
-                else (to_orientation(self.complement.point, point, self.point)
+                else (to_orientation(self.end, point, self.start)
                       is Orientation.CLOCKWISE))
 
     def is_below(self, point: Point) -> bool:
-        return ((to_orientation(self.point, point, self.complement.point)
+        return ((to_orientation(self.start, point, self.end)
                  is Orientation.COUNTERCLOCKWISE)
                 if self.is_left
-                else (to_orientation(self.complement.point, point, self.point)
+                else (to_orientation(self.end, point, self.start)
                       is Orientation.COUNTERCLOCKWISE))
 
 
@@ -72,17 +76,17 @@ class EventsQueueKey:
         if not isinstance(other, EventsQueueKey):
             return NotImplemented
         event, other_event = self.event, other.event
-        event_point, other_event_point = event.point, other_event.point
-        event_point_x, event_point_y = event_point
-        other_event_point_x, other_event_point_y = other_event_point
-        if event_point_x != other_event_point_x:
+        event_start, other_event_start = event.start, other_event.start
+        event_start_x, event_start_y = event_start
+        other_event_start_x, other_event_start_y = other_event_start
+        if event_start_x != other_event_start_x:
             # different x-coordinate,
             # the event with lower x-coordinate is processed first
-            return event_point_x > other_event_point_x
-        elif event_point_y != other_event_point_y:
+            return event_start_x > other_event_start_x
+        elif event_start_y != other_event_start_y:
             # different points, but same x-coordinate,
             # the event with lower y-coordinate is processed first
-            return event_point_y > other_event_point_y
+            return event_start_y > other_event_start_y
         elif event.is_left is not other_event.is_left:
             # same point, but one is a left endpoint
             # and the other a right endpoint,
@@ -90,7 +94,7 @@ class EventsQueueKey:
             return event.is_left
         # same point, both events are left endpoints
         # or both are right endpoints
-        return event.is_above(other_event.complement.point)
+        return event.is_above(other_event.end)
 
 
 class SweepLineKey:
@@ -112,48 +116,46 @@ class SweepLineKey:
         if self is other:
             return False
         event, other_event = self.event, other.event
-        event_point, other_event_point = event.point, other_event.point
-        if not ((to_orientation(event_point, other_event_point,
-                                event.complement.point)
+        event_start, other_event_start = event.start, other_event.start
+        if not ((to_orientation(event_start, other_event_start, event.end)
                  is not Orientation.COLLINEAR)
-                or (to_orientation(event_point, other_event.complement.point,
-                                   event.complement.point)
+                or (to_orientation(event_start, other_event.end, event.end)
                     is not Orientation.COLLINEAR)):
             # segments are collinear
             return (event.segment_id != other_event.segment_id
                     and EventsQueueKey(event) < EventsQueueKey(other_event))
         # segments are not collinear
-        elif event_point == other_event_point:
+        elif event_start == other_event_start:
             # same left endpoint, use the right endpoint to sort
-            return event.is_below(other_event.complement.point)
+            return event.is_below(other_event.end)
         # different left endpoint, use the left endpoint to sort
-        event_point_x, event_point_y = event_point
-        other_event_point_x, other_event_point_y = other_event_point
-        if event_point_x == other_event_point_x:
-            return event_point_y < other_event_point_y
+        event_start_x, event_start_y = event_start
+        other_event_start_x, other_event_start_y = other_event_start
+        if event_start_x == other_event_start_x:
+            return event_start_y < other_event_start_y
         elif EventsQueueKey(event) < EventsQueueKey(other_event):
-            # has the line segment associated to `self` been inserted
-            # into sweep line after the line segment associated to `other`?
-            return other_event.is_above(event_point)
-        else:
             # the line segment associated to `other_event` has been inserted
             # into sweep line after the line segment associated to `self`
-            return event.is_below(other_event_point)
+            return event.is_below(other_event_start)
+        else:
+            # has the line segment associated to `self` been inserted
+            # into sweep line after the line segment associated to `other`?
+            return other_event.is_above(event_start)
 
 
 def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[SweepEvent]:
     events_queue = PriorityQueue(key=EventsQueueKey,
                                  reverse=True)
     for segment_id, segment in enumerate(segments):
-        segment_start, segment_end = segment
-        source_event = SweepEvent(True, segment_start, None, segment_id)
-        end_event = SweepEvent(True, segment_end, source_event, segment_id)
-        source_event.complement = end_event
-        if min(segment) == segment_start:
+        start, end = segment
+        start_event = SweepEvent(True, start, None, segment_id)
+        end_event = SweepEvent(True, end, start_event, segment_id)
+        start_event.complement = end_event
+        if min(segment) == start:
             end_event.is_left = False
         else:
-            source_event.is_left = False
-        events_queue.push(source_event)
+            start_event.is_left = False
+        events_queue.push(start_event)
         events_queue.push(end_event)
     return events_queue
 
@@ -184,8 +186,8 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
     sweep_line = red_black.tree(key=SweepLineKey)
     while events_queue:
         event = events_queue.pop()
-        point, same_point_events = event.point, [event]
-        while events_queue and events_queue.peek().point == point:
+        point, same_point_events = event.start, [event]
+        while events_queue and events_queue.peek().start == point:
             same_point_events.append(events_queue.pop())
         for event, other_event in combinations(same_point_events, 2):
             segment_id, other_segment_id = (event.segment_id,
@@ -258,16 +260,16 @@ def _detect_intersection(first_event: SweepEvent, second_event: SweepEvent,
     # The line segments associated to le1 and le2 intersect
     if len(intersections_points) == 1:
         point, = intersections_points
-        not_first_event_endpoint = (first_event.point != point
-                                    and first_event.complement.point != point)
+        not_first_event_endpoint = (first_event.start != point
+                                    and first_event.end != point)
         not_second_event_endpoint = (
-                second_event.point != point
-                and second_event.complement.point != point)
+                second_event.start != point
+                and second_event.end != point)
         if not_first_event_endpoint:
-            # if the intersection point is not an endpoint of le1.segment
+            # if the intersection start is not an endpoint of le1.segment
             divide_segment(first_event, point)
         if not_second_event_endpoint:
-            # if the intersection point is not an endpoint of le2.segment
+            # if the intersection start is not an endpoint of le2.segment
             divide_segment(second_event, point)
         if not_first_event_endpoint or not_first_event_endpoint:
             yield _to_sorted_pair(first_event.segment_id,
@@ -276,7 +278,7 @@ def _detect_intersection(first_event: SweepEvent, second_event: SweepEvent,
 
     # The line segments associated to le1 and le2 overlap
     sorted_events = []
-    if first_event.point == second_event.point:
+    if first_event.start == second_event.start:
         sorted_events.append(None)
     elif EventsQueueKey(first_event) < EventsQueueKey(second_event):
         sorted_events.append(second_event)
@@ -285,7 +287,7 @@ def _detect_intersection(first_event: SweepEvent, second_event: SweepEvent,
         sorted_events.append(first_event)
         sorted_events.append(second_event)
 
-    if first_event.complement.point == second_event.complement.point:
+    if first_event.end == second_event.end:
         sorted_events.append(None)
     elif (EventsQueueKey(first_event.complement)
           < EventsQueueKey(second_event.complement)):
@@ -303,19 +305,19 @@ def _detect_intersection(first_event: SweepEvent, second_event: SweepEvent,
         # line segments share endpoint
         if sorted_events[2]:
             # line segments share the left endpoint
-            divide_segment(sorted_events[2].complement, sorted_events[1].point)
+            divide_segment(sorted_events[2].complement, sorted_events[1].start)
         else:
             # line segments share the right endpoint
-            divide_segment(sorted_events[0], sorted_events[1].point)
+            divide_segment(sorted_events[0], sorted_events[1].start)
         return
     elif sorted_events[0] is not sorted_events[3].complement:
         # no line segment includes totally the other one
-        divide_segment(sorted_events[0], sorted_events[1].point)
-        divide_segment(sorted_events[1], sorted_events[2].point)
+        divide_segment(sorted_events[0], sorted_events[1].start)
+        divide_segment(sorted_events[1], sorted_events[2].start)
     else:
         # one line segment includes the other one
-        divide_segment(sorted_events[0], sorted_events[1].point)
-        divide_segment(sorted_events[3].complement, sorted_events[2].point)
+        divide_segment(sorted_events[0], sorted_events[1].start)
+        divide_segment(sorted_events[3].complement, sorted_events[2].start)
 
 
 def _to_sorted_pair(left_coordinate: int,
