@@ -119,7 +119,8 @@ def to_segments_relationship(left: Segment,
         return SegmentsRelationship.NONE
 
 
-def point_orientation_with_segment(segment, point: Point) -> Orientation:
+def point_orientation_with_segment(segment: Segment,
+                                   point: Point) -> Orientation:
     start, end = segment
     return to_orientation(end, start, point)
 
