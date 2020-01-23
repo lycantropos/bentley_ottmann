@@ -212,11 +212,11 @@ def _find_intersection(first_segment: Segment, second_segment: Segment,
         second_numerator_y = (second_start_y * denominator
                               + second_delta_y * second_numerator)
         intersection_point = Point((first_numerator_x + second_numerator_x)
-                                   / 2
-                                   * denominator_inv,
+                                   * denominator_inv
+                                   / 2,
                                    (first_numerator_y + second_numerator_y)
-                                   / 2
-                                   * denominator_inv)
+                                   * denominator_inv
+                                   / 2)
         return (intersection_point
                 if are_real_segments
                 else _to_scalar_point(intersection_point, coordinate_type))
