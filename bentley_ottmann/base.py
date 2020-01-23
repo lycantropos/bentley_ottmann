@@ -97,11 +97,9 @@ class EventsQueueKey:
         # or both are right endpoints
         elif event.end == other_event.end:
             return event.segments_ids < other_event.segments_ids
-        elif event.is_vertical:
-            return event.end.y > other_event.end.y
         else:
             return ((event if event.is_left else event.complement)
-                    .is_above(other_event.end))
+                    .is_below(other_event.end))
 
 
 class SweepLineKey:
