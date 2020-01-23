@@ -19,11 +19,11 @@ from .linear import (Segment,
 from .point import Point
 
 
-class SweepEvent:
+class Event:
     __slots__ = ('is_left', 'start', 'complement', 'segment_id')
 
     def __init__(self, is_left: bool, start: Point,
-                 complement: Optional['SweepEvent'],
+                 complement: Optional['Event'],
                  segment_id: int) -> None:
         self.is_left = is_left
         self.start = start
@@ -55,14 +55,14 @@ class SweepEvent:
                       is Orientation.COUNTERCLOCKWISE))
 
 
-SweepLine = red_black.Tree[SweepEvent]
-EventsQueue = PriorityQueue[SweepEvent]
+SweepLine = red_black.Tree[Event]
+EventsQueue = PriorityQueue[Event]
 
 
 class EventsQueueKey:
     __slots__ = ('event',)
 
-    def __init__(self, event: SweepEvent) -> None:
+    def __init__(self, event: Event) -> None:
         self.event = event
 
     __repr__ = generate_repr(__init__)
@@ -100,7 +100,7 @@ class EventsQueueKey:
 class SweepLineKey:
     __slots__ = ('event',)
 
-    def __init__(self, event: SweepEvent) -> None:
+    def __init__(self, event: Event) -> None:
         self.event = event
 
     __repr__ = generate_repr(__init__)
@@ -143,13 +143,13 @@ class SweepLineKey:
             return other_event.is_above(event_start)
 
 
-def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[SweepEvent]:
+def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[Event]:
     events_queue = PriorityQueue(key=EventsQueueKey,
                                  reverse=True)
     for segment_id, segment in enumerate(segments):
         start, end = segment
-        start_event = SweepEvent(True, start, None, segment_id)
-        end_event = SweepEvent(True, end, start_event, segment_id)
+        start_event = Event(True, start, None, segment_id)
+        end_event = Event(True, end, start_event, segment_id)
         start_event.complement = end_event
         if min(segment) == start:
             end_event.is_left = False
@@ -231,17 +231,17 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
                                                     events_queue=events_queue)
 
 
-def _detect_intersection(first_event: SweepEvent, second_event: SweepEvent,
+def _detect_intersection(first_event: Event, second_event: Event,
                          events_queue: PriorityQueue
                          ) -> Iterable[Tuple[Point, Tuple[int, int]]]:
-    def divide_segment(event: SweepEvent, point: Point) -> None:
+    def divide_segment(event: Event, point: Point) -> None:
         # "left event" of the "right line segment"
         # resulting from dividing event.segment
-        left_event = SweepEvent(True, point, event.complement,
-                                event.segment_id)
+        left_event = Event(True, point, event.complement,
+                           event.segment_id)
         # "right event" of the "left line segment"
         # resulting from dividing event.segment
-        right_event = SweepEvent(False, point, event, event.segment_id)
+        right_event = Event(False, point, event, event.segment_id)
         if EventsQueueKey(left_event) < EventsQueueKey(event.complement):
             # avoid a rounding error,
             # the left event would be processed after the right event
