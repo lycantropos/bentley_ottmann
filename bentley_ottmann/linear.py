@@ -35,7 +35,7 @@ def to_segments_relationship(left: Segment,
     left_start_orientation = point_orientation_with_segment(right, left_start)
     left_end_orientation = point_orientation_with_segment(right, left_end)
     if (left_start_orientation is Orientation.COLLINEAR
-            and _in_segment(left_start, right)):
+            and _point_in_segment(left_start, right)):
         if left_end_orientation is Orientation.COLLINEAR:
             if left_start == right_start:
                 if (to_angle_kind(left_end, left_start, right_end)
@@ -54,7 +54,7 @@ def to_segments_relationship(left: Segment,
         else:
             return SegmentsRelationship.CROSS
     elif (left_end_orientation is Orientation.COLLINEAR
-          and _in_segment(left_end, right)):
+          and _point_in_segment(left_end, right)):
         if left_start_orientation is Orientation.COLLINEAR:
             if left_end == right_start:
                 if (to_angle_kind(left_start, left_end, right_end)
@@ -78,7 +78,7 @@ def to_segments_relationship(left: Segment,
             and right_start_orientation * right_end_orientation < 0):
         return SegmentsRelationship.CROSS
     elif (right_start_orientation is Orientation.COLLINEAR
-          and _in_segment(right_start, left)):
+          and _point_in_segment(right_start, left)):
         if right_end_orientation is Orientation.COLLINEAR:
             if right_start == left_start:
                 if (to_angle_kind(right_end, right_start, left_end)
@@ -97,7 +97,7 @@ def to_segments_relationship(left: Segment,
         else:
             return SegmentsRelationship.CROSS
     elif (right_end_orientation is Orientation.COLLINEAR
-          and _in_segment(right_end, left)):
+          and _point_in_segment(right_end, left)):
         if right_start_orientation is Orientation.COLLINEAR:
             if right_end == left_start:
                 if (to_angle_kind(right_start, right_end, left_end)
@@ -125,7 +125,7 @@ def point_orientation_with_segment(segment: Segment,
     return to_orientation(end, start, point)
 
 
-def _in_segment(point: Point, segment: Segment) -> bool:
+def _point_in_segment(point: Point, segment: Segment) -> bool:
     segment_start, segment_end = segment
     if point == segment_start or point == segment_end:
         return True
