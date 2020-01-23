@@ -48,11 +48,11 @@ class Event:
         return Segment(self.start, self.end)
 
     def is_above(self, point: Point) -> bool:
-        return (point_orientation_with_segment(self.segment, point)
+        return (point_orientation_with_segment(point, self.segment)
                 is Orientation.CLOCKWISE)
 
     def is_below(self, point: Point) -> bool:
-        return (point_orientation_with_segment(self.segment, point)
+        return (point_orientation_with_segment(point, self.segment)
                 is Orientation.COUNTERCLOCKWISE)
 
 
@@ -125,9 +125,9 @@ class SweepLineKey:
         start, other_start = event.start, other_event.start
         end, other_end = event.end, other_event.end
         orientation_with_other_start = point_orientation_with_segment(
-                event.segment, other_start)
+                other_start, event.segment)
         orientation_with_other_end = point_orientation_with_segment(
-                event.segment, other_end)
+                other_end, event.segment)
         if ((orientation_with_other_start is Orientation.COLLINEAR)
                 and (orientation_with_other_end is Orientation.COLLINEAR)):
             # segments are collinear
@@ -145,7 +145,7 @@ class SweepLineKey:
             return event.is_below(other_end)
         elif orientation_with_other_end is Orientation.COLLINEAR:
             other_orientation_with_end = point_orientation_with_segment(
-                    other_event.segment, end)
+                    end, other_event.segment)
             if other_orientation_with_end is Orientation.COLLINEAR:
                 return event.is_below(other_start)
             else:
@@ -158,7 +158,7 @@ class SweepLineKey:
             # has the line segment associated to `self` been inserted
             # into sweep line after the line segment associated to `other`?
             other_orientation_with_start = point_orientation_with_segment(
-                    other_event.segment, start)
+                    start, other_event.segment)
             if other_orientation_with_start is Orientation.COLLINEAR:
                 return other_event.is_above(end)
             else:

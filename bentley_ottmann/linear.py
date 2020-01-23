@@ -32,8 +32,8 @@ def to_segments_relationship(left: Segment,
         return SegmentsRelationship.OVERLAP
     left_start, left_end = left
     right_start, right_end = right
-    left_start_orientation = point_orientation_with_segment(right, left_start)
-    left_end_orientation = point_orientation_with_segment(right, left_end)
+    left_start_orientation = point_orientation_with_segment(left_start, right)
+    left_end_orientation = point_orientation_with_segment(left_end, right)
     if (left_start_orientation is Orientation.COLLINEAR
             and _point_in_segment(left_start, right)):
         if left_end_orientation is Orientation.COLLINEAR:
@@ -72,8 +72,8 @@ def to_segments_relationship(left: Segment,
                 return SegmentsRelationship.OVERLAP
         else:
             return SegmentsRelationship.CROSS
-    right_start_orientation = point_orientation_with_segment(left, right_start)
-    right_end_orientation = point_orientation_with_segment(left, right_end)
+    right_start_orientation = point_orientation_with_segment(right_start, left)
+    right_end_orientation = point_orientation_with_segment(right_end, left)
     if (left_start_orientation * left_end_orientation < 0
             and right_start_orientation * right_end_orientation < 0):
         return SegmentsRelationship.CROSS
@@ -119,8 +119,8 @@ def to_segments_relationship(left: Segment,
         return SegmentsRelationship.NONE
 
 
-def point_orientation_with_segment(segment: Segment,
-                                   point: Point) -> Orientation:
+def point_orientation_with_segment(point: Point,
+                                   segment: Segment) -> Orientation:
     start, end = segment
     return to_orientation(end, start, point)
 
