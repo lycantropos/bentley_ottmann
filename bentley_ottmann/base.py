@@ -100,7 +100,8 @@ class EventsQueueKey:
         elif event.is_vertical:
             return event.end.y > other_event.end.y
         else:
-            return event.is_above(other_event.end)
+            return ((event if event.is_left else event.complement)
+                    .is_above(other_event.end))
 
 
 class SweepLineKey:
