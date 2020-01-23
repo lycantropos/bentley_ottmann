@@ -82,11 +82,11 @@ class EventsQueueKey:
         if event_start_x != other_event_start_x:
             # different x-coordinate,
             # the event with lower x-coordinate is processed first
-            return event_start_x > other_event_start_x
+            return event_start_x < other_event_start_x
         elif event_start_y != other_event_start_y:
             # different points, but same x-coordinate,
             # the event with lower y-coordinate is processed first
-            return event_start_y > other_event_start_y
+            return event_start_y < other_event_start_y
         elif event.is_left is not other_event.is_left:
             # same point, but one is a left endpoint
             # and the other a right endpoint,
@@ -94,7 +94,7 @@ class EventsQueueKey:
             return event.is_left
         # same point, both events are left endpoints
         # or both are right endpoints
-        return event.is_above(other_event.end)
+        return event.is_below(other_event.end)
 
 
 class SweepLineKey:
@@ -144,8 +144,7 @@ class SweepLineKey:
 
 
 def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[Event]:
-    events_queue = PriorityQueue(key=EventsQueueKey,
-                                 reverse=True)
+    events_queue = PriorityQueue(key=EventsQueueKey)
     for segment_id, segment in enumerate(segments):
         start, end = segment
         start_event = Event(True, start, None, segment_id)
@@ -242,7 +241,7 @@ def _detect_intersection(first_event: Event, second_event: Event,
         # "right event" of the "left line segment"
         # resulting from dividing event.segment
         right_event = Event(False, point, event, event.segment_id)
-        if EventsQueueKey(left_event) < EventsQueueKey(event.complement):
+        if EventsQueueKey(left_event) > EventsQueueKey(event.complement):
             # avoid a rounding error,
             # the left event would be processed after the right event
             event.complement.is_left = True
