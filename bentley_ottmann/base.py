@@ -12,8 +12,7 @@ from dendroid import red_black
 from prioq.base import PriorityQueue
 from reprit.base import generate_repr
 
-from .angular import (Orientation,
-                      to_orientation)
+from .angular import Orientation
 from .linear import (Segment,
                      find_intersections,
                      point_orientation_with_segment)
@@ -34,6 +33,12 @@ class Event:
     __repr__ = recursive_repr()(generate_repr(__init__))
 
     @property
+    def is_vertical(self) -> bool:
+        start_x, _ = self.start
+        end_x, _ = self.end
+        return start_x == end_x
+
+    @property
     def end(self) -> Point:
         return self.complement.start
 
@@ -41,16 +46,12 @@ class Event:
     def segment(self) -> Segment:
         return Segment(self.start, self.end)
 
-    @property
-    def sorted_segment(self) -> Segment:
-        return self.segment if self.is_left else self.complement.segment
-
     def is_above(self, point: Point) -> bool:
-        return (point_orientation_with_segment(self.sorted_segment, point)
+        return (point_orientation_with_segment(self.segment, point)
                 is Orientation.CLOCKWISE)
 
     def is_below(self, point: Point) -> bool:
-        return (point_orientation_with_segment(self.sorted_segment, point)
+        return (point_orientation_with_segment(self.segment, point)
                 is Orientation.COUNTERCLOCKWISE)
 
 
@@ -90,10 +91,13 @@ class EventsQueueKey:
             # same point, but one is a left endpoint
             # and the other a right endpoint,
             # the right endpoint is processed first
-            return event.is_left
+            return not event.is_left
         # same point, both events are left endpoints
         # or both are right endpoints
-        return event.is_below(other_event.end)
+        elif event.end == other_event.end:
+            return event.segment_id < other_event.segment_id
+        else:
+            return event.is_below(other_event.end)
 
 
 class SweepLineKey:
@@ -115,44 +119,58 @@ class SweepLineKey:
         if self is other:
             return False
         event, other_event = self.event, other.event
-        event_start, other_event_start = event.start, other_event.start
-        if not ((to_orientation(event_start, other_event_start, event.end)
-                 is not Orientation.COLLINEAR)
-                or (to_orientation(event_start, other_event.end, event.end)
-                    is not Orientation.COLLINEAR)):
+        if event is other_event:
+            return False
+        start, other_start = event.start, other_event.start
+        end, other_end = event.end, other_event.end
+        orientation_with_other_start = point_orientation_with_segment(
+                event.segment, other_start)
+        orientation_with_other_end = point_orientation_with_segment(
+                event.segment, other_end)
+        if ((orientation_with_other_start is Orientation.COLLINEAR)
+                and (orientation_with_other_end is Orientation.COLLINEAR)):
             # segments are collinear
-            return (event.segment_id != other_event.segment_id
-                    and EventsQueueKey(event) < EventsQueueKey(other_event))
+            return EventsQueueKey(event) < EventsQueueKey(other_event)
         # segments are not collinear
-        elif event_start == other_event_start:
+        elif start == other_start:
             # same left endpoint, use the right endpoint to sort
-            return event.is_below(other_event.end)
+            return event.is_below(other_end)
         # different left endpoint, use the left endpoint to sort
-        event_start_x, event_start_y = event_start
-        other_event_start_x, other_event_start_y = other_event_start
+        event_start_x, event_start_y = start
+        other_event_start_x, other_event_start_y = other_start
         if event_start_x == other_event_start_x:
             return event_start_y < other_event_start_y
+        elif orientation_with_other_start is Orientation.COLLINEAR:
+            return event.is_below(other_end)
+        elif orientation_with_other_end is Orientation.COLLINEAR:
+            other_orientation_with_end = point_orientation_with_segment(
+                    other_event.segment, end)
+            if other_orientation_with_end is Orientation.COLLINEAR:
+                return event.is_below(other_start)
+            else:
+                return other_event.is_above(start)
         elif EventsQueueKey(event) < EventsQueueKey(other_event):
             # the line segment associated to `other_event` has been inserted
             # into sweep line after the line segment associated to `self`
-            return event.is_below(other_event_start)
+            return event.is_below(other_start)
         else:
             # has the line segment associated to `self` been inserted
             # into sweep line after the line segment associated to `other`?
-            return other_event.is_above(event_start)
+            other_orientation_with_start = point_orientation_with_segment(
+                    other_event.segment, start)
+            if other_orientation_with_start is Orientation.COLLINEAR:
+                return other_event.is_above(end)
+            else:
+                return other_event.is_above(start)
 
 
 def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[Event]:
     events_queue = PriorityQueue(key=EventsQueueKey)
     for segment_id, segment in enumerate(segments):
-        start, end = segment
+        start, end = sorted(segment)
         start_event = Event(True, start, None, segment_id)
-        end_event = Event(True, end, start_event, segment_id)
+        end_event = Event(False, end, start_event, segment_id)
         start_event.complement = end_event
-        if min(segment) == start:
-            end_event.is_left = False
-        else:
-            start_event.is_left = False
         events_queue.push(start_event)
         events_queue.push(end_event)
     return events_queue
@@ -240,11 +258,6 @@ def _detect_intersection(first_event: Event, second_event: Event,
         # "right event" of the "left line segment"
         # resulting from dividing event.segment
         right_event = Event(False, point, event, event.segment_id)
-        if EventsQueueKey(left_event) > EventsQueueKey(event.complement):
-            # avoid a rounding error,
-            # the left event would be processed after the right event
-            event.complement.is_left = True
-            left_event.is_left = False
         event.complement.complement, event.complement = left_event, right_event
         events_queue.push(left_event)
         events_queue.push(right_event)
@@ -269,9 +282,7 @@ def _detect_intersection(first_event: Event, second_event: Event,
         if not_second_event_endpoint:
             # if the intersection start is not an endpoint of le2.segment
             divide_segment(second_event, point)
-        if not_first_event_endpoint or not_first_event_endpoint:
-            yield _to_sorted_pair(first_event.segment_id,
-                                  second_event.segment_id)
+        yield _to_sorted_pair(first_event.segment_id, second_event.segment_id)
         return
 
     # The line segments associated to le1 and le2 overlap
