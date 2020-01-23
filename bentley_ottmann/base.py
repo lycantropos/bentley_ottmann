@@ -285,16 +285,9 @@ def _detect_intersection(first_event: Event, second_event: Event,
     # The line segments associated to le1 and le2 intersect
     if len(intersections_points) == 1:
         point, = intersections_points
-        not_first_event_endpoint = (first_event.start != point
-                                    and first_event.end != point)
-        not_second_event_endpoint = (
-                second_event.start != point
-                and second_event.end != point)
-        if not_first_event_endpoint:
-            # if the intersection start is not an endpoint of le1.segment
+        if point != first_event.start and point != first_event.end:
             divide_segment(first_event, point)
-        if not_second_event_endpoint:
-            # if the intersection start is not an endpoint of le2.segment
+        if point != second_event.start and point != second_event.end:
             divide_segment(second_event, point)
         yield from _to_unique_sorted_pairs(first_event.segments_ids,
                                            second_event.segments_ids)
