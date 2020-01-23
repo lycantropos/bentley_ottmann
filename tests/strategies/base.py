@@ -12,7 +12,7 @@ from tests.utils import (Strategy,
                          pack,
                          to_pairs)
 
-MAX_FLOAT = 1.e100
+MAX_FLOAT = 1.e10
 MIN_FLOAT = -MAX_FLOAT
 scalars_strategies_factories = {Decimal: partial(strategies.decimals,
                                                  min_value=MIN_FLOAT,
