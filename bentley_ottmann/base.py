@@ -15,7 +15,8 @@ from reprit.base import generate_repr
 from .angular import (Orientation,
                       to_orientation)
 from .linear import (Segment,
-                     find_intersections)
+                     find_intersections,
+                     point_orientation_with_segment)
 from .point import Point
 
 
@@ -40,19 +41,17 @@ class Event:
     def segment(self) -> Segment:
         return Segment(self.start, self.end)
 
+    @property
+    def sorted_segment(self) -> Segment:
+        return self.segment if self.is_left else self.complement.segment
+
     def is_above(self, point: Point) -> bool:
-        return ((to_orientation(self.start, point, self.end)
-                 is Orientation.CLOCKWISE)
-                if self.is_left
-                else (to_orientation(self.end, point, self.start)
-                      is Orientation.CLOCKWISE))
+        return (point_orientation_with_segment(self.sorted_segment, point)
+                is Orientation.CLOCKWISE)
 
     def is_below(self, point: Point) -> bool:
-        return ((to_orientation(self.start, point, self.end)
-                 is Orientation.COUNTERCLOCKWISE)
-                if self.is_left
-                else (to_orientation(self.end, point, self.start)
-                      is Orientation.COUNTERCLOCKWISE))
+        return (point_orientation_with_segment(self.sorted_segment, point)
+                is Orientation.COUNTERCLOCKWISE)
 
 
 SweepLine = red_black.Tree[Event]
