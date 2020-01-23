@@ -1,5 +1,6 @@
 from collections import OrderedDict
-from itertools import combinations
+from itertools import (combinations,
+                       product)
 from reprlib import recursive_repr
 from typing import (Dict,
                     Iterable,
@@ -20,15 +21,15 @@ from .point import Point
 
 
 class Event:
-    __slots__ = ('is_left', 'start', 'complement', 'segment_id')
+    __slots__ = ('is_left', 'start', 'complement', 'segments_ids')
 
     def __init__(self, is_left: bool, start: Point,
                  complement: Optional['Event'],
-                 segment_id: int) -> None:
+                 segments_ids: Sequence[int]) -> None:
         self.is_left = is_left
         self.start = start
         self.complement = complement
-        self.segment_id = segment_id
+        self.segments_ids = segments_ids
 
     __repr__ = recursive_repr()(generate_repr(__init__))
 
@@ -95,7 +96,7 @@ class EventsQueueKey:
         # same point, both events are left endpoints
         # or both are right endpoints
         elif event.end == other_event.end:
-            return event.segment_id < other_event.segment_id
+            return event.segments_ids < other_event.segments_ids
         else:
             return event.is_below(other_event.end)
 
@@ -165,11 +166,22 @@ class SweepLineKey:
 
 
 def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[Event]:
+    segments_with_ids = sorted(
+            (sorted(segment), segment_id)
+            for segment_id, segment in enumerate(segments))
     events_queue = PriorityQueue(key=EventsQueueKey)
-    for segment_id, segment in enumerate(segments):
-        start, end = sorted(segment)
-        start_event = Event(True, start, None, segment_id)
-        end_event = Event(False, end, start_event, segment_id)
+    index = 0
+    while index < len(segments_with_ids):
+        segment, segment_id = segments_with_ids[index]
+        index += 1
+        same_segments_ids = [segment_id]
+        while (index < len(segments_with_ids)
+               and segments_with_ids[index][0] == segment):
+            same_segments_ids.append(segments_with_ids[index][1])
+            index += 1
+        start, end = segment
+        start_event = Event(True, start, None, same_segments_ids)
+        end_event = Event(False, end, start_event, same_segments_ids)
         start_event.complement = end_event
         events_queue.push(start_event)
         events_queue.push(end_event)
@@ -202,16 +214,19 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
     sweep_line = red_black.tree(key=SweepLineKey)
     while events_queue:
         event = events_queue.pop()
+        if len(event.segments_ids) > 1:
+            # equal segments intersect
+            yield from _to_unique_sorted_pairs(event.segments_ids,
+                                               event.segments_ids)
         point, same_point_events = event.start, [event]
         while events_queue and events_queue.peek().start == point:
             same_point_events.append(events_queue.pop())
         for event, other_event in combinations(same_point_events, 2):
-            segment_id, other_segment_id = (event.segment_id,
-                                            other_event.segment_id)
-            if (segment_id != other_segment_id
-                    and point in segments[segment_id]
-                    and point in segments[other_segment_id]):
-                yield _to_sorted_pair(segment_id, other_segment_id)
+            for segment_id, other_segment_id in _to_unique_sorted_pairs(
+                    event.segments_ids, other_event.segments_ids):
+                if (point in segments[segment_id]
+                        and point in segments[other_segment_id]):
+                    yield (segment_id, other_segment_id)
         for event in same_point_events:
             if event.is_left:
                 sweep_line.add(event)
@@ -253,11 +268,10 @@ def _detect_intersection(first_event: Event, second_event: Event,
     def divide_segment(event: Event, point: Point) -> None:
         # "left event" of the "right line segment"
         # resulting from dividing event.segment
-        left_event = Event(True, point, event.complement,
-                           event.segment_id)
+        left_event = Event(True, point, event.complement, event.segments_ids)
         # "right event" of the "left line segment"
         # resulting from dividing event.segment
-        right_event = Event(False, point, event, event.segment_id)
+        right_event = Event(False, point, event, event.segments_ids)
         event.complement.complement, event.complement = left_event, right_event
         events_queue.push(left_event)
         events_queue.push(right_event)
@@ -282,7 +296,8 @@ def _detect_intersection(first_event: Event, second_event: Event,
         if not_second_event_endpoint:
             # if the intersection start is not an endpoint of le2.segment
             divide_segment(second_event, point)
-        yield _to_sorted_pair(first_event.segment_id, second_event.segment_id)
+        yield from _to_unique_sorted_pairs(first_event.segments_ids,
+                                           second_event.segments_ids)
         return
 
     # The line segments associated to le1 and le2 overlap
@@ -309,7 +324,8 @@ def _detect_intersection(first_event: Event, second_event: Event,
     if len(sorted_events) == 2:
         # both line segments are equal
         return
-    yield _to_sorted_pair(first_event.segment_id, second_event.segment_id)
+    yield from _to_unique_sorted_pairs(first_event.segments_ids,
+                                       second_event.segments_ids)
     if len(sorted_events) == 3:
         # line segments share endpoint
         if sorted_events[2]:
@@ -329,8 +345,11 @@ def _detect_intersection(first_event: Event, second_event: Event,
         divide_segment(sorted_events[3].complement, sorted_events[2].start)
 
 
-def _to_sorted_pair(left_coordinate: int,
-                    right_coordinate: int) -> Tuple[int, int]:
-    return ((left_coordinate, right_coordinate)
-            if left_coordinate < right_coordinate
-            else (right_coordinate, left_coordinate))
+def _to_unique_sorted_pairs(left_iterable: Iterable[int],
+                            right_iterable: Iterable[int]
+                            ) -> Iterable[Tuple[int, int]]:
+    for left_element, right_element in product(left_iterable, right_iterable):
+        if left_element != right_element:
+            yield ((left_element, right_element)
+                   if left_element < right_element
+                   else (right_element, left_element))
