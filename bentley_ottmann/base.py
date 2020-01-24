@@ -322,7 +322,7 @@ def _detect_intersection(first_event: Event, second_event: Event,
     sorted_events = []
     if first_event.start == second_event.start:
         sorted_events.append(None)
-    elif EventsQueueKey(first_event) < EventsQueueKey(second_event):
+    elif EventsQueueKey(first_event) > EventsQueueKey(second_event):
         sorted_events.append(second_event)
         sorted_events.append(first_event)
     else:
@@ -332,7 +332,7 @@ def _detect_intersection(first_event: Event, second_event: Event,
     if first_event.end == second_event.end:
         sorted_events.append(None)
     elif (EventsQueueKey(first_event.complement)
-          < EventsQueueKey(second_event.complement)):
+          > EventsQueueKey(second_event.complement)):
         sorted_events.append(second_event.complement)
         sorted_events.append(first_event.complement)
     else:
