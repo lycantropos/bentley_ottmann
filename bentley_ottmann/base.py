@@ -20,12 +20,17 @@ from .point import Point
 
 
 class Event:
-    __slots__ = ('is_left', 'start', 'complement', 'segments_ids')
+    __slots__ = ('is_left', 'is_intersection', 'start', 'complement',
+                 'segments_ids')
 
-    def __init__(self, is_left: bool, start: Point,
+    def __init__(self,
+                 is_left: bool,
+                 is_intersection: bool,
+                 start: Point,
                  complement: Optional['Event'],
                  segments_ids: Sequence[int]) -> None:
         self.is_left = is_left
+        self.is_intersection = is_intersection
         self.start = start
         self.complement = complement
         self.segments_ids = segments_ids
@@ -93,6 +98,9 @@ class EventsQueueKey:
             # different points, but same x-coordinate,
             # the event with lower y-coordinate is processed first
             return event_start_y < other_event_start_y
+        elif event.end == other_event.end:
+            # intersection should be processed first
+            return other_event.is_intersection < event.is_intersection
         elif event.is_left is not other_event.is_left:
             # same point, but one is a left endpoint
             # and the other a right endpoint,
@@ -195,8 +203,8 @@ def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[Event]:
             same_segments_ids.append(segments_with_ids[index][1])
             index += 1
         start, end = segment
-        start_event = Event(True, start, None, same_segments_ids)
-        end_event = Event(False, end, start_event, same_segments_ids)
+        start_event = Event(True, False, start, None, same_segments_ids)
+        end_event = Event(False, False, end, start_event, same_segments_ids)
         start_event.complement = end_event
         events_queue.push(start_event)
         events_queue.push(end_event)
@@ -283,10 +291,11 @@ def _detect_intersection(first_event: Event, second_event: Event,
     def divide_segment(event: Event, point: Point) -> None:
         # "left event" of the "right line segment"
         # resulting from dividing event.segment
-        left_event = Event(True, point, event.complement, event.segments_ids)
+        left_event = Event(True, True, point, event.complement,
+                           event.segments_ids)
         # "right event" of the "left line segment"
         # resulting from dividing event.segment
-        right_event = Event(False, point, event, event.segments_ids)
+        right_event = Event(False, True, point, event, event.segments_ids)
         event.complement.complement, event.complement = left_event, right_event
         events_queue.push(left_event)
         events_queue.push(right_event)
