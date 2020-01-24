@@ -180,14 +180,28 @@ def _find_intersection(first_segment: Segment, second_segment: Segment,
         coordinate, _ = first_start
         coordinate_type = type(coordinate)
         are_real_segments = issubclass(coordinate_type, Real)
-        if not are_real_segments:
+        if are_real_segments:
+            denominator = parallelogram.signed_area(first_start, first_end,
+                                                    second_start, second_end)
+            first_numerator = parallelogram.signed_area(
+                    first_start, second_start, second_start, second_end)
+            second_numerator = parallelogram.signed_area(
+                    first_start, second_start, first_start, first_end)
+        else:
             # converting `Decimal` to `float`
-            first_start, first_end = (_to_real_point(first_start),
-                                      _to_real_point(first_end))
-            second_start, second_end = (_to_real_point(second_start),
-                                        _to_real_point(second_end))
-        denominator = parallelogram.signed_area(first_start, first_end,
-                                                second_start, second_end)
+            first_start_real, first_end_real = (_to_real_point(first_start),
+                                                _to_real_point(first_end))
+            second_start_real, second_end_real = (_to_real_point(second_start),
+                                                  _to_real_point(second_end))
+            denominator = coordinate_type(parallelogram.signed_area(
+                    first_start_real, first_end_real,
+                    second_start_real, second_end_real))
+            first_numerator = coordinate_type(parallelogram.signed_area(
+                    first_start_real, second_start_real,
+                    second_start_real, second_end_real))
+            second_numerator = coordinate_type(parallelogram.signed_area(
+                    first_start_real, second_start_real,
+                    first_start_real, first_end_real))
         first_start_x, first_start_y = first_start
         first_end_x, first_end_y = first_end
         second_start_x, second_start_y = second_start
@@ -196,27 +210,24 @@ def _find_intersection(first_segment: Segment, second_segment: Segment,
                                         first_end_y - first_start_y)
         second_delta_x, second_delta_y = (second_end_x - second_start_x,
                                           second_end_y - second_start_y)
-        denominator_inv = (Fraction(1, denominator)
-                           if isinstance(denominator, int)
-                           else 1 / denominator)
-        first_numerator = parallelogram.signed_area(
-                first_start, second_start, second_start, second_end)
         first_numerator_x = (first_start_x * denominator
                              + first_delta_x * first_numerator)
         first_numerator_y = (first_start_y * denominator
                              + first_delta_y * first_numerator)
-        second_numerator = parallelogram.signed_area(
-                first_start, second_start, first_start, first_end)
         second_numerator_x = (second_start_x * denominator
                               + second_delta_x * second_numerator)
         second_numerator_y = (second_start_y * denominator
                               + second_delta_y * second_numerator)
-        intersection_point = Point((first_numerator_x + second_numerator_x)
-                                   * denominator_inv
-                                   / 2,
-                                   (first_numerator_y + second_numerator_y)
-                                   * denominator_inv
-                                   / 2)
+        numerator_x, numerator_y, denominator_inv = (
+            (Fraction(first_numerator_x + second_numerator_x, 2),
+             Fraction(first_numerator_y + second_numerator_y, 2),
+             Fraction(1, denominator))
+            if isinstance(denominator, int)
+            else ((first_numerator_x + second_numerator_x) / 2,
+                  (first_numerator_y + second_numerator_y) / 2,
+                  1 / denominator))
+        intersection_point = Point(numerator_x * denominator_inv,
+                                   numerator_y * denominator_inv)
         return (intersection_point
                 if are_real_segments
                 else _to_scalar_point(intersection_point, coordinate_type))
