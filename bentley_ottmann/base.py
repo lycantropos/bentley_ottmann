@@ -294,6 +294,8 @@ def _detect_intersection(first_event: Event, second_event: Event,
         # resulting from dividing event.segment
         if segments_ids is None:
             segments_ids = event.segments_ids
+        else:
+            event.segments_ids = event.complement.segments_ids = segments_ids
         left_event = Event(True, True, point, event.complement,
                            segments_ids)
         # "right event" of the "left line segment"
