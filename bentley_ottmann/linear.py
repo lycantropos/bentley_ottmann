@@ -13,6 +13,7 @@ from .angular import (AngleKind,
                       to_angle_kind,
                       to_orientation)
 from .point import (Point,
+                    _to_rational_point,
                     _to_real_point,
                     _to_scalar_point)
 
@@ -180,28 +181,16 @@ def _find_intersection(first_segment: Segment, second_segment: Segment,
         coordinate, _ = first_start
         coordinate_type = type(coordinate)
         are_real_segments = issubclass(coordinate_type, Real)
-        if are_real_segments:
-            denominator = parallelogram.signed_area(first_start, first_end,
-                                                    second_start, second_end)
-            first_numerator = parallelogram.signed_area(
-                    first_start, second_start, second_start, second_end)
-            second_numerator = parallelogram.signed_area(
-                    first_start, second_start, first_start, first_end)
-        else:
-            # converting `Decimal` to `float`
-            first_start_real, first_end_real = (_to_real_point(first_start),
-                                                _to_real_point(first_end))
-            second_start_real, second_end_real = (_to_real_point(second_start),
-                                                  _to_real_point(second_end))
-            denominator = coordinate_type(parallelogram.signed_area(
-                    first_start_real, first_end_real,
-                    second_start_real, second_end_real))
-            first_numerator = coordinate_type(parallelogram.signed_area(
-                    first_start_real, second_start_real,
-                    second_start_real, second_end_real))
-            second_numerator = coordinate_type(parallelogram.signed_area(
-                    first_start_real, second_start_real,
-                    first_start_real, first_end_real))
+        first_segment, second_segment = (_to_rational_segment(first_segment),
+                                         _to_rational_segment(second_segment))
+        first_start, first_end = first_segment
+        second_start, second_end = second_segment
+        denominator = parallelogram.signed_area(first_start, first_end,
+                                                second_start, second_end)
+        first_numerator = parallelogram.signed_area(
+                first_start, second_start, second_start, second_end)
+        second_numerator = parallelogram.signed_area(
+                first_start, second_start, first_start, first_end)
         first_start_x, first_start_y = first_start
         first_end_x, first_end_y = first_end
         second_start_x, second_start_y = second_start
@@ -230,4 +219,10 @@ def _find_intersection(first_segment: Segment, second_segment: Segment,
                                    numerator_y * denominator_inv)
         return (intersection_point
                 if are_real_segments
-                else _to_scalar_point(intersection_point, coordinate_type))
+                else _to_scalar_point(_to_real_point(intersection_point),
+                                      coordinate_type))
+
+
+def _to_rational_segment(segment: Segment) -> Segment:
+    start, end = segment
+    return Segment(_to_rational_point(start), _to_rational_point(end))

@@ -1,7 +1,4 @@
-from fractions import Fraction
-from itertools import (combinations,
-                       product)
-from numbers import Rational
+from itertools import product
 from reprlib import recursive_repr
 from typing import (Dict,
                     Iterable,
@@ -191,7 +188,6 @@ class SweepLineKey:
 
 
 def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[Event]:
-    segments = [_to_rational_segment(segment) for segment in segments]
     segments_with_ids = sorted(
             (sorted(segment), segment_id)
             for segment_id, segment in enumerate(segments))
@@ -212,20 +208,6 @@ def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[Event]:
         events_queue.push(start_event)
         events_queue.push(end_event)
     return events_queue
-
-
-def _to_rational_segment(segment: Segment) -> Segment:
-    start, end = segment
-    return Segment(_to_rational_point(start), _to_rational_point(end))
-
-
-def _to_rational_point(point: Point) -> Point:
-    x, y = point
-    if not isinstance(x, Rational):
-        x = Fraction(x)
-    if not isinstance(y, Rational):
-        y = Fraction(y)
-    return Point(x, y)
 
 
 def segments_intersect(segments: Sequence[Segment]) -> bool:
@@ -306,14 +288,16 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
 def _detect_intersection(first_event: Event, second_event: Event,
                          events_queue: PriorityQueue
                          ) -> Iterable[Tuple[Point, Tuple[int, int]]]:
-    def divide_segment(event: Event, point: Point) -> None:
+    def divide_segment(event: Event, point: Point, segments_ids=None) -> None:
         # "left event" of the "right line segment"
         # resulting from dividing event.segment
+        if segments_ids is None:
+            segments_ids = event.segments_ids
         left_event = Event(True, True, point, event.complement,
-                           event.segments_ids)
+                           segments_ids)
         # "right event" of the "left line segment"
         # resulting from dividing event.segment
-        right_event = Event(False, True, point, event, event.segments_ids)
+        right_event = Event(False, True, point, event, segments_ids)
         event.complement.complement, event.complement = left_event, right_event
         events_queue.push(left_event)
         events_queue.push(right_event)
@@ -365,10 +349,14 @@ def _detect_intersection(first_event: Event, second_event: Event,
         # line segments share endpoint
         if sorted_events[2]:
             # line segments share the left endpoint
-            divide_segment(sorted_events[2].complement, sorted_events[1].start)
+            divide_segment(sorted_events[2].complement, sorted_events[1].start,
+                           sorted_events[1].segments_ids
+                           + sorted_events[2].segments_ids)
         else:
             # line segments share the right endpoint
-            divide_segment(sorted_events[0], sorted_events[1].start)
+            divide_segment(sorted_events[0], sorted_events[1].start,
+                           sorted_events[0].segments_ids
+                           + sorted_events[1].segments_ids)
         return
     elif sorted_events[0] is not sorted_events[3].complement:
         # no line segment includes totally the other one

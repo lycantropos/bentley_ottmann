@@ -1,4 +1,6 @@
-from numbers import Real
+from fractions import Fraction
+from numbers import (Rational,
+                     Real)
 from typing import (NamedTuple,
                     Type)
 
@@ -20,3 +22,12 @@ def _to_real_point(point: Point) -> Point:
 def _to_scalar_point(point: Point, coordinate_type: Type[Scalar]) -> Point:
     x, y = point
     return Point(coordinate_type(x), coordinate_type(y))
+
+
+def _to_rational_point(point: Point) -> Point:
+    x, y = point
+    if not isinstance(x, Rational):
+        x = Fraction(x)
+    if not isinstance(y, Rational):
+        y = Fraction(y)
+    return Point(x, y)
