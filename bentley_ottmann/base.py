@@ -1,5 +1,7 @@
+from fractions import Fraction
 from itertools import (combinations,
                        product)
+from numbers import Rational
 from reprlib import recursive_repr
 from typing import (Dict,
                     Iterable,
@@ -189,6 +191,7 @@ class SweepLineKey:
 
 
 def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[Event]:
+    segments = [_to_rational_segment(segment) for segment in segments]
     segments_with_ids = sorted(
             (sorted(segment), segment_id)
             for segment_id, segment in enumerate(segments))
@@ -209,6 +212,20 @@ def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[Event]:
         events_queue.push(start_event)
         events_queue.push(end_event)
     return events_queue
+
+
+def _to_rational_segment(segment: Segment) -> Segment:
+    start, end = segment
+    return Segment(_to_rational_point(start), _to_rational_point(end))
+
+
+def _to_rational_point(point: Point) -> Point:
+    x, y = point
+    if not isinstance(x, Rational):
+        x = Fraction(x)
+    if not isinstance(y, Rational):
+        y = Fraction(y)
+    return Point(x, y)
 
 
 def segments_intersect(segments: Sequence[Segment]) -> bool:
