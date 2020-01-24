@@ -14,7 +14,6 @@ from .angular import (AngleKind,
                       to_orientation)
 from .point import (Point,
                     _to_rational_point,
-                    _to_real_point,
                     _to_scalar_point)
 
 Segment = NamedTuple('Segment', [('start', Point), ('end', Point)])
@@ -219,8 +218,7 @@ def _find_intersection(first_segment: Segment, second_segment: Segment,
                                    numerator_y * denominator_inv)
         return (intersection_point
                 if are_real_segments
-                else _to_scalar_point(_to_real_point(intersection_point),
-                                      coordinate_type))
+                else _to_scalar_point(intersection_point, coordinate_type))
 
 
 def _to_rational_segment(segment: Segment) -> Segment:

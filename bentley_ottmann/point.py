@@ -21,13 +21,14 @@ def _to_real_point(point: Point) -> Point:
 
 def _to_scalar_point(point: Point, coordinate_type: Type[Scalar]) -> Point:
     x, y = point
-    return Point(coordinate_type(x), coordinate_type(y))
+    return Point(coordinate_type(x.numerator) / x.denominator
+                 if isinstance(x, Fraction)
+                 else coordinate_type(x),
+                 coordinate_type(y.numerator) / y.denominator
+                 if isinstance(y, Fraction)
+                 else coordinate_type(y))
 
 
 def _to_rational_point(point: Point) -> Point:
     x, y = point
-    if not isinstance(x, Rational):
-        x = Fraction(x)
-    if not isinstance(y, Rational):
-        y = Fraction(y)
-    return Point(x, y)
+    return Point(Fraction(x), Fraction(y))
