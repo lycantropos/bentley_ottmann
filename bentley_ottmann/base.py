@@ -303,7 +303,7 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
 def _detect_intersection(first_event: Event, second_event: Event,
                          events_queue: PriorityQueue
                          ) -> Iterable[Tuple[Point, Tuple[int, int]]]:
-    def divide_segment(event: Event, point: Point,
+    def divide_segment(event: Event, break_point: Point,
                        segments_ids: Optional[Sequence[int]] = None) -> None:
         # "left event" of the "right line segment"
         # resulting from dividing event.segment
