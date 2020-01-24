@@ -139,6 +139,10 @@ class SweepLineKey:
                 else NotImplemented)
 
     def __lt__(self, other: 'SweepLineKey') -> bool:
+        """
+        Checks if the segment (or at least the point) associated with event
+        is lower than other's.
+        """
         if not isinstance(other, SweepLineKey):
             return NotImplemented
         if self is other:
