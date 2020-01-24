@@ -33,12 +33,6 @@ class Event:
     __repr__ = recursive_repr()(generate_repr(__init__))
 
     @property
-    def is_vertical(self) -> bool:
-        start_x, _ = self.start
-        end_x, _ = self.end
-        return start_x == end_x
-
-    @property
     def end(self) -> Point:
         return self.complement.start
 
