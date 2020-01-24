@@ -33,6 +33,18 @@ class Event:
     __repr__ = recursive_repr()(generate_repr(__init__))
 
     @property
+    def is_vertical(self) -> bool:
+        start_x, _ = self.start
+        end_x, _ = self.end
+        return start_x == end_x
+
+    @property
+    def is_horizontal(self) -> bool:
+        _, start_y = self.start
+        _, end_y = self.end
+        return start_y == end_y
+
+    @property
     def end(self) -> Point:
         return self.complement.start
 
@@ -90,9 +102,20 @@ class EventsQueueKey:
         # or both are right endpoints
         elif event.end == other_event.end:
             return event.segments_ids < other_event.segments_ids
+        elif event.is_vertical or other_event.is_vertical:
+            _, event_end_y = event.end
+            _, other_event_end_y = other_event.end
+            return event_end_y > other_event_end_y
+        elif event.is_horizontal and other_event.is_horizontal:
+            # both horizontal & collinear
+            event_end_x, _ = event.end
+            other_event_end_x, _ = other_event.end
+            return event_end_x > other_event_end_x
+        elif event.is_horizontal or other_event.is_horizontal:
+            # one is horizontal, non-collinear
+            return event.is_below(other_event.end)
         else:
-            return ((event if event.is_left else event.complement)
-                    .is_below(other_event.end))
+            return event.is_above(other_event.end)
 
 
 class SweepLineKey:
@@ -125,7 +148,7 @@ class SweepLineKey:
         if ((orientation_with_other_start is Orientation.COLLINEAR)
                 and (orientation_with_other_end is Orientation.COLLINEAR)):
             # segments are collinear
-            return EventsQueueKey(event) < EventsQueueKey(other_event)
+            return EventsQueueKey(event) > EventsQueueKey(other_event)
         # segments are not collinear
         elif start == other_start:
             # same left endpoint, use the right endpoint to sort
@@ -328,8 +351,11 @@ def _detect_intersection(first_event: Event, second_event: Event,
         divide_segment(sorted_events[1], sorted_events[2].start)
     else:
         # one line segment includes the other one
-        divide_segment(sorted_events[0], sorted_events[1].start)
-        divide_segment(sorted_events[3].complement, sorted_events[2].start)
+        first_event, second_event, third_event, fourth_event = sorted_events
+        if second_event.start not in first_event.segment:
+            divide_segment(first_event, second_event.start)
+        if third_event.start not in fourth_event.segment:
+            divide_segment(fourth_event.complement, third_event.start)
 
 
 def _to_unique_sorted_pairs(left_iterable: Iterable[int],
