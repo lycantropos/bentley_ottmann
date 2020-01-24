@@ -83,29 +83,31 @@ class EventsQueueKey:
                 else NotImplemented)
 
     def __lt__(self, other: 'EventsQueueKey') -> bool:
+        """
+        Checks if the event should be processed before the other.
+        """
         if not isinstance(other, EventsQueueKey):
             return NotImplemented
         event, other_event = self.event, other.event
-        event_start, other_event_start = event.start, other_event.start
-        event_start_x, event_start_y = event_start
-        other_event_start_x, other_event_start_y = other_event_start
-        if event_start_x != other_event_start_x:
+        start_x, start_y = event.start
+        other_start_x, other_start_y = other_event.start
+        if start_x != other_start_x:
             # different x-coordinate,
             # the event with lower x-coordinate is processed first
-            return event_start_x < other_event_start_x
-        elif event_start_y != other_event_start_y:
-            # different points, but same x-coordinate,
+            return start_x < other_start_x
+        elif start_y != other_start_y:
+            # different starts, but same x-coordinate,
             # the event with lower y-coordinate is processed first
-            return event_start_y < other_event_start_y
+            return start_y < other_start_y
         elif event.end == other_event.end:
-            # intersection should be processed first
-            return other_event.is_intersection < event.is_intersection
+            # same segments, intersection event should be processed first
+            return event.is_intersection > other_event.is_intersection
         elif event.is_left is not other_event.is_left:
-            # same point, but one is a left endpoint
-            # and the other a right endpoint,
+            # same start, but one is a left endpoint
+            # and the other is a right endpoint,
             # the right endpoint is processed first
             return not event.is_left
-        # same point, both events are left endpoints
+        # same start, both events are left endpoints
         # or both are right endpoints
         elif event.is_vertical or other_event.is_vertical:
             _, event_end_y = event.end
