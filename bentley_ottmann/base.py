@@ -100,8 +100,6 @@ class EventsQueueKey:
             return not event.is_left
         # same point, both events are left endpoints
         # or both are right endpoints
-        elif event.end == other_event.end:
-            return event.segments_ids < other_event.segments_ids
         elif event.is_vertical or other_event.is_vertical:
             _, event_end_y = event.end
             _, other_event_end_y = other_event.end
@@ -111,7 +109,7 @@ class EventsQueueKey:
             event_end_x, _ = event.end
             other_event_end_x, _ = other_event.end
             return event_end_x > other_event_end_x
-        elif event.is_horizontal or other_event.is_horizontal:
+        elif other_event.is_horizontal:
             # one is horizontal, non-collinear
             return event.is_below(other_event.end)
         else:
