@@ -19,17 +19,17 @@ from .point import Point
 
 
 class Event:
-    __slots__ = ('is_left', 'is_intersection', 'start', 'complement',
+    __slots__ = ('is_left_endpoint', 'is_intersection', 'start', 'complement',
                  'segments_ids')
 
     def __init__(self,
                  *,
-                 is_left: bool,
+                 is_left_endpoint: bool,
                  is_intersection: bool,
                  start: Point,
                  complement: Optional['Event'],
                  segments_ids: Sequence[int]) -> None:
-        self.is_left = is_left
+        self.is_left_endpoint = is_left_endpoint
         self.is_intersection = is_intersection
         self.start = start
         self.complement = complement
@@ -103,11 +103,11 @@ class EventsQueueKey:
         elif event.end == other_event.end:
             # same segments, intersection event should be processed first
             return event.is_intersection > other_event.is_intersection
-        elif event.is_left is not other_event.is_left:
+        elif event.is_left_endpoint is not other_event.is_left_endpoint:
             # same start, but one is a left endpoint
             # and the other is a right endpoint,
             # the right endpoint is processed first
-            return not event.is_left
+            return not event.is_left_endpoint
         # same start, both events are left endpoints
         # or both are right endpoints
         elif event.is_vertical or other_event.is_vertical:
@@ -208,15 +208,15 @@ def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[Event]:
                and segments_with_ids[index][0] == segment):
             same_segments_ids.append(segments_with_ids[index][1])
             index += 1
-        start, end = segment
-        start_event = Event(is_left=True,
+        left_endpoint, right_endpoint = segment
+        start_event = Event(is_left_endpoint=True,
                             is_intersection=False,
-                            start=start,
+                            start=left_endpoint,
                             complement=None,
                             segments_ids=same_segments_ids)
-        end_event = Event(is_left=False,
+        end_event = Event(is_left_endpoint=False,
                           is_intersection=False,
-                          start=end,
+                          start=right_endpoint,
                           complement=start_event,
                           segments_ids=same_segments_ids)
         start_event.complement = end_event
@@ -266,7 +266,7 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
                         and point in segments[other_segment_id]):
                     yield (segment_id, other_segment_id)
         for event in same_point_events:
-            if event.is_left:
+            if event.is_left_endpoint:
                 sweep_line.add(event)
                 try:
                     next_event = sweep_line.next(event)
@@ -311,14 +311,14 @@ def _detect_intersection(first_event: Event, second_event: Event,
             segments_ids = event.segments_ids
         else:
             event.segments_ids = event.complement.segments_ids = segments_ids
-        left_event = Event(is_left=True,
+        left_event = Event(is_left_endpoint=True,
                            is_intersection=True,
                            start=break_point,
                            complement=event.complement,
                            segments_ids=segments_ids)
         # "right event" of the "left line segment"
         # resulting from dividing event.segment
-        right_event = Event(is_left=False,
+        right_event = Event(is_left_endpoint=False,
                             is_intersection=True,
                             start=break_point,
                             complement=event,
