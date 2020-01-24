@@ -244,7 +244,8 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
         point, same_point_events = event.start, [event]
         while events_queue and events_queue.peek().start == point:
             same_point_events.append(events_queue.pop())
-        for event, other_event in combinations(same_point_events, 2):
+        for event, other_event in product(same_point_events,
+                                          repeat=2):
             for segment_id, other_segment_id in _to_unique_sorted_pairs(
                     event.segments_ids, other_event.segments_ids):
                 if (point in segments[segment_id]
