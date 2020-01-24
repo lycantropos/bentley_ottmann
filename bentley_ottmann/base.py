@@ -13,8 +13,11 @@ from reprit.base import generate_repr
 
 from .angular import Orientation
 from .linear import (Segment,
+                     SegmentsRelationship,
+                     _find_intersection,
                      find_intersections,
-                     point_orientation_with_segment)
+                     point_orientation_with_segment,
+                     to_segments_relationship)
 from .point import Point
 
 
@@ -327,15 +330,14 @@ def _detect_intersection(first_event: Event, second_event: Event,
         events_queue.push(left_event)
         events_queue.push(right_event)
 
-    intersections_points = find_intersections(first_event.segment,
-                                              second_event.segment)
+    first_segment, second_segment = first_event.segment, second_event.segment
+    relationship = to_segments_relationship(first_segment, second_segment)
 
-    if not intersections_points:
+    if relationship is SegmentsRelationship.NONE:
         return
-
-    # The line segments associated to le1 and le2 intersect
-    if len(intersections_points) == 1:
-        point, = intersections_points
+    # segments intersect
+    elif relationship is SegmentsRelationship.CROSS:
+        point = _find_intersection(first_segment, second_segment)
         if point != first_event.start and point != first_event.end:
             divide_segment(first_event, point)
         if point != second_event.start and point != second_event.end:
@@ -343,57 +345,70 @@ def _detect_intersection(first_event: Event, second_event: Event,
         yield from _to_unique_sorted_pairs(first_event.segments_ids,
                                            second_event.segments_ids)
         return
-
-    # The line segments associated to le1 and le2 overlap
-    sorted_events = []
-    if first_event.start == second_event.start:
-        sorted_events.append(None)
-    elif EventsQueueKey(first_event) > EventsQueueKey(second_event):
-        sorted_events.append(second_event)
-        sorted_events.append(first_event)
     else:
-        sorted_events.append(first_event)
-        sorted_events.append(second_event)
-
-    if first_event.end == second_event.end:
-        sorted_events.append(None)
-    elif (EventsQueueKey(first_event.complement)
-          > EventsQueueKey(second_event.complement)):
-        sorted_events.append(second_event.complement)
-        sorted_events.append(first_event.complement)
-    else:
-        sorted_events.append(first_event.complement)
-        sorted_events.append(second_event.complement)
-
-    if len(sorted_events) == 2:
-        # both line segments are equal
-        return
-    yield from _to_unique_sorted_pairs(first_event.segments_ids,
-                                       second_event.segments_ids)
-    if len(sorted_events) == 3:
-        # line segments share endpoint
-        if sorted_events[2]:
-            # line segments share the left endpoint
-            divide_segment(sorted_events[2].complement, sorted_events[1].start,
-                           sorted_events[1].segments_ids
-                           + sorted_events[2].segments_ids)
+        # segments overlap
+        sorted_events = []
+        if first_event.start == second_event.start:
+            sorted_events.append(None)
+        elif EventsQueueKey(first_event) > EventsQueueKey(second_event):
+            sorted_events.append(second_event)
+            sorted_events.append(first_event)
         else:
-            # line segments share the right endpoint
+            sorted_events.append(first_event)
+            sorted_events.append(second_event)
+
+        if first_event.end == second_event.end:
+            sorted_events.append(None)
+        elif (EventsQueueKey(first_event.complement)
+              > EventsQueueKey(second_event.complement)):
+            sorted_events.append(second_event.complement)
+            sorted_events.append(first_event.complement)
+        else:
+            sorted_events.append(first_event.complement)
+            sorted_events.append(second_event.complement)
+
+        if len(sorted_events) == 2:
+            # both line segments are equal
+            return
+        yield from _to_unique_sorted_pairs(first_event.segments_ids,
+                                           second_event.segments_ids)
+        if len(sorted_events) == 3:
+            # line segments share endpoint
+            if sorted_events[2]:
+                # line segments share the left endpoint
+                divide_segment(sorted_events[2].complement,
+                               sorted_events[1].start,
+                               _merge_ids(sorted_events[1].segments_ids,
+                                          sorted_events[2].segments_ids))
+            else:
+                # line segments share the right endpoint
+                divide_segment(sorted_events[0], sorted_events[1].start,
+                               _merge_ids(sorted_events[0].segments_ids,
+                                          sorted_events[1].segments_ids))
+            return
+        elif sorted_events[0] is not sorted_events[3].complement:
+            # no line segment includes totally the other one
             divide_segment(sorted_events[0], sorted_events[1].start,
-                           sorted_events[0].segments_ids
-                           + sorted_events[1].segments_ids)
-        return
-    elif sorted_events[0] is not sorted_events[3].complement:
-        # no line segment includes totally the other one
-        divide_segment(sorted_events[0], sorted_events[1].start)
-        divide_segment(sorted_events[1], sorted_events[2].start)
-    else:
-        # one line segment includes the other one
-        first_event, second_event, third_event, fourth_event = sorted_events
-        if second_event.start not in first_event.segment:
-            divide_segment(first_event, second_event.start)
-        if third_event.start not in fourth_event.segment:
-            divide_segment(fourth_event.complement, third_event.start)
+                           _merge_ids(sorted_events[0].segments_ids,
+                                      sorted_events[1].segments_ids))
+            divide_segment(sorted_events[1], sorted_events[2].start,
+                           _merge_ids(sorted_events[1].segments_ids,
+                                      sorted_events[2].segments_ids))
+        else:
+            # one line segment includes the other one
+            (first_event, second_event,
+             third_event, fourth_event) = sorted_events
+            divide_segment(first_event, second_event.start,
+                           _merge_ids(first_event.segments_ids,
+                                      second_event.segments_ids))
+            divide_segment(fourth_event.complement, third_event.start,
+                           _merge_ids(first_event.segments_ids,
+                                      second_event.segments_ids))
+
+
+def _merge_ids(left_ids: Sequence[int],
+               right_ids: Sequence[int]) -> Sequence[int]:
+    return sorted({*left_ids, *right_ids})
 
 
 def _to_unique_sorted_pairs(left_iterable: Iterable[int],
