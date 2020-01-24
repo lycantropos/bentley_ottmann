@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from itertools import (combinations,
                        product)
 from reprlib import recursive_repr
@@ -202,7 +201,7 @@ def edges_intersect(edges: Sequence[Segment]) -> bool:
 
 def segments_intersections(segments: Sequence[Segment]
                            ) -> Dict[Point, Set[Tuple[int, int]]]:
-    result = OrderedDict()
+    result = {}
     for segment_id, next_segment_id in _sweep(segments):
         for point in find_intersections(segments[segment_id],
                                         segments[next_segment_id]):
