@@ -26,7 +26,7 @@ from .point import Point
 
 class Event:
     __slots__ = ('is_left_endpoint', 'is_intersection', 'start', 'complement',
-                 'segments_ids')
+                 '_segments_ids')
 
     def __init__(self,
                  *,
@@ -39,7 +39,15 @@ class Event:
         self.is_intersection = is_intersection
         self.start = start
         self.complement = complement
-        self.segments_ids = segments_ids
+        self._segments_ids = segments_ids
+
+    @property
+    def segments_ids(self) -> Sequence[int]:
+        return self._segments_ids
+
+    @segments_ids.setter
+    def segments_ids(self, segments_ids: Sequence[int]) -> None:
+        self._segments_ids = self.complement._segments_ids = segments_ids
 
     __repr__ = recursive_repr()(generate_repr(__init__))
 
@@ -320,7 +328,7 @@ def _detect_intersection(first_event: Event, second_event: Event,
         if segments_ids is None:
             segments_ids = event.segments_ids
         else:
-            event.segments_ids = event.complement.segments_ids = segments_ids
+            event.segments_ids = segments_ids
         left_event = Event(is_left_endpoint=True,
                            is_intersection=True,
                            start=break_point,
