@@ -384,6 +384,8 @@ def _detect_intersection(first_event: Event, second_event: Event,
 
         if len(sorted_events) == 2:
             # both line segments are equal
+            first_event.segments_ids = second_event.segments_ids = _merge_ids(
+                    first_event.segments_ids, second_event.segments_ids)
             return
         yield from _to_unique_sorted_pairs(first_event.segments_ids,
                                            second_event.segments_ids)
