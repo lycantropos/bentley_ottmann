@@ -1,11 +1,14 @@
+from functools import partial
 from itertools import product
 from reprlib import recursive_repr
-from typing import (Dict,
+from typing import (Callable,
+                    Dict,
                     Iterable,
                     Optional,
                     Sequence,
                     Set,
-                    Tuple)
+                    Tuple,
+                    cast)
 
 from dendroid import red_black
 from prioq.base import PriorityQueue
@@ -67,10 +70,6 @@ class Event:
     def is_below(self, point: Point) -> bool:
         return (point_orientation_with_segment(point, self.segment)
                 is Orientation.COUNTERCLOCKWISE)
-
-
-SweepLine = red_black.Tree[Event]
-EventsQueue = PriorityQueue[Event]
 
 
 class EventsQueueKey:
@@ -197,11 +196,19 @@ class SweepLineKey:
                 return other_event.is_above(start)
 
 
-def _to_events_queue(segments: Sequence[Segment]) -> PriorityQueue[Event]:
+EventsQueue = cast(Callable[..., PriorityQueue[Event]],
+                   partial(PriorityQueue[Event],
+                           key=EventsQueueKey))
+SweepLine = cast(Callable[..., red_black.Tree[Event]],
+                 partial(red_black.tree,
+                         key=SweepLineKey))
+
+
+def _to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
     segments_with_ids = sorted(
             (sorted(segment), segment_id)
             for segment_id, segment in enumerate(segments))
-    events_queue = PriorityQueue(key=EventsQueueKey)
+    events_queue = EventsQueue()
     index = 0
     while index < len(segments_with_ids):
         segment, segment_id = segments_with_ids[index]
@@ -251,7 +258,7 @@ def segments_intersections(segments: Sequence[Segment]
 
 def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
     events_queue = _to_events_queue(segments)
-    sweep_line = red_black.tree(key=SweepLineKey)
+    sweep_line = SweepLine()
     while events_queue:
         event = events_queue.pop()
         if len(event.segments_ids) > 1:
@@ -304,7 +311,7 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
 
 
 def _detect_intersection(first_event: Event, second_event: Event,
-                         events_queue: PriorityQueue
+                         events_queue: EventsQueue
                          ) -> Iterable[Tuple[Point, Tuple[int, int]]]:
     def divide_segment(event: Event, break_point: Point,
                        segments_ids: Optional[Sequence[int]] = None) -> None:
