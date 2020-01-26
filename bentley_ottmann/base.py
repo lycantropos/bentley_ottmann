@@ -4,6 +4,7 @@ from reprlib import recursive_repr
 from typing import (Callable,
                     Dict,
                     Iterable,
+                    Iterator,
                     Optional,
                     Sequence,
                     Set,
@@ -15,6 +16,7 @@ from prioq.base import PriorityQueue
 from reprit.base import generate_repr
 
 from .angular import Orientation
+from .hints import Scalar
 from .linear import (Segment,
                      SegmentsRelationship,
                      _find_intersection,
@@ -71,6 +73,22 @@ class Event:
     def segment(self) -> Segment:
         return Segment(self.start, self.end)
 
+    def y_at(self, x: Scalar) -> Scalar:
+        if self.is_vertical or self.is_horizontal:
+            _, start_y = self.start
+            return start_y
+        else:
+            start_x, start_y = self.start
+            if x == start_x:
+                return start_y
+            end_x, end_y = self.end
+            if x == end_x:
+                return end_y
+            _, result = _find_intersection(self.segment,
+                                           Segment(Point(x, start_y),
+                                                   Point(x, end_y)))
+            return result
+
     def is_above(self, point: Point) -> bool:
         return (point_orientation_with_segment(point, self.segment)
                 is Orientation.CLOCKWISE)
@@ -111,35 +129,55 @@ class EventsQueueKey:
             # the event with lower y-coordinate is processed first
             return start_y < other_start_y
         elif event.end == other_event.end:
-            # same segments, intersection event should be processed first
-            return event.is_intersection > other_event.is_intersection
+            # same segments
+            return (event.segments_ids > other_event.segments_ids
+                    if event.is_intersection is other_event.is_intersection
+                    else event.is_intersection)
         elif event.is_left_endpoint is not other_event.is_left_endpoint:
             # same start, but one is a left endpoint
             # and the other is a right endpoint,
             # the right endpoint is processed first
             return not event.is_left_endpoint
-        # same start, both events are left endpoints
-        # or both are right endpoints
-        elif event.is_vertical or other_event.is_vertical:
-            _, event_end_y = event.end
-            _, other_event_end_y = other_event.end
-            return event_end_y > other_event_end_y
-        elif event.is_horizontal and other_event.is_horizontal:
-            # both horizontal & collinear
-            event_end_x, _ = event.end
-            other_event_end_x, _ = other_event.end
-            return event_end_x > other_event_end_x
-        elif other_event.is_horizontal:
-            # one is horizontal, non-collinear
-            return event.is_below(other_event.end)
         else:
-            return event.is_above(other_event.end)
+            # same start, different end,
+            # both events are left endpoints
+            # or both are right endpoints
+            return event.end < other_event.end
+
+
+class SweepLine:
+    def __init__(self) -> None:
+        self.current_x = None
+        self.tree = red_black.tree(key=cast(Callable[[Event], SweepLineKey],
+                                            partial(SweepLineKey, self)))
+
+    def __iter__(self) -> Iterator[Event]:
+        return iter(self.tree)
+
+    def __contains__(self, event: Event) -> bool:
+        return event in self.tree
+
+    def move_to(self, point: Point) -> None:
+        self.current_x, _ = point
+
+    def add(self, event: Event) -> None:
+        self.tree.add(event)
+
+    def remove(self, event: Event) -> None:
+        self.tree.remove(event)
+
+    def above(self, event: Event) -> Event:
+        return self.tree.next(event)
+
+    def below(self, event: Event) -> Event:
+        return self.tree.prev(event)
 
 
 class SweepLineKey:
-    __slots__ = ('event',)
+    __slots__ = ('sweep_line', 'event')
 
-    def __init__(self, event: Event) -> None:
+    def __init__(self, sweep_line: SweepLine, event: Event) -> None:
+        self.sweep_line = sweep_line
         self.event = event
 
     __repr__ = generate_repr(__init__)
@@ -167,49 +205,47 @@ class SweepLineKey:
                 other_start, event.segment)
         orientation_with_other_end = point_orientation_with_segment(
                 other_end, event.segment)
-        if ((orientation_with_other_start is Orientation.COLLINEAR)
-                and (orientation_with_other_end is Orientation.COLLINEAR)):
-            # segments are collinear
-            return EventsQueueKey(event) > EventsQueueKey(other_event)
-        # segments are not collinear
-        elif start == other_start:
-            # same left endpoint, use the right endpoint to sort
-            return event.is_below(other_end)
-        # different left endpoint, use the left endpoint to sort
-        event_start_x, event_start_y = start
-        other_event_start_x, other_event_start_y = other_start
-        if event_start_x == other_event_start_x:
-            return event_start_y < other_event_start_y
-        elif orientation_with_other_start is Orientation.COLLINEAR:
-            return event.is_below(other_end)
-        elif orientation_with_other_end is Orientation.COLLINEAR:
-            other_orientation_with_end = point_orientation_with_segment(
-                    end, other_event.segment)
-            if other_orientation_with_end is Orientation.COLLINEAR:
-                return event.is_below(other_start)
+        if (orientation_with_other_start is orientation_with_other_end
+                is Orientation.COLLINEAR):
+            start_x, start_y = event.start
+            other_start_x, other_start_y = other_event.start
+            if start_y != other_start_y:
+                # different starts, but same x-coordinate,
+                # the event with lower y-coordinate is processed first
+                return start_y < other_start_y
+            elif event.end == other_event.end:
+                # same segments, intersection event goes below non-intersection
+                return (event.segments_ids > other_event.segments_ids
+                        if (event.is_intersection
+                            is other_event.is_intersection)
+                        else event.is_intersection)
+            # same start, different ends
+            elif event.is_left_endpoint is not other_event.is_left_endpoint:
+                # one start is a left endpoint
+                # and the other is a right endpoint,
+                # the right endpoint goes above
+                return event.is_left_endpoint
             else:
-                return other_event.is_above(start)
-        elif EventsQueueKey(event) < EventsQueueKey(other_event):
-            # the line segment associated to `other_event` has been inserted
-            # into sweep line after the line segment associated to `self`
-            return event.is_below(other_start)
+                # both events are left endpoints or both are right endpoints
+                end_x, end_y = event.end
+                other_end_x, other_end_y = other_event.end
+                return (end_y, other_end_x) > (other_end_y, end_x)
         else:
-            # has the line segment associated to `self` been inserted
-            # into sweep line after the line segment associated to `other`?
-            other_orientation_with_start = point_orientation_with_segment(
-                    start, other_event.segment)
-            if other_orientation_with_start is Orientation.COLLINEAR:
-                return other_event.is_above(end)
+            x = self.sweep_line.current_x
+            y_at_x, other_y_at_x = event.y_at(x), other_event.y_at(x)
+            if y_at_x != other_y_at_x:
+                return y_at_x < other_y_at_x
             else:
-                return other_event.is_above(start)
+                _, start_y = event.start
+                _, other_start_y = other_event.start
+                end_x, end_y = event.end
+                other_end_x, other_end_y = other_event.end
+                return (start_y, end_y) < (other_start_y, other_end_y)
 
 
 EventsQueue = cast(Callable[..., PriorityQueue[Event]],
                    partial(PriorityQueue[Event],
                            key=EventsQueueKey))
-SweepLine = cast(Callable[..., red_black.Tree[Event]],
-                 partial(red_black.tree,
-                         key=SweepLineKey))
 
 
 def _to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
@@ -283,38 +319,39 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
                 if (point in segments[segment_id]
                         and point in segments[other_segment_id]):
                     yield (segment_id, other_segment_id)
+        sweep_line.move_to(point)
         for event in same_point_events:
             if event.is_left_endpoint:
                 sweep_line.add(event)
                 try:
-                    next_event = sweep_line.next(event)
+                    below_event = sweep_line.below(event)
                 except ValueError:
-                    next_event = None
+                    below_event = None
                 try:
-                    previous_event = sweep_line.prev(event)
+                    above_event = sweep_line.above(event)
                 except ValueError:
-                    previous_event = None
-                if next_event is not None:
-                    yield from _detect_intersection(event, next_event,
+                    above_event = None
+                if below_event is not None:
+                    yield from _detect_intersection(below_event, event,
                                                     events_queue=events_queue)
-                if previous_event is not None:
-                    yield from _detect_intersection(previous_event, event,
+                if above_event is not None:
+                    yield from _detect_intersection(event, above_event,
                                                     events_queue=events_queue)
             else:
                 event = event.complement
                 if event not in sweep_line:
                     continue
                 try:
-                    next_event = sweep_line.next(event)
+                    below_event = sweep_line.below(event)
                 except ValueError:
-                    next_event = None
+                    below_event = None
                 try:
-                    previous_event = sweep_line.prev(event)
+                    above_event = sweep_line.above(event)
                 except ValueError:
-                    previous_event = None
+                    above_event = None
                 sweep_line.remove(event)
-                if next_event is not None and previous_event is not None:
-                    yield from _detect_intersection(previous_event, next_event,
+                if below_event is not None and above_event is not None:
+                    yield from _detect_intersection(below_event, above_event,
                                                     events_queue=events_queue)
 
 
