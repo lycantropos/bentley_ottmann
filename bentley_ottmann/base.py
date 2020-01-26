@@ -132,7 +132,7 @@ class EventsQueueKey:
             # same segments
             return (event.segments_ids > other_event.segments_ids
                     if event.is_intersection is other_event.is_intersection
-                    else event.is_intersection)
+                    else not event.is_intersection)
         elif event.is_left_endpoint is not other_event.is_left_endpoint:
             # same start, but one is a left endpoint
             # and the other is a right endpoint,
@@ -212,13 +212,16 @@ class SweepLineKey:
             if start_y != other_start_y:
                 # different starts, but same x-coordinate,
                 # the event with lower y-coordinate is processed first
-                return start_y < other_start_y
+                return start_y > other_start_y
             elif event.end == other_event.end:
                 # same segments, intersection event goes below non-intersection
-                return (event.segments_ids > other_event.segments_ids
-                        if (event.is_intersection
-                            is other_event.is_intersection)
-                        else event.is_intersection)
+                if event.is_intersection is not other_event.is_intersection:
+                    segments_ids = _merge_ids(event.segments_ids,
+                                              other_event.segments_ids)
+                    event.segments_ids = segments_ids
+                    other_event.segments_ids = segments_ids
+                    return False
+                return event.segments_ids < other_event.segments_ids
             # same start, different ends
             elif event.is_left_endpoint is not other_event.is_left_endpoint:
                 # one start is a left endpoint
@@ -229,7 +232,7 @@ class SweepLineKey:
                 # both events are left endpoints or both are right endpoints
                 end_x, end_y = event.end
                 other_end_x, other_end_y = other_event.end
-                return (end_y, other_end_x) > (other_end_y, end_x)
+                return (end_y, end_x) < (other_end_y, other_end_x)
         else:
             x = self.sweep_line.current_x
             y_at_x, other_y_at_x = event.y_at(x), other_event.y_at(x)
@@ -240,7 +243,8 @@ class SweepLineKey:
                 _, other_start_y = other_event.start
                 end_x, end_y = event.end
                 other_end_x, other_end_y = other_event.end
-                return (start_y, end_y) < (other_start_y, other_end_y)
+                return ((start_y, end_y, other_end_x)
+                        < (other_start_y, other_end_y, end_x))
 
 
 EventsQueue = cast(Callable[..., PriorityQueue[Event]],
@@ -378,6 +382,7 @@ def _detect_intersection(first_event: Event, second_event: Event,
                             start=break_point,
                             complement=event,
                             segments_ids=segments_ids)
+        event.is_intersection = event.complement.is_intersection = True
         event.complement.complement, event.complement = left_event, right_event
         events_queue.push(left_event)
         events_queue.push(right_event)
