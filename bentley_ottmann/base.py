@@ -212,7 +212,18 @@ class SweepLineKey:
             if start_y != other_start_y:
                 # different starts, but same x-coordinate,
                 # the event with lower y-coordinate is processed first
-                return start_y > other_start_y
+                _, end_y = event.end
+                _, other_end_y = other_event.end
+                if start_y == other_end_y and end_y == other_start_y:
+                    return event.is_left_endpoint
+                elif start_y == other_end_y:
+                    return end_y < other_end_y
+                elif end_y == other_start_y:
+                    return end_y < other_end_y
+                elif end_y == other_end_y:
+                    return start_y < other_start_y
+                else:
+                    return start_y < other_end_y
             elif event.end == other_event.end:
                 # same segments, intersection event goes below non-intersection
                 if event.is_intersection is not other_event.is_intersection:
@@ -337,10 +348,12 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
                     above_event = None
                 if below_event is not None:
                     yield from _detect_intersection(below_event, event,
-                                                    events_queue=events_queue)
+                                                    events_queue=events_queue,
+                                                    sweep_line=sweep_line)
                 if above_event is not None:
                     yield from _detect_intersection(event, above_event,
-                                                    events_queue=events_queue)
+                                                    events_queue=events_queue,
+                                                    sweep_line=sweep_line)
             else:
                 event = event.complement
                 if event not in sweep_line:
@@ -356,11 +369,12 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
                 sweep_line.remove(event)
                 if below_event is not None and above_event is not None:
                     yield from _detect_intersection(below_event, above_event,
-                                                    events_queue=events_queue)
+                                                    events_queue=events_queue,
+                                                    sweep_line=sweep_line)
 
 
 def _detect_intersection(first_event: Event, second_event: Event,
-                         events_queue: EventsQueue
+                         events_queue: EventsQueue, sweep_line: SweepLine
                          ) -> Iterable[Tuple[Point, Tuple[int, int]]]:
     def divide_segment(event: Event, break_point: Point,
                        segments_ids: Optional[Sequence[int]] = None) -> None:
@@ -384,8 +398,12 @@ def _detect_intersection(first_event: Event, second_event: Event,
                             segments_ids=segments_ids)
         event.is_intersection = event.complement.is_intersection = True
         event.complement.complement, event.complement = left_event, right_event
+        if left_event in sweep_line:
+            sweep_line.remove(left_event)
+        if right_event.complement in sweep_line:
+            sweep_line.remove(right_event.complement)
         events_queue.push(left_event)
-        events_queue.push(right_event)
+        events_queue.push(right_event.complement)
 
     first_segment, second_segment = first_event.segment, second_event.segment
     relationship = to_segments_relationship(first_segment, second_segment)
