@@ -1,6 +1,5 @@
 from fractions import Fraction
-from numbers import (Rational,
-                     Real)
+from numbers import Real
 from typing import (NamedTuple,
                     Type)
 
