@@ -1,5 +1,7 @@
+from collections import defaultdict
 from functools import partial
-from itertools import product
+from itertools import (combinations,
+                       product)
 from reprlib import recursive_repr
 from typing import (Callable,
                     Dict,
@@ -318,19 +320,17 @@ def segments_intersections(segments: Sequence[Segment]
 def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
     events_queue = _to_events_queue(segments)
     sweep_line = SweepLine()
+    intersections = defaultdict(set)
     while events_queue:
         event = events_queue.pop()
-        if len(event.segments_ids) > 1:
-            # equal segments intersect
-            yield from _to_unique_sorted_pairs(event.segments_ids,
-                                               event.segments_ids)
         point, same_point_events = event.start, [event]
         while events_queue and events_queue.peek().start == point:
             same_point_events.append(events_queue.pop())
+        intersections[point].update(same_point_events)
         for event, other_event in product(same_point_events,
                                           repeat=2):
-            for segment_id, other_segment_id in _to_unique_sorted_pairs(
-                    event.segments_ids, other_event.segments_ids):
+            for segment_id, other_segment_id in _to_combinations(
+                    _merge_ids(event.segments_ids, other_event.segments_ids)):
                 if (point in segments[segment_id]
                         and point in segments[other_segment_id]):
                     yield (segment_id, other_segment_id)
@@ -347,13 +347,15 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
                 except ValueError:
                     above_event = None
                 if below_event is not None:
-                    yield from _detect_intersection(below_event, event,
-                                                    events_queue=events_queue,
-                                                    sweep_line=sweep_line)
+                    yield from _detect_intersection(
+                            below_event, event,
+                            events_queue=events_queue,
+                            intersections=intersections)
                 if above_event is not None:
-                    yield from _detect_intersection(event, above_event,
-                                                    events_queue=events_queue,
-                                                    sweep_line=sweep_line)
+                    yield from _detect_intersection(
+                            event, above_event,
+                            events_queue=events_queue,
+                            intersections=intersections)
             else:
                 event = event.complement
                 if event not in sweep_line:
@@ -368,14 +370,21 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
                     above_event = None
                 sweep_line.remove(event)
                 if below_event is not None and above_event is not None:
-                    yield from _detect_intersection(below_event, above_event,
-                                                    events_queue=events_queue,
-                                                    sweep_line=sweep_line)
+                    yield from _detect_intersection(
+                            below_event, above_event,
+                            events_queue=events_queue,
+                            intersections=intersections)
+    for same_point_events in intersections.values():
+        for event, other_event in product(same_point_events,
+                                          repeat=2):
+            yield from _to_combinations(_merge_ids(event.segments_ids,
+                                                   other_event.segments_ids))
 
 
 def _detect_intersection(first_event: Event, second_event: Event,
-                         events_queue: EventsQueue, sweep_line: SweepLine
-                         ) -> Iterable[Tuple[Point, Tuple[int, int]]]:
+                         events_queue: EventsQueue,
+                         intersections: Dict[Point, Set[Event]]
+                         ) -> Iterable[Tuple[int, int]]:
     def divide_segment(event: Event, break_point: Point,
                        segments_ids: Optional[Sequence[int]] = None) -> None:
         # "left event" of the "right line segment"
@@ -398,12 +407,9 @@ def _detect_intersection(first_event: Event, second_event: Event,
                             segments_ids=segments_ids)
         event.is_intersection = event.complement.is_intersection = True
         event.complement.complement, event.complement = left_event, right_event
-        if left_event in sweep_line:
-            sweep_line.remove(left_event)
-        if right_event.complement in sweep_line:
-            sweep_line.remove(right_event.complement)
         events_queue.push(left_event)
-        events_queue.push(right_event.complement)
+        events_queue.push(right_event)
+        intersections[break_point].update([left_event, right_event])
 
     first_segment, second_segment = first_event.segment, second_event.segment
     relationship = to_segments_relationship(first_segment, second_segment)
@@ -417,8 +423,10 @@ def _detect_intersection(first_event: Event, second_event: Event,
             divide_segment(first_event, point)
         if point != second_event.start and point != second_event.end:
             divide_segment(second_event, point)
-        yield from _to_unique_sorted_pairs(first_event.segments_ids,
-                                           second_event.segments_ids)
+        segments_ids = _merge_ids(first_event.segments_ids,
+                                  second_event.segments_ids)
+        intersections[point].update([first_event, second_event])
+        yield from _to_combinations(segments_ids)
         return
     else:
         # segments overlap
@@ -447,40 +455,41 @@ def _detect_intersection(first_event: Event, second_event: Event,
             first_event.segments_ids = second_event.segments_ids = _merge_ids(
                     first_event.segments_ids, second_event.segments_ids)
             return
-        yield from _to_unique_sorted_pairs(first_event.segments_ids,
-                                           second_event.segments_ids)
+        segments_ids = _merge_ids(first_event.segments_ids,
+                                  second_event.segments_ids)
+        segments_pairs_ids = list(_to_combinations(segments_ids))
+        yield from segments_pairs_ids
         if len(sorted_events) == 3:
             # line segments share endpoint
             if sorted_events[2]:
                 # line segments share the left endpoint
-                divide_segment(sorted_events[2].complement,
-                               sorted_events[1].start,
-                               _merge_ids(sorted_events[1].segments_ids,
-                                          sorted_events[2].segments_ids))
+                point = sorted_events[1].start
+                intersections[point].update([first_event, second_event])
+                divide_segment(sorted_events[2].complement, point,
+                               segments_ids)
             else:
                 # line segments share the right endpoint
-                divide_segment(sorted_events[0], sorted_events[1].start,
-                               _merge_ids(sorted_events[0].segments_ids,
-                                          sorted_events[1].segments_ids))
+                point = sorted_events[1].start
+                intersections[point].update([first_event, second_event])
+                divide_segment(sorted_events[0], point, segments_ids)
             return
         elif sorted_events[0] is not sorted_events[3].complement:
             # no line segment includes totally the other one
-            divide_segment(sorted_events[0], sorted_events[1].start,
-                           _merge_ids(sorted_events[0].segments_ids,
-                                      sorted_events[1].segments_ids))
-            divide_segment(sorted_events[1], sorted_events[2].start,
-                           _merge_ids(sorted_events[1].segments_ids,
-                                      sorted_events[2].segments_ids))
+            first_point, second_point = (sorted_events[1].start,
+                                         sorted_events[2].start)
+            intersections[first_point].update([first_event, second_event])
+            intersections[second_point].update([first_event, second_event])
+            divide_segment(sorted_events[0], first_point, segments_ids)
+            divide_segment(sorted_events[1], second_point, segments_ids)
         else:
             # one line segment includes the other one
             (first_event, second_event,
              third_event, fourth_event) = sorted_events
-            divide_segment(first_event, second_event.start,
-                           _merge_ids(first_event.segments_ids,
-                                      second_event.segments_ids))
-            divide_segment(fourth_event.complement, third_event.start,
-                           _merge_ids(first_event.segments_ids,
-                                      second_event.segments_ids))
+            first_point, second_point = second_event.start, third_event.start
+            intersections[first_point].update([first_event, second_event])
+            intersections[second_point].update([first_event, second_event])
+            divide_segment(first_event, first_point, segments_ids)
+            divide_segment(fourth_event.complement, second_point, segments_ids)
 
 
 def _merge_ids(left_ids: Sequence[int],
@@ -488,11 +497,5 @@ def _merge_ids(left_ids: Sequence[int],
     return sorted({*left_ids, *right_ids})
 
 
-def _to_unique_sorted_pairs(left_iterable: Iterable[int],
-                            right_iterable: Iterable[int]
-                            ) -> Iterable[Tuple[int, int]]:
-    for left_element, right_element in product(left_iterable, right_iterable):
-        if left_element != right_element:
-            yield ((left_element, right_element)
-                   if left_element < right_element
-                   else (right_element, left_element))
+_to_combinations = partial(combinations,
+                           r=2)
