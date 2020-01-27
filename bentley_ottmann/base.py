@@ -6,7 +6,6 @@ from reprlib import recursive_repr
 from typing import (Callable,
                     Dict,
                     Iterable,
-                    Iterator,
                     Optional,
                     Sequence,
                     Set,
@@ -148,31 +147,36 @@ class EventsQueueKey:
 
 
 class SweepLine:
-    def __init__(self) -> None:
-        self.current_x = None
-        self.tree = red_black.tree(key=cast(Callable[[Event], SweepLineKey],
-                                            partial(SweepLineKey, self)))
+    def __init__(self, *events: Event,
+                 current_x: Optional[Scalar] = None) -> None:
+        self._tree = red_black.tree(*events,
+                                    key=cast(Callable[[Event], SweepLineKey],
+                                             partial(SweepLineKey, self)))
+        self.current_x = current_x
 
-    def __iter__(self) -> Iterator[Event]:
-        return iter(self.tree)
+    __repr__ = generate_repr(__init__)
+
+    @property
+    def events(self) -> Sequence[Event]:
+        return list(self._tree)
 
     def __contains__(self, event: Event) -> bool:
-        return event in self.tree
+        return event in self._tree
 
     def move_to(self, point: Point) -> None:
         self.current_x, _ = point
 
     def add(self, event: Event) -> None:
-        self.tree.add(event)
+        self._tree.add(event)
 
     def remove(self, event: Event) -> None:
-        self.tree.remove(event)
+        self._tree.remove(event)
 
     def above(self, event: Event) -> Event:
-        return self.tree.next(event)
+        return self._tree.next(event)
 
     def below(self, event: Event) -> Event:
-        return self.tree.prev(event)
+        return self._tree.prev(event)
 
 
 class SweepLineKey:
