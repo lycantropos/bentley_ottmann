@@ -131,9 +131,9 @@ class EventsQueueKey:
             return start_y < other_start_y
         elif event.end == other_event.end:
             # same segments
-            return (event.segments_ids > other_event.segments_ids
+            return (event.segments_ids < other_event.segments_ids
                     if event.is_intersection is other_event.is_intersection
-                    else not event.is_intersection)
+                    else event.is_intersection)
         elif event.is_left_endpoint is not other_event.is_left_endpoint:
             # same start, but one is a left endpoint
             # and the other is a right endpoint,
