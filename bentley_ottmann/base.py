@@ -32,7 +32,6 @@ class Event:
                  '_segments_ids')
 
     def __init__(self,
-                 *,
                  is_left_endpoint: bool,
                  is_intersection: bool,
                  start: Point,
@@ -89,14 +88,6 @@ class Event:
                                            Segment(Point(x, start_y),
                                                    Point(x, end_y)))
             return result
-
-    def is_above(self, point: Point) -> bool:
-        return (point_orientation_with_segment(point, self.segment)
-                is Orientation.CLOCKWISE)
-
-    def is_below(self, point: Point) -> bool:
-        return (point_orientation_with_segment(point, self.segment)
-                is Orientation.COUNTERCLOCKWISE)
 
 
 class EventsQueueKey:
