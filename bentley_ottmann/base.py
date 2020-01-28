@@ -149,10 +149,10 @@ class EventsQueueKey:
 class SweepLine:
     def __init__(self, *events: Event,
                  current_x: Optional[Scalar] = None) -> None:
+        self.current_x = current_x
         self._tree = red_black.tree(*events,
                                     key=cast(Callable[[Event], SweepLineKey],
                                              partial(SweepLineKey, self)))
-        self.current_x = current_x
 
     __repr__ = generate_repr(__init__)
 
