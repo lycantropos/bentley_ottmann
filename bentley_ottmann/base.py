@@ -456,7 +456,6 @@ def _detect_intersection(first_event: Event, second_event: Event,
                                   second_event.segments_ids)
         intersections[point].update([first_event, second_event])
         yield from _to_combinations(segments_ids)
-        return
     else:
         # segments overlap
         sorted_events = []
@@ -483,6 +482,9 @@ def _detect_intersection(first_event: Event, second_event: Event,
             # both line segments are equal
             first_event.segments_ids = second_event.segments_ids = _merge_ids(
                     first_event.segments_ids, second_event.segments_ids)
+            intersections[first_event.start].update([first_event,
+                                                     second_event])
+            intersections[first_event.end].update([first_event, second_event])
             return
         segments_ids = _merge_ids(first_event.segments_ids,
                                   second_event.segments_ids)
@@ -501,7 +503,6 @@ def _detect_intersection(first_event: Event, second_event: Event,
                 point = sorted_events[1].start
                 intersections[point].update([first_event, second_event])
                 divide_segment(sorted_events[0], point, segments_ids)
-            return
         elif sorted_events[0] is not sorted_events[3].complement:
             # no line segment includes totally the other one
             first_point, second_point = (sorted_events[1].start,
