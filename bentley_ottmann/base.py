@@ -410,8 +410,7 @@ def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
                             events_queue=events_queue,
                             intersections=intersections)
     for same_point_events in intersections.values():
-        for event, other_event in product(same_point_events,
-                                          repeat=2):
+        for event, other_event in _to_combinations(same_point_events):
             yield from _to_combinations(_merge_ids(event.segments_ids,
                                                    other_event.segments_ids))
 
