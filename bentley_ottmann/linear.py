@@ -156,8 +156,8 @@ def find_intersections(first_segment: Segment, second_segment: Segment
         return first_intersection_point, second_intersection_point
 
 
-def _find_intersection(first_segment: Segment, second_segment: Segment,
-                       _origin: Point = Point(0, 0)) -> Point:
+def _find_intersection(first_segment: Segment,
+                       second_segment: Segment) -> Point:
     first_start, first_end = first_segment
     second_start, second_end = second_segment
     if first_start == second_start or first_start == second_end:
