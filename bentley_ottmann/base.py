@@ -21,6 +21,7 @@ from .hints import Scalar
 from .linear import (Segment,
                      SegmentsRelationship,
                      _find_intersection,
+                     _to_rational_segment,
                      find_intersections,
                      point_orientation_with_segment,
                      to_segments_relationship)
@@ -301,6 +302,7 @@ EventsQueue = cast(Callable[..., PriorityQueue[Event]],
 
 
 def _to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
+    segments = [_to_rational_segment(segment) for segment in segments]
     segments_with_ids = sorted(
             (sorted(segment), segment_id)
             for segment_id, segment in enumerate(segments))
