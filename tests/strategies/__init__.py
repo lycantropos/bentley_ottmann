@@ -1,1 +1,2 @@
-from .base import segments_strategies
+from .base import (points_strategies,
+                   segments_strategies)

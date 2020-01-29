@@ -95,4 +95,5 @@ def coordinates_to_points(coordinates: Strategy[Scalar]) -> Strategy[Point]:
     return to_pairs(coordinates).map(pack(Point))
 
 
+points_strategies = scalars_strategies.map(coordinates_to_points)
 segments_strategies = scalars_strategies.map(coordinates_to_segments)
