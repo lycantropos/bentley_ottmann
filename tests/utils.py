@@ -10,6 +10,9 @@ from typing import (Callable,
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
 
+from bentley_ottmann.linear import Segment
+from bentley_ottmann.point import Point
+
 Domain = TypeVar('Domain')
 Range = TypeVar('Range')
 Strategy = SearchStrategy
@@ -43,3 +46,19 @@ def all_unique(values: Iterable[Hashable]) -> bool:
         else:
             seen_add(value)
     return True
+
+
+def reverse_segment(segment: Segment) -> Segment:
+    start, end = segment
+    return Segment(end, start)
+
+
+def reverse_segment_coordinates(segment: Segment) -> Segment:
+    start, end = segment
+    return Segment(reverse_point_coordinates(start),
+                   reverse_point_coordinates(end))
+
+
+def reverse_point_coordinates(point: Point) -> Point:
+    x, y = point
+    return Point(y, x)
