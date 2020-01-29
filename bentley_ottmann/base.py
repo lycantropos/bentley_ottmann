@@ -333,6 +333,28 @@ def _to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
 
 
 def segments_intersect(segments: Sequence[Segment]) -> bool:
+    """
+    Checks if segments have at least one intersection.
+
+    Based on Shamos-Hoey algorithm.
+
+    Complexity: O(len(segments) * log len(segments))
+    Reference: https://en.wikipedia.org/wiki/Sweep_line_algorithm
+
+    >>> segments_intersect([])
+    False
+    >>> segments_intersect([Segment(Point(0, 0), Point(1, 1))])
+    False
+    >>> segments_intersect([Segment(Point(0, 0), Point(1, 0)),
+    ...                     Segment(Point(0, 1), Point(1, 1))])
+    False
+    >>> segments_intersect([Segment(Point(0, 0), Point(1, 1)),
+    ...                     Segment(Point(0, 0), Point(1, 1))])
+    True
+    >>> segments_intersect([Segment(Point(0, 0), Point(1, 1)),
+    ...                     Segment(Point(1, 0), Point(0, 1))])
+    True
+    """
     return any(_sweep(segments))
 
 
