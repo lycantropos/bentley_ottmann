@@ -345,11 +345,11 @@ def edges_intersect(edges: Sequence[Segment]) -> bool:
 
 def segments_intersections(segments: Sequence[Segment]
                            ) -> Dict[Point, Set[Tuple[int, int]]]:
-    result = {}
+    result = defaultdict(set)
     for segment_id, next_segment_id in _sweep(segments):
         for point in find_intersections(segments[segment_id],
                                         segments[next_segment_id]):
-            result.setdefault(point, set()).add((segment_id, next_segment_id))
+            result[point].add((segment_id, next_segment_id))
     return result
 
 
