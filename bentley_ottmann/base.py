@@ -271,9 +271,9 @@ class SweepLineKey:
             if event.is_vertical:
                 return start_y > end_y
             else:
-                return orientation_with_other_end is (
+                return orientation_with_other_start is (
                     Orientation.COUNTERCLOCKWISE
-                    if start_x < end_x
+                    if start_x < other_start_x
                     else Orientation.CLOCKWISE)
         elif start_x == other_end_x:
             return start_y < other_end_y
