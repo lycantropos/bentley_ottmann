@@ -73,6 +73,18 @@ class Event:
     def segment(self) -> Segment:
         return Segment(self.start, self.end)
 
+    def below_than_at_x(self, other: 'Event', x: Scalar) -> bool:
+        y_at_x, other_y_at_x = self.y_at(x), other.y_at(x)
+        if other_y_at_x != y_at_x:
+            return y_at_x < other_y_at_x
+        else:
+            _, start_y = self.start
+            _, other_start_y = other.start
+            end_x, end_y = self.end
+            other_end_x, other_end_y = other.end
+            return ((start_y, end_y, other_end_x)
+                    < (other_start_y, other_end_y, end_x))
+
     def y_at(self, x: Scalar) -> Scalar:
         if self.is_vertical or self.is_horizontal:
             _, start_y = self.start
@@ -216,7 +228,9 @@ class SweepLineKey:
             # segments are collinear
             elif start_x == other_start_x:
                 if start_y != other_start_y:
+                    # segments are vertical
                     return start_y < other_start_y
+                # segments have same start
                 elif end_x != other_end_x:
                     return end_x > other_end_x
                 elif event.is_intersection is not other_event.is_intersection:
@@ -236,48 +250,49 @@ class SweepLineKey:
                 return start_x > other_start_x
         elif start == other_start:
             if event.is_vertical:
-                return orientation_with_other_end is (
-                    Orientation.COUNTERCLOCKWISE
-                    if end_x < other_end_x
-                    else Orientation.CLOCKWISE)
+                return start_y > end_y
             else:
                 return orientation_with_other_end is (
                     Orientation.COUNTERCLOCKWISE
-                    if event.is_left_endpoint
+                    if start_x < end_x
                     else Orientation.CLOCKWISE)
         elif start_x == other_start_x:
             return start_y < other_start_y
         elif orientation_with_other_start is Orientation.COLLINEAR:
-            return orientation_with_other_end is Orientation.COUNTERCLOCKWISE
+            if other_event.is_vertical:
+                return other_start_y < other_end_y
+            elif start_x == other_end_x:
+                return start_y < other_end_y
+            else:
+                return event.below_than_at_x(other_event,
+                                             self.sweep_line.current_x)
+        elif start == other_end:
+            if event.is_vertical:
+                return start_y > end_y
+            else:
+                return orientation_with_other_end is (
+                    Orientation.COUNTERCLOCKWISE
+                    if start_x < end_x
+                    else Orientation.CLOCKWISE)
+        elif start_x == other_end_x:
+            return start_y < other_end_y
         elif orientation_with_other_end is Orientation.COLLINEAR:
             if event.is_vertical:
-                if start_y != other_end_y:
-                    return start_y < other_end_y
-                else:
-                    return not event.is_left_endpoint
+                return start_y < other_end_y
             else:
                 return orientation_with_other_start is (
                     Orientation.COUNTERCLOCKWISE
-                    if (start_x, end_y) < (end_x, start_y)
+                    if start_x < end_x
                     else Orientation.CLOCKWISE)
         elif event.is_vertical:
             other_y_at_start_x = other_event.y_at(start_x)
-            if start_y != other_y_at_start_x:
+            if other_y_at_start_x != start_y:
                 return start_y < other_y_at_start_x
             else:
-                return not event.is_left_endpoint
+                return start_y > end_y
         else:
-            x = self.sweep_line.current_x
-            y_at_x, other_y_at_x = event.y_at(x), other_event.y_at(x)
-            if y_at_x != other_y_at_x:
-                return y_at_x < other_y_at_x
-            else:
-                _, start_y = event.start
-                _, other_start_y = other_event.start
-                end_x, end_y = event.end
-                other_end_x, other_end_y = other_event.end
-                return ((start_y, end_y, other_end_x)
-                        < (other_start_y, other_end_y, end_x))
+            return event.below_than_at_x(other_event,
+                                         self.sweep_line.current_x)
 
 
 EventsQueue = cast(Callable[..., PriorityQueue[Event]],
