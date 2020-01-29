@@ -302,7 +302,6 @@ EventsQueue = cast(Callable[..., PriorityQueue[Event]],
 
 
 def _to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
-    segments = [_to_rational_segment(segment) for segment in segments]
     segments_with_ids = sorted(
             (sorted(segment), segment_id)
             for segment_id, segment in enumerate(segments))
@@ -355,7 +354,8 @@ def segments_intersections(segments: Sequence[Segment]
 
 
 def _sweep(segments: Sequence[Segment]) -> Iterable[Tuple[int, int]]:
-    events_queue = _to_events_queue(segments)
+    events_queue = _to_events_queue([_to_rational_segment(segment)
+                                     for segment in segments])
     sweep_line = SweepLine()
     intersections = defaultdict(set)
     while events_queue:
