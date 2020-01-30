@@ -446,7 +446,7 @@ def _events_to_segments_ids_pairs(events: Dict[Point, Set[Event]]
     return set(chain.from_iterable(
             _to_combinations(_merge_ids(*[event.segments_ids
                                           for event in point_events]))
-            for point, point_events in events.items()))
+            for _, point_events in events.items()))
 
 
 def _sweep(segments: Sequence[Segment],
