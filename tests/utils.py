@@ -52,18 +52,18 @@ def all_unique(values: Iterable[Hashable]) -> bool:
 
 def reverse_segment(segment: Segment) -> Segment:
     start, end = segment
-    return Segment(end, start)
+    return end, start
 
 
 def reverse_segment_coordinates(segment: Segment) -> Segment:
     start, end = segment
-    return Segment(reverse_point_coordinates(start),
-                   reverse_point_coordinates(end))
+    return (reverse_point_coordinates(start),
+            reverse_point_coordinates(end))
 
 
 def reverse_point_coordinates(point: Point) -> Point:
     x, y = point
-    return Point(y, x)
+    return y, x
 
 
 def is_point(object_: Any) -> bool:

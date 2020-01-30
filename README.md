@@ -71,9 +71,8 @@ Usage
 
 With segments
 ```python
->>> from bentley_ottmann.base import Point, Segment
->>> unit_segments = [Segment(Point(0., 0.), Point(1., 0.)), 
-...                  Segment(Point(0., 0.), Point(0., 1.))]
+>>> unit_segments = [((0., 0.), (1., 0.)), 
+...                  ((0., 0.), (0., 1.))]
 
 ```
 we can check if they intersect
@@ -94,8 +93,8 @@ here we can see that `0`th and `1`st segments intersect at point `(0.0, 0.0)`.
 
 With polygons (defined as sequence of vertices)
 ```python
->>> triangle = [Point(0., 0.), Point(1., 0.), Point(0., 1.)]
->>> degenerate_triangle = [Point(0., 0.), Point(2., 0.), Point(1., 0.)]
+>>> triangle = [(0., 0.), (1., 0.), (0., 1.)]
+>>> degenerate_triangle = [(0., 0.), (2., 0.), (1., 0.)]
 
 ```
 we can check if they self-intersecting or not

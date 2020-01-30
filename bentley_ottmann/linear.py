@@ -11,13 +11,12 @@ from .angular import (AngleKind,
                       Orientation,
                       to_angle_kind,
                       to_orientation)
-from .models import Pair
 from .point import (Point,
                     _to_rational_point,
                     _to_real_point,
                     _to_scalar_point)
 
-Segment = Pair[Point]
+Segment = Tuple[Point, Point]
 
 
 @unique
@@ -216,8 +215,8 @@ def _find_intersection(first_segment: Segment,
             else ((first_numerator_x + second_numerator_x) / 2,
                   (first_numerator_y + second_numerator_y) / 2,
                   1 / denominator))
-        intersection_point = Point(numerator_x * denominator_inv,
-                                   numerator_y * denominator_inv)
+        intersection_point = (numerator_x * denominator_inv,
+                              numerator_y * denominator_inv)
         return (intersection_point
                 if are_real_segments
                 else _to_scalar_point(intersection_point, coordinate_type))
@@ -225,9 +224,9 @@ def _find_intersection(first_segment: Segment,
 
 def _to_rational_segment(segment: Segment) -> Segment:
     start, end = segment
-    return Segment(_to_rational_point(start), _to_rational_point(end))
+    return _to_rational_point(start), _to_rational_point(end)
 
 
 def _to_real_segment(segment: Segment) -> Segment:
     start, end = segment
-    return Segment(_to_real_point(start), _to_real_point(end))
+    return _to_real_point(start), _to_real_point(end)

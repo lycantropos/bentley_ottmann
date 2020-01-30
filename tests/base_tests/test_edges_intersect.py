@@ -35,8 +35,8 @@ def test_step(vertices: List[Point]) -> None:
     result = edges_intersect(rest_vertices)
     next_result = edges_intersect(vertices)
 
-    first_edge, last_edge = (Segment(first_vertex, rest_vertices[0]),
-                             Segment(rest_vertices[-1], first_vertex))
+    first_edge, last_edge = ((first_vertex, rest_vertices[0]),
+                             (rest_vertices[-1], first_vertex))
     rest_edges = _vertices_to_edges(rest_vertices)
     assert (next_result
             is (result

@@ -84,7 +84,7 @@ class Event:
 
     @property
     def segment(self) -> Segment:
-        return Segment(self.start, self.end)
+        return self.start, self.end
 
     def below_than_at_x(self, other: 'Event', x: Scalar) -> bool:
         y_at_x, other_y_at_x = self.y_at(x), other.y_at(x)
@@ -110,8 +110,7 @@ class Event:
             if x == end_x:
                 return end_y
             _, result = _find_intersection(self.segment,
-                                           Segment(Point(x, start_y),
-                                                   Point(x, end_y)))
+                                           ((x, start_y), (x, end_y)))
             return result
 
 
@@ -366,16 +365,16 @@ def segments_intersect(segments: Sequence[Segment],
 
     >>> segments_intersect([])
     False
-    >>> segments_intersect([Segment(Point(0., 0.), Point(2., 2.))])
+    >>> segments_intersect([((0., 0.), (2., 2.))])
     False
-    >>> segments_intersect([Segment(Point(0., 0.), Point(2., 0.)),
-    ...                     Segment(Point(0., 2.), Point(2., 2.))])
+    >>> segments_intersect([((0., 0.), (2., 0.)),
+    ...                     ((0., 2.), (2., 2.))])
     False
-    >>> segments_intersect([Segment(Point(0., 0.), Point(2., 2.)),
-    ...                     Segment(Point(0., 0.), Point(2., 2.))])
+    >>> segments_intersect([((0., 0.), (2., 2.)),
+    ...                     ((0., 0.), (2., 2.))])
     True
-    >>> segments_intersect([Segment(Point(0., 0.), Point(2., 2.)),
-    ...                     Segment(Point(2., 0.), Point(0., 2.))])
+    >>> segments_intersect([((0., 0.), (2., 2.)),
+    ...                     ((2., 0.), (0., 2.))])
     True
     """
     return any(_sweep(segments,
@@ -399,9 +398,9 @@ def edges_intersect(vertices: Sequence[Point],
     arithmetic for floating point numbers.
     :returns: true if segments intersection found, false otherwise.
 
-    >>> edges_intersect([Point(0., 0.), Point(2., 0.), Point(2., 2.)])
+    >>> edges_intersect([(0., 0.), (2., 0.), (2., 2.)])
     False
-    >>> edges_intersect([Point(0., 0.), Point(2., 0.), Point(1., 0.)])
+    >>> edges_intersect([(0., 0.), (2., 0.), (1., 0.)])
     True
     """
     edges = _vertices_to_edges(vertices)
@@ -446,16 +445,16 @@ def segments_intersections(segments: Sequence[Segment],
 
     >>> segments_intersections([])
     {}
-    >>> segments_intersections([Segment(Point(0., 0.), Point(2., 2.))])
+    >>> segments_intersections([((0., 0.), (2., 2.))])
     {}
-    >>> segments_intersections([Segment(Point(0., 0.), Point(2., 0.)),
-    ...                         Segment(Point(0., 2.), Point(2., 2.))])
+    >>> segments_intersections([((0., 0.), (2., 0.)),
+    ...                         ((0., 2.), (2., 2.))])
     {}
-    >>> segments_intersections([Segment(Point(0., 0.), Point(2., 2.)),
-    ...                         Segment(Point(0., 0.), Point(2., 2.))])
+    >>> segments_intersections([((0., 0.), (2., 2.)),
+    ...                         ((0., 0.), (2., 2.))])
     {(0.0, 0.0): {(0, 1)}, (2.0, 2.0): {(0, 1)}}
-    >>> segments_intersections([Segment(Point(0., 0.), Point(2., 2.)),
-    ...                         Segment(Point(2., 0.), Point(0., 2.))])
+    >>> segments_intersections([((0., 0.), (2., 2.)),
+    ...                         ((2., 0.), (0., 2.))])
     {(1.0, 1.0): {(0, 1)}}
 
 
@@ -651,7 +650,7 @@ def _detect_intersection(first_event: Event, second_event: Event,
 
 
 def _vertices_to_edges(vertices: Sequence[Point]) -> Sequence[Segment]:
-    return [Segment(vertices[index], vertices[(index + 1) % len(vertices)])
+    return [(vertices[index], vertices[(index + 1) % len(vertices)])
             for index in range(len(vertices))]
 
 

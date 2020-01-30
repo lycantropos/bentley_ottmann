@@ -87,12 +87,11 @@ scalars_strategies = strategies.sampled_from(
 def coordinates_to_segments(coordinates: Strategy[Scalar]
                             ) -> Strategy[Segment]:
     return (to_pairs(coordinates_to_points(coordinates))
-            .filter(pack(ne))
-            .map(pack(Segment)))
+            .filter(pack(ne)))
 
 
 def coordinates_to_points(coordinates: Strategy[Scalar]) -> Strategy[Point]:
-    return to_pairs(coordinates).map(pack(Point))
+    return to_pairs(coordinates)
 
 
 points_strategies = scalars_strategies.map(coordinates_to_points)
