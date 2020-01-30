@@ -352,7 +352,8 @@ def segments_intersect(segments: Sequence[Segment],
 
     Based on Shamos-Hoey algorithm.
 
-    Complexity: O(len(segments) * log len(segments))
+    Time complexity: O(len(segments) * log len(segments))
+    Memory complexity: O(len(segments))
     Reference: https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
     :param segments: sequence of segments.
