@@ -358,8 +358,9 @@ def segments_intersect(segments: Sequence[Segment]) -> bool:
     return any(_sweep(segments))
 
 
-def edges_intersect(edges: Sequence[Segment]) -> bool:
-    last_edge_index = len(edges) - 1
+def edges_intersect(vertices: Sequence[Point]) -> bool:
+    last_edge_index = len(vertices) - 1
+    edges = _vertices_to_edges(vertices)
     return any(next_segment_id - segment_id > 1
                and (segment_id != 0 or next_segment_id != last_edge_index)
                for segment_id, next_segment_id in _sweep(edges))
@@ -549,6 +550,11 @@ def _detect_intersection(first_event: Event, second_event: Event,
             intersections[second_point].update([first_event, second_event])
             divide_segment(first_event, first_point, segments_ids)
             divide_segment(fourth_event.complement, second_point, segments_ids)
+
+
+def _vertices_to_edges(vertices: Sequence[Point]) -> Sequence[Segment]:
+    return [Segment(vertices[index], vertices[(index + 1) % len(vertices)])
+            for index in range(len(vertices))]
 
 
 def _merge_ids(left_ids: Sequence[int],
