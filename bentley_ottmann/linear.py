@@ -2,8 +2,7 @@ from enum import (IntEnum,
                   unique)
 from fractions import Fraction
 from numbers import Real
-from typing import (NamedTuple,
-                    Tuple,
+from typing import (Tuple,
                     Union)
 
 from robust import parallelogram
@@ -12,12 +11,13 @@ from .angular import (AngleKind,
                       Orientation,
                       to_angle_kind,
                       to_orientation)
+from .models import Pair
 from .point import (Point,
                     _to_rational_point,
                     _to_real_point,
                     _to_scalar_point)
 
-Segment = NamedTuple('Segment', [('start', Point), ('end', Point)])
+Segment = Pair[Point]
 
 
 @unique
