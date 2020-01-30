@@ -391,15 +391,15 @@ def edges_intersect(vertices: Sequence[Point],
     Memory complexity: O(len(segments) + len(intersections))
     Reference: https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
-    >>> edges_intersect([Point(0, 0), Point(1, 0), Point(1, 1)])
-    False
-    >>> edges_intersect([Point(0, 0), Point(2, 0), Point(1, 0)])
-    True
-
     :param vertices: sequence of polygon vertices.
     :param accurate: flag that tells whether to prefer slow but more accurate
     arithmetic for floating point numbers.
     :returns: true if segments intersection found, false otherwise.
+
+    >>> edges_intersect([Point(0., 0.), Point(2., 0.), Point(2., 2.)])
+    False
+    >>> edges_intersect([Point(0., 0.), Point(2., 0.), Point(1., 0.)])
+    True
     """
     edges = _vertices_to_edges(vertices)
 
