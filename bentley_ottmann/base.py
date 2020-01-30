@@ -429,6 +429,38 @@ def segments_intersections(segments: Sequence[Segment],
                            *,
                            accurate: bool = True
                            ) -> Dict[Point, Set[Tuple[int, int]]]:
+    """
+    Returns mapping between intersection points
+    and corresponding segments indices.
+
+    Based on Bentley-Ottmann algorithm.
+
+    Time complexity:
+        O((len(segments) + len(intersections)) * log len(segments))
+    Memory complexity:
+        O(len(segments) + len(intersections))
+    Reference: https://en.wikipedia.org/wiki/Bentley%E2%80%93Ottmann_algorithm
+
+    >>> segments_intersections([])
+    {}
+    >>> segments_intersections([Segment(Point(0., 0.), Point(2., 2.))])
+    {}
+    >>> segments_intersections([Segment(Point(0., 0.), Point(2., 0.)),
+    ...                         Segment(Point(0., 2.), Point(2., 2.))])
+    {}
+    >>> segments_intersections([Segment(Point(0., 0.), Point(2., 2.)),
+    ...                         Segment(Point(0., 0.), Point(2., 2.))])
+    {(0.0, 0.0): {(0, 1)}, (2.0, 2.0): {(0, 1)}}
+    >>> segments_intersections([Segment(Point(0., 0.), Point(2., 2.)),
+    ...                         Segment(Point(2., 0.), Point(0., 2.))])
+    {(1.0, 1.0): {(0, 1)}}
+
+
+    :param segments: sequence of segments.
+    :param accurate: flag that tells whether to prefer slow but more accurate
+    arithmetic for floating point numbers.
+    :returns: true if segments intersection found, false otherwise.
+    """
     # we are collecting and processing events afterwards
     # because of possible overlaps which can arise during sweeping/reordering
     events = defaultdict(set)
