@@ -4,6 +4,7 @@ from hypothesis import given
 
 from bentley_ottmann.linear import (Segment,
                                     find_intersections)
+from tests.utils import is_point
 from . import strategies
 
 
@@ -14,7 +15,7 @@ def test_basic(segments_pair: Tuple[Segment, Segment]) -> None:
     result = find_intersections(first_segment, second_segment)
 
     assert isinstance(result, tuple)
-    assert all(isinstance(element, tuple) for element in result)
+    assert all(is_point(element) for element in result)
     assert len(result) <= 2
 
 

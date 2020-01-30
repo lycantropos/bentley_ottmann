@@ -6,7 +6,7 @@ from hypothesis import given
 from bentley_ottmann.base import segments_intersections
 from bentley_ottmann.linear import (Segment,
                                     find_intersections)
-from bentley_ottmann.point import Point
+from tests.utils import is_point
 from . import strategies
 
 
@@ -15,7 +15,7 @@ def test_basic(segments: List[Segment]) -> None:
     result = segments_intersections(segments)
 
     assert isinstance(result, dict)
-    assert all(isinstance(key, Point)
+    assert all(is_point(key)
                for key in result.keys())
     assert all(isinstance(value, set)
                for value in result.values())

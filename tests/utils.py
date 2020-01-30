@@ -1,6 +1,8 @@
 from functools import partial
+from numbers import Number
 from types import MappingProxyType
-from typing import (Callable,
+from typing import (Any,
+                    Callable,
                     Dict,
                     Hashable,
                     Iterable,
@@ -62,3 +64,10 @@ def reverse_segment_coordinates(segment: Segment) -> Segment:
 def reverse_point_coordinates(point: Point) -> Point:
     x, y = point
     return Point(y, x)
+
+
+def is_point(object_: Any) -> bool:
+    return (isinstance(object_, tuple)
+            and len(object_) == 2
+            and all(isinstance(coordinate, Number)
+                    for coordinate in object_))
