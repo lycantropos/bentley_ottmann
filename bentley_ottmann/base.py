@@ -418,6 +418,8 @@ def edges_intersect(vertices: Sequence[Point],
                                    second_event.segments_ids)))):
             return True
         events[point].update((first_event, second_event))
+    # we are collecting and processing events again
+    # because of possible overlaps which can arise during sweeping/reordering
     return non_neighbours_intersect(_events_to_segments_ids_pairs(events))
 
 
@@ -425,6 +427,8 @@ def segments_intersections(segments: Sequence[Segment],
                            *,
                            accurate: bool = True
                            ) -> Dict[Point, Set[Tuple[int, int]]]:
+    # we are collecting and processing events afterwards
+    # because of possible overlaps which can arise during sweeping/reordering
     events = defaultdict(set)
     for point, events_pair in _sweep(segments,
                                      accurate=accurate):
