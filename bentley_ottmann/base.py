@@ -381,6 +381,24 @@ def segments_intersect(segments: Sequence[Segment],
 def edges_intersect(vertices: Sequence[Point],
                     *,
                     accurate: bool = True) -> bool:
+    """
+    Checks if polygon has self-intersection.
+
+    Based on Shamos-Hoey algorithm.
+
+    Complexity: O(len(segments) * log len(segments))
+    Reference: https://en.wikipedia.org/wiki/Sweep_line_algorithm
+
+    >>> edges_intersect([Point(0, 0), Point(1, 0), Point(1, 1)])
+    False
+    >>> edges_intersect([Point(0, 0), Point(2, 0), Point(1, 0)])
+    True
+
+    :param vertices: sequence of polygon vertices.
+    :param accurate: flag that tells whether to prefer slow but more accurate
+    arithmetic for floating point numbers.
+    :returns: true if segments intersection found, false otherwise.
+    """
     edges = _vertices_to_edges(vertices)
 
     def non_neighbours_intersect(edges_ids: Iterable[Tuple[int, int]],
