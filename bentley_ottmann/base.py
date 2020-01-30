@@ -376,21 +376,26 @@ def segments_intersect(segments: Sequence[Segment],
 def edges_intersect(vertices: Sequence[Point],
                     *,
                     accurate: bool = True) -> bool:
-    def _edges_intersect(edges_ids: Iterable[Tuple[int, int]],
-                         last_edge_index: int = len(vertices) - 1) -> bool:
+    edges = _vertices_to_edges(vertices)
+
+    def non_neighbours_intersect(edges_ids: Iterable[Tuple[int, int]],
+                                 last_edge_index: int = len(edges) - 1
+                                 ) -> bool:
         return any(next_segment_id - segment_id > 1
                    and (segment_id != 0 or next_segment_id != last_edge_index)
                    for segment_id, next_segment_id in edges_ids)
 
-    edges = _vertices_to_edges(vertices)
     events = defaultdict(set)
     for point, (first_event, second_event) in _sweep(edges,
                                                      accurate=accurate):
-        if _edges_intersect(_to_combinations(_merge_ids(
-                first_event.segments_ids, second_event.segments_ids))):
+        if (first_event.relationship is SegmentsRelationship.OVERLAP
+                or second_event.relationship is SegmentsRelationship.OVERLAP
+                or non_neighbours_intersect(_to_combinations(
+                        _merge_ids(first_event.segments_ids,
+                                   second_event.segments_ids)))):
             return True
         events[point].update((first_event, second_event))
-    return _edges_intersect(_events_to_segments_ids_pairs(events))
+    return non_neighbours_intersect(_events_to_segments_ids_pairs(events))
 
 
 def segments_intersections(segments: Sequence[Segment],
