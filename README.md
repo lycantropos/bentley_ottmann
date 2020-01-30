@@ -66,6 +66,48 @@ Install:
   pypy setup.py install
   ```
 
+Usage
+-----
+
+With segments
+```python
+>>> from bentley_ottmann.base import Point, Segment
+>>> unit_segments = [Segment(Point(0., 0.), Point(1., 0.)), 
+...                  Segment(Point(0., 0.), Point(0., 1.))]
+
+```
+we can check if they intersect
+```python
+>>> from bentley_ottmann.base import segments_intersect
+>>> segments_intersect(unit_segments)
+True
+
+```
+we can also find in which points segments intersect
+```python
+>>> from bentley_ottmann.base import segments_intersections
+>>> segments_intersections(unit_segments)
+{(0.0, 0.0): {(0, 1)}}
+
+```
+here we can see that `0`th and `1`st segments intersect at point `(0.0, 0.0)`.
+
+With polygons (defined as sequence of vertices)
+```python
+>>> triangle = [Point(0., 0.), Point(1., 0.), Point(0., 1.)]
+>>> degenerate_triangle = [Point(0., 0.), Point(2., 0.), Point(1., 0.)]
+
+```
+we can check if they self-intersecting or not
+```python
+>>> from bentley_ottmann.base import edges_intersect
+>>> edges_intersect(triangle)
+False
+>>> edges_intersect(degenerate_triangle)
+True
+
+```
+
 Development
 -----------
 
