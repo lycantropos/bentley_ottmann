@@ -29,20 +29,22 @@ from .point import Point
 
 
 class Event:
-    __slots__ = ('is_left_endpoint', 'is_intersection', 'start', 'complement',
-                 '_segments_ids')
+    __slots__ = ('is_left_endpoint', '_relationship',
+                 'start', 'complement', '_segments_ids')
 
     def __init__(self,
                  is_left_endpoint: bool,
-                 is_intersection: bool,
+                 relationship: SegmentsRelationship,
                  start: Point,
                  complement: Optional['Event'],
                  segments_ids: Sequence[int]) -> None:
         self.is_left_endpoint = is_left_endpoint
-        self.is_intersection = is_intersection
+        self._relationship = relationship
         self.start = start
         self.complement = complement
         self._segments_ids = segments_ids
+
+    __repr__ = recursive_repr()(generate_repr(__init__))
 
     @property
     def segments_ids(self) -> Sequence[int]:
@@ -52,7 +54,17 @@ class Event:
     def segments_ids(self, segments_ids: Sequence[int]) -> None:
         self._segments_ids = self.complement._segments_ids = segments_ids
 
-    __repr__ = recursive_repr()(generate_repr(__init__))
+    @property
+    def relationship(self) -> SegmentsRelationship:
+        return self._relationship
+
+    @relationship.setter
+    def relationship(self, relationship: SegmentsRelationship) -> None:
+        self._relationship = self.complement._relationship = relationship
+
+    @property
+    def is_intersection(self) -> bool:
+        return self.relationship is not SegmentsRelationship.NONE
 
     @property
     def is_vertical(self) -> bool:
@@ -317,12 +329,12 @@ def _to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
             index += 1
         left_endpoint, right_endpoint = segment
         start_event = Event(is_left_endpoint=True,
-                            is_intersection=False,
+                            relationship=SegmentsRelationship.NONE,
                             start=left_endpoint,
                             complement=None,
                             segments_ids=same_segments_ids)
         end_event = Event(is_left_endpoint=False,
-                          is_intersection=False,
+                          relationship=SegmentsRelationship.NONE,
                           start=right_endpoint,
                           complement=start_event,
                           segments_ids=same_segments_ids)
@@ -445,6 +457,7 @@ def _detect_intersection(first_event: Event, second_event: Event,
                          intersections: Dict[Point, Set[Event]]
                          ) -> Iterable[Tuple[int, int]]:
     def divide_segment(event: Event, break_point: Point,
+                       relationship: SegmentsRelationship,
                        segments_ids: Optional[Sequence[int]] = None) -> None:
         # "left event" of the "right line segment"
         # resulting from dividing event.segment
@@ -453,18 +466,18 @@ def _detect_intersection(first_event: Event, second_event: Event,
         else:
             event.segments_ids = segments_ids
         left_event = Event(is_left_endpoint=True,
-                           is_intersection=True,
+                           relationship=relationship,
                            start=break_point,
                            complement=event.complement,
                            segments_ids=segments_ids)
         # "right event" of the "left line segment"
         # resulting from dividing event.segment
         right_event = Event(is_left_endpoint=False,
-                            is_intersection=True,
+                            relationship=relationship,
                             start=break_point,
                             complement=event,
                             segments_ids=segments_ids)
-        event.is_intersection = event.complement.is_intersection = True
+        event.relationship = relationship
         event.complement.complement, event.complement = left_event, right_event
         events_queue.push(left_event)
         events_queue.push(right_event)
@@ -479,9 +492,9 @@ def _detect_intersection(first_event: Event, second_event: Event,
     elif relationship is SegmentsRelationship.CROSS:
         point = _find_intersection(first_segment, second_segment)
         if point != first_event.start and point != first_event.end:
-            divide_segment(first_event, point)
+            divide_segment(first_event, point, relationship)
         if point != second_event.start and point != second_event.end:
-            divide_segment(second_event, point)
+            divide_segment(second_event, point, relationship)
         segments_ids = _merge_ids(first_event.segments_ids,
                                   second_event.segments_ids)
         intersections[point].update([first_event, second_event])
@@ -527,20 +540,23 @@ def _detect_intersection(first_event: Event, second_event: Event,
                 point = sorted_events[1].start
                 intersections[point].update([first_event, second_event])
                 divide_segment(sorted_events[2].complement, point,
-                               segments_ids)
+                               relationship, segments_ids)
             else:
                 # line segments share the right endpoint
                 point = sorted_events[1].start
                 intersections[point].update([first_event, second_event])
-                divide_segment(sorted_events[0], point, segments_ids)
+                divide_segment(sorted_events[0], point, relationship,
+                               segments_ids)
         elif sorted_events[0] is not sorted_events[3].complement:
             # no line segment includes totally the other one
             first_point, second_point = (sorted_events[1].start,
                                          sorted_events[2].start)
             intersections[first_point].update([first_event, second_event])
             intersections[second_point].update([first_event, second_event])
-            divide_segment(sorted_events[0], first_point, segments_ids)
-            divide_segment(sorted_events[1], second_point, segments_ids)
+            divide_segment(sorted_events[0], first_point, relationship,
+                           segments_ids)
+            divide_segment(sorted_events[1], second_point, relationship,
+                           segments_ids)
         else:
             # one line segment includes the other one
             (first_event, second_event,
@@ -548,8 +564,10 @@ def _detect_intersection(first_event: Event, second_event: Event,
             first_point, second_point = second_event.start, third_event.start
             intersections[first_point].update([first_event, second_event])
             intersections[second_point].update([first_event, second_event])
-            divide_segment(first_event, first_point, segments_ids)
-            divide_segment(fourth_event.complement, second_point, segments_ids)
+            divide_segment(first_event, first_point, relationship,
+                           segments_ids)
+            divide_segment(fourth_event.complement, second_point, relationship,
+                           segments_ids)
 
 
 def _vertices_to_edges(vertices: Sequence[Point]) -> Sequence[Segment]:
