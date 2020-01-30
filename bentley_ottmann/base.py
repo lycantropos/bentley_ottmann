@@ -363,16 +363,16 @@ def segments_intersect(segments: Sequence[Segment],
 
     >>> segments_intersect([])
     False
-    >>> segments_intersect([Segment(Point(0, 0), Point(1, 1))])
+    >>> segments_intersect([Segment(Point(0., 0.), Point(2., 2.))])
     False
-    >>> segments_intersect([Segment(Point(0, 0), Point(1, 0)),
-    ...                     Segment(Point(0, 1), Point(1, 1))])
+    >>> segments_intersect([Segment(Point(0., 0.), Point(2., 0.)),
+    ...                     Segment(Point(0., 2.), Point(2., 2.))])
     False
-    >>> segments_intersect([Segment(Point(0, 0), Point(1, 1)),
-    ...                     Segment(Point(0, 0), Point(1, 1))])
+    >>> segments_intersect([Segment(Point(0., 0.), Point(2., 2.)),
+    ...                     Segment(Point(0., 0.), Point(2., 2.))])
     True
-    >>> segments_intersect([Segment(Point(0, 0), Point(1, 1)),
-    ...                     Segment(Point(1, 0), Point(0, 1))])
+    >>> segments_intersect([Segment(Point(0., 0.), Point(2., 2.)),
+    ...                     Segment(Point(2., 0.), Point(0., 2.))])
     True
     """
     return any(_sweep(segments,
