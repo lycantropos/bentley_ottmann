@@ -355,6 +355,11 @@ def segments_intersect(segments: Sequence[Segment],
     Complexity: O(len(segments) * log len(segments))
     Reference: https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
+    :param segments: sequence of segments.
+    :param accurate: flag that tells whether to prefer slow but more accurate
+    arithmetic for floating point numbers.
+    :returns: true if segments intersection found, false otherwise.
+
     >>> segments_intersect([])
     False
     >>> segments_intersect([Segment(Point(0, 0), Point(1, 1))])
