@@ -387,7 +387,8 @@ def edges_intersect(vertices: Sequence[Point],
 
     Based on Shamos-Hoey algorithm.
 
-    Complexity: O(len(segments) * log len(segments))
+    Time complexity: O(len(segments) * log len(segments))
+    Memory complexity: O(len(segments) + len(intersections))
     Reference: https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
     >>> edges_intersect([Point(0, 0), Point(1, 0), Point(1, 1)])
