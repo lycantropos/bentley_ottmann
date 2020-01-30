@@ -14,6 +14,7 @@ from .angular import (AngleKind,
                       to_orientation)
 from .point import (Point,
                     _to_rational_point,
+                    _to_real_point,
                     _to_scalar_point)
 
 Segment = NamedTuple('Segment', [('start', Point), ('end', Point)])
@@ -180,8 +181,9 @@ def _find_intersection(first_segment: Segment,
         coordinate, _ = first_start
         coordinate_type = type(coordinate)
         are_real_segments = issubclass(coordinate_type, Real)
-        first_segment, second_segment = (_to_rational_segment(first_segment),
-                                         _to_rational_segment(second_segment))
+        if not are_real_segments:
+            first_segment, second_segment = (_to_real_segment(first_segment),
+                                             _to_real_segment(second_segment))
         first_start, first_end = first_segment
         second_start, second_end = second_segment
         denominator = parallelogram.signed_area(first_start, first_end,
@@ -224,3 +226,8 @@ def _find_intersection(first_segment: Segment,
 def _to_rational_segment(segment: Segment) -> Segment:
     start, end = segment
     return Segment(_to_rational_point(start), _to_rational_point(end))
+
+
+def _to_real_segment(segment: Segment) -> Segment:
+    start, end = segment
+    return Segment(_to_real_point(start), _to_real_point(end))
