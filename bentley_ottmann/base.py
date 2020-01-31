@@ -620,25 +620,18 @@ def _detect_intersection(first_event: Event, second_event: Event,
                            # line segments share the right endpoint
                            else sorted_events[0], point,
                            relationship, segments_ids)
-        elif sorted_events[0] is not sorted_events[3].complement:
-            # no line segment includes totally the other one
-            first_point, second_point = (sorted_events[1].start,
-                                         sorted_events[2].start)
-            yield first_point, (first_event, second_event)
-            yield second_point, (first_event, second_event)
-            divide_segment(sorted_events[0], first_point, relationship,
-                           segments_ids)
-            divide_segment(sorted_events[1], second_point, relationship,
-                           segments_ids)
         else:
-            # one line segment includes the other one
             first_point, second_point = (sorted_events[1].start,
                                          sorted_events[2].start)
             yield first_point, (first_event, second_event)
             yield second_point, (first_event, second_event)
             divide_segment(sorted_events[0], first_point, relationship,
                            segments_ids)
-            divide_segment(sorted_events[0], second_point, relationship,
+            divide_segment(sorted_events[0]
+                           # one line segment includes the other one
+                           if sorted_events[0] is sorted_events[3].complement
+                           # no line segment includes totally the other one
+                           else sorted_events[1], second_point, relationship,
                            segments_ids)
 
 
