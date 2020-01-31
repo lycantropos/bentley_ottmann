@@ -5,6 +5,7 @@ from hypothesis import given
 from bentley_ottmann.linear import (Segment,
                                     SegmentsRelationship,
                                     to_segments_relationship)
+from tests.utils import reverse_segment
 from . import strategies
 
 
@@ -29,5 +30,12 @@ def test_commutativity(segments_pair: Tuple[Segment, Segment]) -> None:
 @given(strategies.segments)
 def test_self(segment: Segment) -> None:
     result = to_segments_relationship(segment, segment)
+
+    assert result is SegmentsRelationship.OVERLAP
+
+
+@given(strategies.segments)
+def test_reversed(segment: Segment) -> None:
+    result = to_segments_relationship(segment, reverse_segment(segment))
 
     assert result is SegmentsRelationship.OVERLAP
