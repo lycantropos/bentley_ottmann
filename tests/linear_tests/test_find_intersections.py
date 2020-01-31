@@ -4,7 +4,8 @@ from hypothesis import given
 
 from bentley_ottmann.linear import (Segment,
                                     find_intersections)
-from tests.utils import is_point
+from tests.utils import (is_point,
+                         reverse_segment)
 from . import strategies
 
 
@@ -31,5 +32,12 @@ def test_commutativity(segments_pair: Tuple[Segment, Segment]) -> None:
 @given(strategies.segments)
 def test_self(segment: Segment) -> None:
     result = find_intersections(segment, segment)
+
+    assert result == tuple(sorted(segment))
+
+
+@given(strategies.segments)
+def test_reversed(segment: Segment) -> None:
+    result = find_intersections(segment, reverse_segment(segment))
 
     assert result == tuple(sorted(segment))
