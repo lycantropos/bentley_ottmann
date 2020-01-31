@@ -407,6 +407,17 @@ def edges_intersect(vertices: Sequence[Point],
         for floating point numbers.
     :returns: true if polygon is self-intersecting, false otherwise.
 
+    .. note::
+        Consecutive equal vertices like ``(2., 0.)`` in
+
+        .. code-block:: python
+
+            [(0., 0.), (2., 0.), (2., 0.), (2., 2.)]
+
+        will be considered as self-intersection,
+        if you don't want them to be treated as such
+        -- filter out before passing as argument.
+
     >>> edges_intersect([(0., 0.), (2., 0.), (2., 2.)])
     False
     >>> edges_intersect([(0., 0.), (2., 0.), (1., 0.)])
