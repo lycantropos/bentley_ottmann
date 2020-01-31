@@ -587,8 +587,6 @@ def _detect_intersection(first_event: Event, second_event: Event,
     def divide_segment(event: Event, break_point: Point,
                        relationship: SegmentsRelationship,
                        segments_ids: Optional[Sequence[int]] = None) -> None:
-        # "left event" of the "right line segment"
-        # resulting from dividing event.segment
         if segments_ids is None:
             segments_ids = event.segments_ids
         else:
@@ -598,8 +596,6 @@ def _detect_intersection(first_event: Event, second_event: Event,
                            start=break_point,
                            complement=event.complement,
                            segments_ids=segments_ids)
-        # "right event" of the "left line segment"
-        # resulting from dividing event.segment
         right_event = Event(is_left_endpoint=False,
                             relationship=relationship,
                             start=break_point,
