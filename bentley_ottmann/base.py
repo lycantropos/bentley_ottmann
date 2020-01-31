@@ -395,9 +395,10 @@ def edges_intersect(vertices: Sequence[Point],
     Reference: https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
     :param vertices: sequence of polygon vertices.
-    :param accurate: flag that tells whether to prefer slow but more accurate
-    arithmetic for floating point numbers.
-    :returns: true if segments intersection found, false otherwise.
+    :param accurate:
+        flag that tells whether to use slow but more accurate arithmetic
+        for floating point numbers.
+    :returns: true if polygon is self-intersecting, false otherwise.
 
     >>> edges_intersect([(0., 0.), (2., 0.), (2., 2.)])
     False
