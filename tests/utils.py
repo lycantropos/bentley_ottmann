@@ -4,7 +4,6 @@ from types import MappingProxyType
 from typing import (Any,
                     Callable,
                     Dict,
-                    Hashable,
                     Iterable,
                     Tuple,
                     TypeVar)
@@ -37,17 +36,6 @@ def apply(function: Callable[..., Range],
           args: Iterable[Domain],
           kwargs: Dict[str, Domain] = MappingProxyType({})) -> Range:
     return function(*args, **kwargs)
-
-
-def all_unique(values: Iterable[Hashable]) -> bool:
-    seen = set()
-    seen_add = seen.add
-    for value in values:
-        if value in seen:
-            return False
-        else:
-            seen_add(value)
-    return True
 
 
 def reverse_segment(segment: Segment) -> Segment:
