@@ -3,6 +3,7 @@ bentley_ottmann
 
 [![](https://travis-ci.com/lycantropos/bentley_ottmann.svg?branch=master)](https://travis-ci.com/lycantropos/bentley_ottmann "Travis CI")
 [![](https://dev.azure.com/lycantropos/bentley_ottmann/_apis/build/status/lycantropos.bentley_ottmann?branchName=master)](https://dev.azure.com/lycantropos/bentley_ottmann/_build/latest?branchName=master "Azure Pipelines")
+[![](https://readthedocs.org/projects/bentley_ottmann/badge/?version=latest)](https://bentley-ottmann.readthedocs.io/en/latest "Documentation")
 [![](https://codecov.io/gh/lycantropos/bentley_ottmann/branch/master/graph/badge.svg)](https://codecov.io/gh/lycantropos/bentley_ottmann "Codecov")
 [![](https://img.shields.io/github/license/lycantropos/bentley_ottmann.svg)](https://github.com/lycantropos/bentley_ottmann/blob/master/LICENSE "License")
 [![](https://badge.fury.io/py/bentley-ottmann.svg)](https://badge.fury.io/py/bentley-ottmann "PyPI")
