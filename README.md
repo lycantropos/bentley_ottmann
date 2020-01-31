@@ -69,7 +69,7 @@ Install:
 Usage
 -----
 
-With segments
+With segments (defined as pairs of endpoints' coordinates)
 ```python
 >>> unit_segments = [((0., 0.), (1., 0.)), 
 ...                  ((0., 0.), (0., 1.))]
