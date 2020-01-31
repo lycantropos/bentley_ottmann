@@ -359,8 +359,9 @@ def segments_intersect(segments: Sequence[Segment],
     Reference: https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
     :param segments: sequence of segments.
-    :param accurate: flag that tells whether to prefer slow but more accurate
-    arithmetic for floating point numbers.
+    :param accurate:
+        flag that tells whether to use slow but more accurate arithmetic
+        for floating point numbers.
     :returns: true if segments intersection found, false otherwise.
 
     >>> segments_intersect([])
