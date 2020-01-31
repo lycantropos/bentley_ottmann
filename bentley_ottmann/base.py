@@ -599,8 +599,8 @@ def _detect_intersection(first_event: Event, second_event: Event,
 
     if relationship is SegmentsRelationship.NONE:
         return
-    # segments intersect
     elif relationship is SegmentsRelationship.CROSS:
+        # segments intersect
         point = _find_intersection(first_segment, second_segment)
         if point != first_event.start and point != first_event.end:
             divide_segment(first_event, point, relationship)
@@ -644,8 +644,8 @@ def _detect_intersection(first_event: Event, second_event: Event,
                            # line segments share the left endpoint
                            if sorted_events[2]
                            # line segments share the right endpoint
-                           else sorted_events[0], point,
-                           relationship, segments_ids)
+                           else sorted_events[0],
+                           point, relationship, segments_ids)
         else:
             first_point, second_point = (sorted_events[1].start,
                                          sorted_events[2].start)
@@ -657,8 +657,8 @@ def _detect_intersection(first_event: Event, second_event: Event,
                            # one line segment includes the other one
                            if sorted_events[0] is sorted_events[3].complement
                            # no line segment includes totally the other one
-                           else sorted_events[1], second_point, relationship,
-                           segments_ids)
+                           else sorted_events[1],
+                           second_point, relationship, segments_ids)
 
 
 def _vertices_to_edges(vertices: Sequence[Point]) -> Sequence[Segment]:
