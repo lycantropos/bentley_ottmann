@@ -97,7 +97,7 @@ With polygons (defined as sequence of vertices)
 >>> degenerate_triangle = [(0., 0.), (2., 0.), (1., 0.)]
 
 ```
-we can check if they self-intersecting or not
+we can check if they are self-intersecting or not
 ```python
 >>> from bentley_ottmann.base import edges_intersect
 >>> edges_intersect(triangle)
