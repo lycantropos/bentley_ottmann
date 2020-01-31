@@ -5,6 +5,7 @@ from itertools import (chain,
 from reprlib import recursive_repr
 from typing import (Callable,
                     Dict,
+                    Hashable,
                     Iterable,
                     Optional,
                     Sequence,
@@ -411,6 +412,9 @@ def edges_intersect(vertices: Sequence[Point],
     >>> edges_intersect([(0., 0.), (2., 0.), (1., 0.)])
     True
     """
+    if not _all_unique(vertices):
+        return True
+
     edges = _vertices_to_edges(vertices)
 
     def non_neighbours_intersect(edges_ids: Iterable[Tuple[int, int]],
@@ -660,3 +664,14 @@ def _merge_ids(*sequences: Sequence[int]) -> Sequence[int]:
 
 _to_combinations = partial(combinations,
                            r=2)
+
+
+def _all_unique(values: Iterable[Hashable]) -> bool:
+    seen = set()
+    seen_add = seen.add
+    for value in values:
+        if value in seen:
+            return False
+        else:
+            seen_add(value)
+    return True
