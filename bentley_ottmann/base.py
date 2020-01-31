@@ -354,9 +354,12 @@ def segments_intersect(segments: Sequence[Segment],
 
     Based on Shamos-Hoey algorithm.
 
-    Time complexity: O(len(segments) * log len(segments))
-    Memory complexity: O(len(segments))
-    Reference: https://en.wikipedia.org/wiki/Sweep_line_algorithm
+    Time complexity:
+        ``O(len(segments) * log len(segments))``
+    Memory complexity:
+        ``O(len(segments))``
+    Reference:
+        https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
     :param segments: sequence of segments.
     :param accurate:
@@ -390,9 +393,12 @@ def edges_intersect(vertices: Sequence[Point],
 
     Based on Shamos-Hoey algorithm.
 
-    Time complexity: O(len(segments) * log len(segments))
-    Memory complexity: O(len(segments) + len(intersections))
-    Reference: https://en.wikipedia.org/wiki/Sweep_line_algorithm
+    Time complexity:
+        ``O(len(segments) * log len(segments))``
+    Memory complexity:
+        ``O(len(segments) + len(intersections))``
+    Reference:
+        https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
     :param vertices: sequence of polygon vertices.
     :param accurate:
@@ -440,10 +446,11 @@ def segments_intersections(segments: Sequence[Segment],
     Based on Bentley-Ottmann algorithm.
 
     Time complexity:
-        O((len(segments) + len(intersections)) * log len(segments))
+        ``O((len(segments) + len(intersections)) * log len(segments))``
     Memory complexity:
-        O(len(segments) + len(intersections))
-    Reference: https://en.wikipedia.org/wiki/Bentley%E2%80%93Ottmann_algorithm
+        ``O(len(segments) + len(intersections))``
+    Reference:
+        https://en.wikipedia.org/wiki/Bentley%E2%80%93Ottmann_algorithm
 
     >>> segments_intersections([])
     {}
