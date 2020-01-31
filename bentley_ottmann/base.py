@@ -313,79 +313,6 @@ EventsQueue = cast(Callable[..., PriorityQueue[Event]],
                            key=EventsQueueKey))
 
 
-def _to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
-    segments_with_ids = sorted(
-            (sorted(segment), segment_id)
-            for segment_id, segment in enumerate(segments))
-    events_queue = EventsQueue()
-    index = 0
-    while index < len(segments_with_ids):
-        segment, segment_id = segments_with_ids[index]
-        index += 1
-        same_segments_ids = [segment_id]
-        while (index < len(segments_with_ids)
-               and segments_with_ids[index][0] == segment):
-            same_segments_ids.append(segments_with_ids[index][1])
-            index += 1
-        left_endpoint, right_endpoint = segment
-        segments_relationship = (SegmentsRelationship.NONE
-                                 if len(same_segments_ids) == 1
-                                 else SegmentsRelationship.OVERLAP)
-        start_event = Event(is_left_endpoint=True,
-                            relationship=segments_relationship,
-                            start=left_endpoint,
-                            complement=None,
-                            segments_ids=same_segments_ids)
-        end_event = Event(is_left_endpoint=False,
-                          relationship=segments_relationship,
-                          start=right_endpoint,
-                          complement=start_event,
-                          segments_ids=same_segments_ids)
-        start_event.complement = end_event
-        events_queue.push(start_event)
-        events_queue.push(end_event)
-    return events_queue
-
-
-def segments_intersect(segments: Sequence[Segment],
-                       *,
-                       accurate: bool = True) -> bool:
-    """
-    Checks if segments have at least one intersection.
-
-    Based on Shamos-Hoey algorithm.
-
-    Time complexity:
-        ``O(len(segments) * log len(segments))``
-    Memory complexity:
-        ``O(len(segments))``
-    Reference:
-        https://en.wikipedia.org/wiki/Sweep_line_algorithm
-
-    :param segments: sequence of segments.
-    :param accurate:
-        flag that tells whether to use slow but more accurate arithmetic
-        for floating point numbers.
-    :returns: true if segments intersection found, false otherwise.
-
-    >>> segments_intersect([])
-    False
-    >>> segments_intersect([((0., 0.), (2., 2.))])
-    False
-    >>> segments_intersect([((0., 0.), (2., 0.)),
-    ...                     ((0., 2.), (2., 2.))])
-    False
-    >>> segments_intersect([((0., 0.), (2., 2.)),
-    ...                     ((0., 0.), (2., 2.))])
-    True
-    >>> segments_intersect([((0., 0.), (2., 2.)),
-    ...                     ((2., 0.), (0., 2.))])
-    True
-    """
-    return any(_sweep(segments,
-                      accurate=accurate))
-
-
 def edges_intersect(vertices: Sequence[Point],
                     *,
                     accurate: bool = True) -> bool:
@@ -440,7 +367,7 @@ def edges_intersect(vertices: Sequence[Point],
                                                      accurate=accurate):
         if (first_event.relationship is SegmentsRelationship.OVERLAP
                 or second_event.relationship is SegmentsRelationship.OVERLAP
-                or non_neighbours_intersect(_to_combinations(
+                or non_neighbours_intersect(_to_pairs_combinations(
                         _merge_ids(first_event.segments_ids,
                                    second_event.segments_ids)))):
             return True
@@ -448,6 +375,61 @@ def edges_intersect(vertices: Sequence[Point],
     # we are collecting and processing events again
     # because of possible overlaps which can arise during sweeping/reordering
     return non_neighbours_intersect(_events_to_segments_ids_pairs(events))
+
+
+def _vertices_to_edges(vertices: Sequence[Point]) -> Sequence[Segment]:
+    return [(vertices[index], vertices[(index + 1) % len(vertices)])
+            for index in range(len(vertices))]
+
+
+def _all_unique(values: Iterable[Hashable]) -> bool:
+    seen = set()
+    seen_add = seen.add
+    for value in values:
+        if value in seen:
+            return False
+        else:
+            seen_add(value)
+    return True
+
+
+def segments_intersect(segments: Sequence[Segment],
+                       *,
+                       accurate: bool = True) -> bool:
+    """
+    Checks if segments have at least one intersection.
+
+    Based on Shamos-Hoey algorithm.
+
+    Time complexity:
+        ``O(len(segments) * log len(segments))``
+    Memory complexity:
+        ``O(len(segments))``
+    Reference:
+        https://en.wikipedia.org/wiki/Sweep_line_algorithm
+
+    :param segments: sequence of segments.
+    :param accurate:
+        flag that tells whether to use slow but more accurate arithmetic
+        for floating point numbers.
+    :returns: true if segments intersection found, false otherwise.
+
+    >>> segments_intersect([])
+    False
+    >>> segments_intersect([((0., 0.), (2., 2.))])
+    False
+    >>> segments_intersect([((0., 0.), (2., 0.)),
+    ...                     ((0., 2.), (2., 2.))])
+    False
+    >>> segments_intersect([((0., 0.), (2., 2.)),
+    ...                     ((0., 0.), (2., 2.))])
+    True
+    >>> segments_intersect([((0., 0.), (2., 2.)),
+    ...                     ((2., 0.), (0., 2.))])
+    True
+    """
+    return any(_sweep(segments,
+                      accurate=accurate))
 
 
 def segments_intersections(segments: Sequence[Segment],
@@ -506,8 +488,8 @@ def segments_intersections(segments: Sequence[Segment],
 def _events_to_segments_ids_pairs(events: Dict[Point, Set[Event]]
                                   ) -> Set[Tuple[int, int]]:
     return set(chain.from_iterable(
-            _to_combinations(_merge_ids(*[event.segments_ids
-                                          for event in point_events]))
+            _to_pairs_combinations(_merge_ids(*[event.segments_ids
+                                                for event in point_events]))
             for _, point_events in events.items()))
 
 
@@ -524,7 +506,7 @@ def _sweep(segments: Sequence[Segment],
         point, same_point_events = event.start, [event]
         while events_queue and events_queue.peek().start == point:
             same_point_events.append(events_queue.pop())
-        for event, other_event in _to_combinations(same_point_events):
+        for event, other_event in _to_pairs_combinations(same_point_events):
             yield point, (event, other_event)
         sweep_line.move_to(point)
         for event in same_point_events:
@@ -563,6 +545,40 @@ def _sweep(segments: Sequence[Segment],
                 if below_event is not None and above_event is not None:
                     yield from _detect_intersection(below_event, above_event,
                                                     events_queue=events_queue)
+
+
+def _to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
+    segments_with_ids = sorted(
+            (sorted(segment), segment_id)
+            for segment_id, segment in enumerate(segments))
+    events_queue = EventsQueue()
+    index = 0
+    while index < len(segments_with_ids):
+        segment, segment_id = segments_with_ids[index]
+        index += 1
+        same_segments_ids = [segment_id]
+        while (index < len(segments_with_ids)
+               and segments_with_ids[index][0] == segment):
+            same_segments_ids.append(segments_with_ids[index][1])
+            index += 1
+        left_endpoint, right_endpoint = segment
+        segments_relationship = (SegmentsRelationship.NONE
+                                 if len(same_segments_ids) == 1
+                                 else SegmentsRelationship.OVERLAP)
+        start_event = Event(is_left_endpoint=True,
+                            relationship=segments_relationship,
+                            start=left_endpoint,
+                            complement=None,
+                            segments_ids=same_segments_ids)
+        end_event = Event(is_left_endpoint=False,
+                          relationship=segments_relationship,
+                          start=right_endpoint,
+                          complement=start_event,
+                          segments_ids=same_segments_ids)
+        start_event.complement = end_event
+        events_queue.push(start_event)
+        events_queue.push(end_event)
+    return events_queue
 
 
 def _detect_intersection(first_event: Event, second_event: Event,
@@ -661,11 +677,6 @@ def _detect_intersection(first_event: Event, second_event: Event,
                            second_point, relationship, segments_ids)
 
 
-def _vertices_to_edges(vertices: Sequence[Point]) -> Sequence[Segment]:
-    return [(vertices[index], vertices[(index + 1) % len(vertices)])
-            for index in range(len(vertices))]
-
-
 def _merge_ids(*sequences: Sequence[int]) -> Sequence[int]:
     result = set()
     for sequence in sequences:
@@ -673,16 +684,5 @@ def _merge_ids(*sequences: Sequence[int]) -> Sequence[int]:
     return sorted(result)
 
 
-_to_combinations = partial(combinations,
-                           r=2)
-
-
-def _all_unique(values: Iterable[Hashable]) -> bool:
-    seen = set()
-    seen_add = seen.add
-    for value in values:
-        if value in seen:
-            return False
-        else:
-            seen_add(value)
-    return True
+_to_pairs_combinations = partial(combinations,
+                                 r=2)
