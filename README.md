@@ -91,7 +91,7 @@ we can also find in which points segments intersect
 ```
 here we can see that `0`th and `1`st segments intersect at point `(0.0, 0.0)`.
 
-With polygons (defined as sequence of vertices)
+With polygons (defined as sequence of vertices' coordinates)
 ```python
 >>> triangle = [(0., 0.), (1., 0.), (0., 1.)]
 >>> degenerate_triangle = [(0., 0.), (2., 0.), (1., 0.)]
