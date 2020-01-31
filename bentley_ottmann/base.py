@@ -461,9 +461,11 @@ def segments_intersections(segments: Sequence[Segment],
 
 
     :param segments: sequence of segments.
-    :param accurate: flag that tells whether to prefer slow but more accurate
-    arithmetic for floating point numbers.
-    :returns: true if segments intersection found, false otherwise.
+    :param accurate:
+        flag that tells whether to use slow but more accurate arithmetic
+        for floating point numbers.
+    :returns:
+        mapping between intersection points and corresponding segments indices.
     """
     # we are collecting and processing events afterwards
     # because of possible overlaps which can arise during sweeping/reordering
