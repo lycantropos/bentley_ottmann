@@ -6,6 +6,7 @@ from typing import (Tuple,
 from .hints import Scalar
 
 Point = Tuple[Scalar, Scalar]
+RealPoint = Tuple[Real, Real]
 
 
 def _is_real_point(point: Point) -> bool:
@@ -13,7 +14,7 @@ def _is_real_point(point: Point) -> bool:
     return isinstance(x, Real)
 
 
-def _to_real_point(point: Point) -> Point:
+def _to_real_point(point: Point) -> RealPoint:
     x, y = point
     return float(x), float(y)
 
