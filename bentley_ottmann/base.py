@@ -326,7 +326,7 @@ def edges_intersect(vertices: Sequence[Point],
     Time complexity:
         ``O(len(segments) * log len(segments))``
     Memory complexity:
-        ``O(len(segments) + len(intersections))``
+        ``O(len(segments))``
     Reference:
         https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
