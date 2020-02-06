@@ -25,18 +25,18 @@ class Orientation(IntEnum):
 def to_angle_kind(first_ray_point: RealPoint,
                   vertex: RealPoint,
                   second_ray_point: RealPoint) -> AngleKind:
-    return AngleKind(to_sign(projection.signed_length(
+    return AngleKind(_to_sign(projection.signed_length(
             vertex, first_ray_point, vertex, second_ray_point)))
 
 
 def to_orientation(first_ray_point: RealPoint,
                    vertex: RealPoint,
                    second_ray_point: RealPoint) -> Orientation:
-    return Orientation(to_sign(parallelogram.signed_area(
+    return Orientation(_to_sign(parallelogram.signed_area(
             vertex, first_ray_point, vertex, second_ray_point)))
 
 
-def to_sign(value: Scalar) -> int:
+def _to_sign(value: Scalar) -> int:
     if value > 0:
         return 1
     elif value < 0:
