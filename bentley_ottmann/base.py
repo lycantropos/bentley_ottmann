@@ -361,15 +361,12 @@ def edges_intersect(vertices: Sequence[Point],
                    and (segment_id != 0 or next_segment_id != last_edge_index)
                    for segment_id, next_segment_id in edges_ids)
 
-    for point, (first_event, second_event) in _sweep(edges,
-                                                     accurate=accurate):
-        if (first_event.relationship is SegmentsRelationship.OVERLAP
+    return any((first_event.relationship is SegmentsRelationship.OVERLAP
                 or second_event.relationship is SegmentsRelationship.OVERLAP
-                or non_neighbours_intersect(_to_pairs_combinations(
-                        _merge_ids(first_event.segments_ids,
-                                   second_event.segments_ids)))):
-            return True
-    return False
+                or non_neighbours_intersect(_to_pairs_combinations(_merge_ids(
+                    first_event.segments_ids, second_event.segments_ids))))
+               for _, (first_event, second_event) in _sweep(edges,
+                                                            accurate=accurate))
 
 
 def _vertices_to_edges(vertices: Sequence[Point]) -> Sequence[Segment]:
