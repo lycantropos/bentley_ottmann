@@ -11,6 +11,7 @@ from typing import (Any,
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
 
+from bentley_ottmann.hints import Scalar
 from bentley_ottmann.linear import Segment
 from bentley_ottmann.point import Point
 
@@ -36,6 +37,21 @@ def apply(function: Callable[..., Range],
           args: Iterable[Domain],
           kwargs: Dict[str, Domain] = MappingProxyType({})) -> Range:
     return function(*args, **kwargs)
+
+
+def scale_segment(segment: Segment,
+                  *,
+                  scale: Scalar) -> Segment:
+    start, end = segment
+    start_x, start_y = start
+    end_x, end_y = end
+    return (start, (start_x + scale * (end_x - start_x),
+                    start_y + scale * (end_y - start_y)))
+
+
+def reflect_segment(segment: Segment) -> Segment:
+    return scale_segment(segment,
+                         scale=-1)
 
 
 def reverse_segment(segment: Segment) -> Segment:
