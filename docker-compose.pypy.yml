@@ -7,7 +7,7 @@ services:
       args:
         - PYTHON_IMAGE=${PYPY_IMAGE_NAME}
         - PYTHON_IMAGE_VERSION=${PYPY_IMAGE_VERSION}
-    image: lycantropos/bentley_ottmann-pypy:0.0.4
+    image: lycantropos/bentley_ottmann-pypy:0.1.0-alpha
     volumes:
       - ./bentley_ottmann/:/opt/bentley_ottmann/bentley_ottmann/
       - ./tests/:/opt/bentley_ottmann/tests/
