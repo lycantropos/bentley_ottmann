@@ -22,13 +22,11 @@ class Orientation(IntEnum):
     COUNTERCLOCKWISE = 1
 
 
-def to_sign(value: Scalar) -> int:
-    if value > 0:
-        return 1
-    elif value < 0:
-        return -1
-    else:
-        return 0
+def to_angle_kind(first_ray_point: RealPoint,
+                  vertex: RealPoint,
+                  second_ray_point: RealPoint) -> AngleKind:
+    return AngleKind(to_sign(projection.signed_length(
+            vertex, first_ray_point, vertex, second_ray_point)))
 
 
 def to_orientation(first_ray_point: RealPoint,
@@ -38,8 +36,10 @@ def to_orientation(first_ray_point: RealPoint,
             vertex, first_ray_point, vertex, second_ray_point)))
 
 
-def to_angle_kind(first_ray_point: RealPoint,
-                  vertex: RealPoint,
-                  second_ray_point: RealPoint) -> AngleKind:
-    return AngleKind(to_sign(projection.signed_length(
-            vertex, first_ray_point, vertex, second_ray_point)))
+def to_sign(value: Scalar) -> int:
+    if value > 0:
+        return 1
+    elif value < 0:
+        return -1
+    else:
+        return 0
