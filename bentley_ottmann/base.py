@@ -475,14 +475,6 @@ def segments_intersections(segments: Sequence[Segment],
     return result
 
 
-def _events_to_segments_ids_pairs(events: Dict[Point, Set[Event]]
-                                  ) -> Set[Tuple[int, int]]:
-    return set(chain.from_iterable(
-            _to_pairs_combinations(_merge_ids(*[event.segments_ids
-                                                for event in point_events]))
-            for _, point_events in events.items()))
-
-
 def _sweep(segments: Sequence[Segment],
            *,
            accurate: bool) -> Iterable[Tuple[Point, Tuple[Event, Event]]]:
