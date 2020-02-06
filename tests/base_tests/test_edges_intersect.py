@@ -6,7 +6,7 @@ from hypothesis import given
 
 from bentley_ottmann.base import (_vertices_to_edges,
                                   edges_intersect)
-from bentley_ottmann.linear import (Segment, SegmentsRelationship,
+from bentley_ottmann.linear import (SegmentsRelationship,
                                     find_intersections,
                                     to_segments_relationship)
 from bentley_ottmann.point import Point
