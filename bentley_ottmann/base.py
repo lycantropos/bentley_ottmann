@@ -362,7 +362,6 @@ def edges_intersect(vertices: Sequence[Point],
                    and (segment_id != 0 or next_segment_id != last_edge_index)
                    for segment_id, next_segment_id in edges_ids)
 
-    events = defaultdict(set)
     for point, (first_event, second_event) in _sweep(edges,
                                                      accurate=accurate):
         if (first_event.relationship is SegmentsRelationship.OVERLAP
@@ -371,10 +370,7 @@ def edges_intersect(vertices: Sequence[Point],
                         _merge_ids(first_event.segments_ids,
                                    second_event.segments_ids)))):
             return True
-        events[point].update((first_event, second_event))
-    # we are collecting and processing events again
-    # because of possible overlaps which can arise during sweeping/reordering
-    return non_neighbours_intersect(_events_to_segments_ids_pairs(events))
+    return False
 
 
 def _vertices_to_edges(vertices: Sequence[Point]) -> Sequence[Segment]:
