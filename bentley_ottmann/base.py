@@ -365,8 +365,8 @@ def edges_intersect(vertices: Sequence[Point],
                 or second_event.relationship is SegmentsRelationship.OVERLAP
                 or non_neighbours_intersect(_to_pairs_combinations(_merge_ids(
                     first_event.segments_ids, second_event.segments_ids))))
-               for _, (first_event, second_event) in _sweep(edges,
-                                                            accurate=accurate))
+               for first_event, second_event in _sweep(edges,
+                                                       accurate=accurate))
 
 
 def _vertices_to_edges(vertices: Sequence[Point]) -> Sequence[Segment]:
@@ -464,8 +464,8 @@ def segments_intersections(segments: Sequence[Segment],
         mapping between intersection points and corresponding segments indices.
     """
     result = {}
-    for _, (first_event, second_event) in _sweep(segments,
-                                                 accurate=accurate):
+    for first_event, second_event in _sweep(segments,
+                                            accurate=accurate):
         for segment_id, next_segment_id in _to_pairs_combinations(_merge_ids(
                 first_event.segments_ids, second_event.segments_ids)):
             for point in find_intersections(segments[segment_id],
@@ -477,7 +477,7 @@ def segments_intersections(segments: Sequence[Segment],
 
 def _sweep(segments: Sequence[Segment],
            *,
-           accurate: bool) -> Iterable[Tuple[Point, Tuple[Event, Event]]]:
+           accurate: bool) -> Iterable[Tuple[Event, Event]]:
     events_queue = _to_events_queue([_to_rational_segment(segment)
                                      for segment in segments]
                                     if accurate
@@ -489,11 +489,11 @@ def _sweep(segments: Sequence[Segment],
         while events_queue and events_queue.peek().start == point:
             same_point_events.append(events_queue.pop())
         for event, other_event in _to_pairs_combinations(same_point_events):
-            yield point, (event, other_event)
+            yield event, other_event
         sweep_line.move_to(point)
         for event in same_point_events:
             if len(event.segments_ids) > 1:
-                yield point, (event, event)
+                yield event, event
 
             if event.is_left_endpoint:
                 sweep_line.add(event)
@@ -565,7 +565,7 @@ def _to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
 
 def _detect_intersection(first_event: Event, second_event: Event,
                          events_queue: EventsQueue
-                         ) -> Iterable[Tuple[Point, Tuple[Event, Event]]]:
+                         ) -> Iterable[Tuple[Event, Event]]:
     def divide_segment(event: Event, break_point: Point,
                        relationship: SegmentsRelationship,
                        segments_ids: Optional[Sequence[int]] = None) -> None:
@@ -595,14 +595,17 @@ def _detect_intersection(first_event: Event, second_event: Event,
         return
     elif relationship is SegmentsRelationship.CROSS:
         # segments intersect
+        yield first_event, second_event
+
         point = _find_intersection(first_segment, second_segment)
         if point != first_event.start and point != first_event.end:
             divide_segment(first_event, point, relationship)
         if point != second_event.start and point != second_event.end:
             divide_segment(second_event, point, relationship)
-        yield point, (first_event, second_event)
     else:
         # segments overlap
+        yield first_event, second_event
+
         sorted_events = []
         if first_event.start == second_event.start:
             sorted_events.append(None)
@@ -628,31 +631,23 @@ def _detect_intersection(first_event: Event, second_event: Event,
         if len(sorted_events) == 2:
             # both line segments are equal
             first_event.segments_ids = second_event.segments_ids = segments_ids
-            yield first_event.start, (first_event, second_event)
-            yield first_event.end, (first_event, second_event)
         elif len(sorted_events) == 3:
             # line segments share endpoint
-            point = sorted_events[1].start
-            yield point, (first_event, second_event)
             divide_segment(sorted_events[2].complement
                            # line segments share the left endpoint
                            if sorted_events[2]
                            # line segments share the right endpoint
                            else sorted_events[0],
-                           point, relationship, segments_ids)
+                           sorted_events[1].start, relationship, segments_ids)
         else:
-            first_point, second_point = (sorted_events[1].start,
-                                         sorted_events[2].start)
-            yield first_point, (first_event, second_event)
-            yield second_point, (first_event, second_event)
-            divide_segment(sorted_events[0], first_point, relationship,
-                           segments_ids)
+            divide_segment(sorted_events[0], sorted_events[1].start,
+                           relationship, segments_ids)
             divide_segment(sorted_events[0]
                            # one line segment includes the other one
                            if sorted_events[0] is sorted_events[3].complement
                            # no line segment includes totally the other one
                            else sorted_events[1],
-                           second_point, relationship, segments_ids)
+                           sorted_events[2].start, relationship, segments_ids)
 
 
 def _merge_ids(*sequences: Sequence[int]) -> Sequence[int]:
