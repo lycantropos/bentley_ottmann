@@ -148,11 +148,11 @@ def find_intersections(first_segment: Segment, second_segment: Segment
                        ) -> Union[Tuple[()], Tuple[Point],
                                   Tuple[Point, Point]]:
     are_real_segments = _is_real_segment(first_segment)
-    if not are_real_segments:
-        first_segment_real, second_segment_real = (
-            _to_real_segment(first_segment), _to_real_segment(second_segment))
-    else:
-        first_segment_real, second_segment_real = first_segment, second_segment
+    first_segment_real, second_segment_real = (
+        (first_segment, second_segment)
+        if are_real_segments
+        else (_to_real_segment(first_segment),
+              _to_real_segment(second_segment)))
     relationship = to_segments_relationship(first_segment_real,
                                             second_segment_real)
     if relationship is SegmentsRelationship.NONE:
