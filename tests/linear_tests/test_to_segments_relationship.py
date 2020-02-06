@@ -5,7 +5,8 @@ from hypothesis import given
 from bentley_ottmann.linear import (RealSegment,
                                     SegmentsRelationship,
                                     to_segments_relationship)
-from tests.utils import reverse_segment
+from tests.utils import (reflect_segment,
+                         reverse_segment)
 from . import strategies
 
 
@@ -39,3 +40,10 @@ def test_reversed(segment: RealSegment) -> None:
     result = to_segments_relationship(segment, reverse_segment(segment))
 
     assert result is SegmentsRelationship.OVERLAP
+
+
+@given(strategies.real_segments)
+def test_reflected(segment: RealSegment) -> None:
+    result = to_segments_relationship(segment, reflect_segment(segment))
+
+    assert result is SegmentsRelationship.CROSS
