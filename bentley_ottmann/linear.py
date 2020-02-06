@@ -1,7 +1,6 @@
 from enum import (IntEnum,
                   unique)
 from fractions import Fraction
-from numbers import Real
 from typing import (Tuple,
                     Union)
 
@@ -12,11 +11,14 @@ from .angular import (AngleKind,
                       to_angle_kind,
                       to_orientation)
 from .point import (Point,
+                    RealPoint,
+                    _is_real_point,
                     _to_rational_point,
                     _to_real_point,
                     _to_scalar_point)
 
 Segment = Tuple[Point, Point]
+RealSegment = Tuple[RealPoint, RealPoint]
 
 
 @unique
@@ -26,8 +28,8 @@ class SegmentsRelationship(IntEnum):
     OVERLAP = 2
 
 
-def to_segments_relationship(left: Segment,
-                             right: Segment) -> SegmentsRelationship:
+def to_segments_relationship(left: RealSegment,
+                             right: RealSegment) -> SegmentsRelationship:
     if left == right:
         return SegmentsRelationship.OVERLAP
     left_start, left_end = left
@@ -119,13 +121,13 @@ def to_segments_relationship(left: Segment,
         return SegmentsRelationship.NONE
 
 
-def point_orientation_with_segment(point: Point,
-                                   segment: Segment) -> Orientation:
+def point_orientation_with_segment(point: RealPoint,
+                                   segment: RealSegment) -> Orientation:
     start, end = segment
     return to_orientation(end, start, point)
 
 
-def _point_in_segment(point: Point, segment: Segment) -> bool:
+def _point_in_segment(point: RealPoint, segment: RealSegment) -> bool:
     segment_start, segment_end = segment
     if point == segment_start or point == segment_end:
         return True
@@ -145,19 +147,34 @@ def _point_in_segment(point: Point, segment: Segment) -> bool:
 def find_intersections(first_segment: Segment, second_segment: Segment
                        ) -> Union[Tuple[()], Tuple[Point],
                                   Tuple[Point, Point]]:
-    relationship = to_segments_relationship(first_segment, second_segment)
+    are_real_segments = _is_real_segment(first_segment)
+    if not are_real_segments:
+        first_segment_real, second_segment_real = (
+            _to_real_segment(first_segment), _to_real_segment(second_segment))
+    else:
+        first_segment_real, second_segment_real = first_segment, second_segment
+    relationship = to_segments_relationship(first_segment_real,
+                                            second_segment_real)
     if relationship is SegmentsRelationship.NONE:
         return ()
     elif relationship is SegmentsRelationship.CROSS:
-        return _find_intersection(first_segment, second_segment),
+        intersection_point = _find_intersection(first_segment_real,
+                                                second_segment_real)
+        if not are_real_segments:
+            start, _ = first_segment
+            start_x, _ = start
+            coordinate_type = type(start_x)
+            intersection_point = _to_scalar_point(intersection_point,
+                                                  coordinate_type)
+        return intersection_point,
     else:
         _, first_intersection_point, second_intersection_point, _ = sorted(
                 first_segment + second_segment)
         return first_intersection_point, second_intersection_point
 
 
-def _find_intersection(first_segment: Segment,
-                       second_segment: Segment) -> Point:
+def _find_intersection(first_segment: RealSegment,
+                       second_segment: RealSegment) -> Point:
     first_start, first_end = first_segment
     second_start, second_end = second_segment
     if first_start == second_start or first_start == second_end:
@@ -177,12 +194,6 @@ def _find_intersection(first_segment: Segment,
           is Orientation.COLLINEAR) is Orientation.COLLINEAR:
         return first_end
     else:
-        coordinate, _ = first_start
-        coordinate_type = type(coordinate)
-        are_real_segments = issubclass(coordinate_type, Real)
-        if not are_real_segments:
-            first_segment, second_segment = (_to_real_segment(first_segment),
-                                             _to_real_segment(second_segment))
         first_start, first_end = first_segment
         second_start, second_end = second_segment
         denominator = parallelogram.signed_area(first_start, first_end,
@@ -215,11 +226,12 @@ def _find_intersection(first_segment: Segment,
             else ((first_numerator_x + second_numerator_x) / 2,
                   (first_numerator_y + second_numerator_y) / 2,
                   1 / denominator))
-        intersection_point = (numerator_x * denominator_inv,
-                              numerator_y * denominator_inv)
-        return (intersection_point
-                if are_real_segments
-                else _to_scalar_point(intersection_point, coordinate_type))
+        return numerator_x * denominator_inv, numerator_y * denominator_inv
+
+
+def _is_real_segment(segment: Segment) -> bool:
+    start, _ = segment
+    return _is_real_point(start)
 
 
 def _to_rational_segment(segment: Segment) -> Segment:

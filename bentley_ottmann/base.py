@@ -1,6 +1,5 @@
 from functools import partial
-from itertools import (chain,
-                       combinations)
+from itertools import combinations
 from reprlib import recursive_repr
 from typing import (Callable,
                     Dict,
@@ -18,14 +17,18 @@ from reprit.base import generate_repr
 
 from .angular import Orientation
 from .hints import Scalar
-from .linear import (Segment,
+from .linear import (RealSegment,
+                     Segment,
                      SegmentsRelationship,
                      _find_intersection,
+                     _is_real_segment,
                      _to_rational_segment,
+                     _to_real_segment,
                      find_intersections,
                      point_orientation_with_segment,
                      to_segments_relationship)
-from .point import Point
+from .point import (Point,
+                    RealPoint)
 
 
 class Event:
@@ -35,7 +38,7 @@ class Event:
     def __init__(self,
                  is_left_endpoint: bool,
                  relationship: SegmentsRelationship,
-                 start: Point,
+                 start: RealPoint,
                  complement: Optional['Event'],
                  segments_ids: Sequence[int]) -> None:
         self.is_left_endpoint = is_left_endpoint
@@ -79,11 +82,11 @@ class Event:
         return start_y == end_y
 
     @property
-    def end(self) -> Point:
+    def end(self) -> RealPoint:
         return self.complement.start
 
     @property
-    def segment(self) -> Segment:
+    def segment(self) -> RealSegment:
         return self.start, self.end
 
     def below_than_at_x(self, other: 'Event', x: Scalar) -> bool:
@@ -178,7 +181,7 @@ class SweepLine:
     def __contains__(self, event: Event) -> bool:
         return event in self._tree
 
-    def move_to(self, point: Point) -> None:
+    def move_to(self, point: RealPoint) -> None:
         self.current_x, _ = point
 
     def add(self, event: Event) -> None:
@@ -478,10 +481,18 @@ def segments_intersections(segments: Sequence[Segment],
 def _sweep(segments: Sequence[Segment],
            *,
            accurate: bool) -> Iterable[Tuple[Event, Event]]:
-    events_queue = _to_events_queue([_to_rational_segment(segment)
-                                     for segment in segments]
-                                    if accurate
-                                    else segments)
+    if accurate:
+        segments = [_to_rational_segment(segment) for segment in segments]
+    else:
+        try:
+            first_segment = segments[0]
+        except IndexError:
+            return
+        else:
+            if not _is_real_segment(first_segment):
+                # underlying calculations don't work with `decimal.Decimal`
+                segments = [_to_real_segment(segment) for segment in segments]
+    events_queue = _to_events_queue(segments)
     sweep_line = SweepLine()
     while events_queue:
         event = events_queue.pop()
@@ -529,7 +540,7 @@ def _sweep(segments: Sequence[Segment],
                                                     events_queue=events_queue)
 
 
-def _to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
+def _to_events_queue(segments: Sequence[RealSegment]) -> EventsQueue:
     segments_with_ids = sorted(
             (sorted(segment), segment_id)
             for segment_id, segment in enumerate(segments))
@@ -566,7 +577,8 @@ def _to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
 def _detect_intersection(first_event: Event, second_event: Event,
                          events_queue: EventsQueue
                          ) -> Iterable[Tuple[Event, Event]]:
-    def divide_segment(event: Event, break_point: Point,
+    def divide_segment(event: Event,
+                       break_point: RealPoint,
                        relationship: SegmentsRelationship,
                        segments_ids: Optional[Sequence[int]] = None) -> None:
         if segments_ids is None:
