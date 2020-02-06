@@ -1,4 +1,3 @@
-from collections import defaultdict
 from functools import partial
 from itertools import (chain,
                        combinations)
@@ -467,17 +466,15 @@ def segments_intersections(segments: Sequence[Segment],
     :returns:
         mapping between intersection points and corresponding segments indices.
     """
-    # we are collecting and processing events afterwards
-    # because of possible overlaps which can arise during sweeping/reordering
-    events = defaultdict(set)
-    for point, events_pair in _sweep(segments,
-                                     accurate=accurate):
-        events[point].update(events_pair)
     result = {}
-    for segment_id, next_segment_id in _events_to_segments_ids_pairs(events):
-        for point in find_intersections(segments[segment_id],
-                                        segments[next_segment_id]):
-            result.setdefault(point, set()).add((segment_id, next_segment_id))
+    for _, (first_event, second_event) in _sweep(segments,
+                                                 accurate=accurate):
+        for segment_id, next_segment_id in _to_pairs_combinations(_merge_ids(
+                first_event.segments_ids, second_event.segments_ids)):
+            for point in find_intersections(segments[segment_id],
+                                            segments[next_segment_id]):
+                result.setdefault(point, set()).add((segment_id,
+                                                     next_segment_id))
     return result
 
 
