@@ -14,10 +14,10 @@ from .angular import (AngleKind,
                       to_angle_kind,
                       to_orientation)
 from .point import (RealPoint,
-                    _is_real_point,
-                    _to_rational_point,
-                    _to_real_point,
-                    _to_scalar_point)
+                    is_real_point,
+                    to_rational_point,
+                    to_real_point,
+                    to_scalar_point)
 
 RealSegment = Tuple[RealPoint, RealPoint]
 
@@ -157,8 +157,8 @@ def find_intersections(left: Segment,
             start, _ = left
             start_x, _ = start
             coordinate_type = type(start_x)
-            intersection_point = _to_scalar_point(intersection_point,
-                                                  coordinate_type)
+            intersection_point = to_scalar_point(intersection_point,
+                                                 coordinate_type)
         return intersection_point,
     else:
         _, first_intersection_point, second_intersection_point, _ = sorted(
@@ -220,14 +220,14 @@ def find_intersection(left: RealSegment, right: RealSegment) -> Point:
 
 def is_real_segment(segment: Segment) -> bool:
     start, _ = segment
-    return _is_real_point(start)
+    return is_real_point(start)
 
 
 def to_rational_segment(segment: Segment) -> Segment:
     start, end = segment
-    return _to_rational_point(start), _to_rational_point(end)
+    return to_rational_point(start), to_rational_point(end)
 
 
 def to_real_segment(segment: Segment) -> Segment:
     start, end = segment
-    return _to_real_point(start), _to_real_point(end)
+    return to_real_point(start), to_real_point(end)

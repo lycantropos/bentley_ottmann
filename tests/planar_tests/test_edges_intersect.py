@@ -7,8 +7,8 @@ from hypothesis import given
 from bentley_ottmann.core.linear import (SegmentsRelationship,
                                          find_intersections,
                                          to_segments_relationship)
-from bentley_ottmann.core.point import (_is_real_point,
-                                        _to_real_point)
+from bentley_ottmann.core.point import (is_real_point,
+                                        to_real_point)
 from bentley_ottmann.hints import Point
 from bentley_ottmann.planar import (_vertices_to_edges,
                                     edges_intersect)
@@ -39,9 +39,9 @@ def test_step(vertices: List[Point]) -> None:
 
     first_vertex_real, rest_vertices_real = (
         (first_vertex, rest_vertices)
-        if _is_real_point(first_vertex)
-        else (_to_real_point(first_vertex),
-              [_to_real_point(vertex) for vertex in rest_vertices]))
+        if is_real_point(first_vertex)
+        else (to_real_point(first_vertex),
+              [to_real_point(vertex) for vertex in rest_vertices]))
     first_edge, last_edge = ((first_vertex_real, rest_vertices_real[0]),
                              (rest_vertices_real[-1], first_vertex_real))
     rest_edges = _vertices_to_edges(rest_vertices_real)

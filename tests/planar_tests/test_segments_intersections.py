@@ -3,8 +3,8 @@ from typing import List
 
 from hypothesis import given
 
-from bentley_ottmann.core.linear import (Segment,
-                                         find_intersections)
+from bentley_ottmann.core.linear import find_intersections
+from bentley_ottmann.hints import Segment
 from bentley_ottmann.planar import segments_intersections
 from tests.utils import is_point
 from . import strategies
