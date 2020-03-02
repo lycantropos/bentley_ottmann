@@ -5,8 +5,7 @@ from typing import (Callable,
 
 from hypothesis import strategies
 
-from bentley_ottmann.hints import Scalar
-from bentley_ottmann.linear import Segment
+from bentley_ottmann.hints import Scalar, Segment
 from tests.strategies import (real_segments_strategies,
                               segments_strategies)
 from tests.utils import (Strategy,

@@ -11,9 +11,9 @@ from typing import (Any,
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
 
-from bentley_ottmann.hints import Scalar
-from bentley_ottmann.linear import Segment
-from bentley_ottmann.point import Point
+from bentley_ottmann.hints import (Point,
+                                   Scalar,
+                                   Segment)
 
 Domain = TypeVar('Domain')
 Range = TypeVar('Range')

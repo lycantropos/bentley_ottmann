@@ -7,9 +7,7 @@ from typing import (Optional,
 
 from hypothesis import strategies
 
-from bentley_ottmann.hints import Scalar
-from bentley_ottmann.linear import Segment
-from bentley_ottmann.point import Point
+from bentley_ottmann.hints import Point, Scalar, Segment
 from tests.utils import (Strategy,
                          pack,
                          to_pairs)

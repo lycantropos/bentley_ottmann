@@ -2,9 +2,9 @@ from typing import Tuple
 
 from hypothesis import given
 
-from bentley_ottmann.linear import (RealSegment,
-                                    SegmentsRelationship,
-                                    to_segments_relationship)
+from bentley_ottmann.core.linear import (RealSegment,
+                                         SegmentsRelationship,
+                                         to_segments_relationship)
 from tests.utils import (reflect_segment,
                          reverse_segment)
 from . import strategies
