@@ -1,6 +1,7 @@
 from enum import (IntEnum,
                   unique)
 from fractions import Fraction
+from numbers import Rational
 from typing import (Tuple,
                     Union)
 
@@ -144,24 +145,22 @@ def _point_in_segment(point: RealPoint, segment: RealSegment) -> bool:
         return left_x <= point_x <= right_x and bottom_y <= point_y <= top_y
 
 
-def find_intersections(first_segment: Segment, second_segment: Segment
-                       ) -> Union[Tuple[()], Tuple[Point],
-                                  Tuple[Point, Point]]:
-    are_real_segments = _is_real_segment(first_segment)
-    first_segment_real, second_segment_real = (
-        (first_segment, second_segment)
-        if are_real_segments
-        else (_to_real_segment(first_segment),
-              _to_real_segment(second_segment)))
-    relationship = to_segments_relationship(first_segment_real,
-                                            second_segment_real)
+def find_intersections(left: Segment,
+                       right: Segment) -> Union[Tuple[()], Tuple[Point],
+                                                Tuple[Point, Point]]:
+    are_real_segments = _is_real_segment(left)
+    left_real, right_real = ((left, right)
+                             if are_real_segments
+                             else (_to_real_segment(left),
+                                   _to_real_segment(right)))
+    relationship = to_segments_relationship(left_real, right_real)
     if relationship is SegmentsRelationship.NONE:
         return ()
     elif relationship is SegmentsRelationship.CROSS:
-        intersection_point = _find_intersection(first_segment_real,
-                                                second_segment_real)
+        intersection_point = find_intersection(left_real,
+                                               right_real)
         if not are_real_segments:
-            start, _ = first_segment
+            start, _ = left
             start_x, _ = start
             coordinate_type = type(start_x)
             intersection_point = _to_scalar_point(intersection_point,
@@ -169,63 +168,52 @@ def find_intersections(first_segment: Segment, second_segment: Segment
         return intersection_point,
     else:
         _, first_intersection_point, second_intersection_point, _ = sorted(
-                first_segment + second_segment)
+                left + right)
         return first_intersection_point, second_intersection_point
 
 
-def _find_intersection(first_segment: RealSegment,
-                       second_segment: RealSegment) -> Point:
-    first_start, first_end = first_segment
-    second_start, second_end = second_segment
-    if first_start == second_start or first_start == second_end:
-        return first_start
-    elif first_end == second_start or first_end == second_end:
-        return first_end
-    elif (point_orientation_with_segment(second_start, first_segment)
-          is Orientation.COLLINEAR):
-        return second_start
-    elif (point_orientation_with_segment(second_end, first_segment)
-          is Orientation.COLLINEAR) is Orientation.COLLINEAR:
-        return second_end
-    elif (point_orientation_with_segment(first_start, second_segment)
-          is Orientation.COLLINEAR):
-        return first_start
-    elif (point_orientation_with_segment(first_end, second_segment)
-          is Orientation.COLLINEAR) is Orientation.COLLINEAR:
-        return first_end
+def find_intersection(left: RealSegment, right: RealSegment) -> Point:
+    left_start, left_end = left
+    right_start, right_end = right
+    if _point_in_segment(right_start, left):
+        return right_start
+    elif _point_in_segment(right_end, left):
+        return right_end
+    elif _point_in_segment(left_start, right):
+        return left_start
+    elif _point_in_segment(left_end, right):
+        return left_end
     else:
-        first_start, first_end = first_segment
-        second_start, second_end = second_segment
-        denominator = parallelogram.signed_area(first_start, first_end,
-                                                second_start, second_end)
-        first_numerator = parallelogram.signed_area(
-                first_start, second_start, second_start, second_end)
-        second_numerator = parallelogram.signed_area(
-                first_start, second_start, first_start, first_end)
-        first_start_x, first_start_y = first_start
-        first_end_x, first_end_y = first_end
-        second_start_x, second_start_y = second_start
-        second_end_x, second_end_y = second_end
-        first_delta_x, first_delta_y = (first_end_x - first_start_x,
-                                        first_end_y - first_start_y)
-        second_delta_x, second_delta_y = (second_end_x - second_start_x,
-                                          second_end_y - second_start_y)
-        first_numerator_x = (first_start_x * denominator
-                             + first_delta_x * first_numerator)
-        first_numerator_y = (first_start_y * denominator
-                             + first_delta_y * first_numerator)
-        second_numerator_x = (second_start_x * denominator
-                              + second_delta_x * second_numerator)
-        second_numerator_y = (second_start_y * denominator
-                              + second_delta_y * second_numerator)
-        numerator_x, numerator_y, denominator_inv = (
-            (Fraction(first_numerator_x + second_numerator_x, 2),
-             Fraction(first_numerator_y + second_numerator_y, 2),
-             Fraction(1, denominator))
-            if isinstance(denominator, int)
-            else ((first_numerator_x + second_numerator_x) / 2,
-                  (first_numerator_y + second_numerator_y) / 2,
-                  1 / denominator))
+        left_start_x, left_start_y = left_start
+        left_end_x, left_end_y = left_end
+        right_start_x, right_start_y = right_start
+        right_end_x, right_end_y = right_end
+
+        denominator = parallelogram.signed_area(left_start, left_end,
+                                                right_start, right_end)
+        denominator_inv = (Fraction(1, denominator)
+                           if isinstance(denominator, Rational)
+                           else 1 / denominator)
+        left_base_numerator = ((left_start_x - right_start_x)
+                               * (right_start_y - right_end_y)
+                               - (left_start_y - right_start_y)
+                               * (right_start_x - right_end_x))
+        right_base_numerator = ((left_start_y - left_end_y)
+                                * (left_start_x - right_start_x)
+                                - (left_start_x - left_end_x)
+                                * (left_start_y - right_start_y))
+        if abs(left_base_numerator) < abs(right_base_numerator):
+            numerator_x = (left_start_x * denominator
+                           + left_base_numerator * (left_end_x - left_start_x))
+            numerator_y = (left_start_y * denominator
+                           + left_base_numerator * (left_end_y - left_start_y))
+        else:
+            numerator_x = (right_start_x * denominator
+                           + right_base_numerator
+                           * (right_end_x - right_start_x))
+            numerator_y = (right_start_y * denominator
+                           + right_base_numerator
+                           * (right_end_y - right_start_y))
         return numerator_x * denominator_inv, numerator_y * denominator_inv
 
 
