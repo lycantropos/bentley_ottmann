@@ -5,8 +5,7 @@ from hypothesis import strategies
 from tests.strategies import (points_strategies,
                               segments_strategies)
 
-vertices_lists = (points_strategies
-                  .flatmap(strategies.lists))
+vertices_lists = points_strategies.flatmap(strategies.lists)
 non_empty_vertices_lists = (points_strategies
                             .flatmap(partial(strategies.lists,
                                              min_size=3)))

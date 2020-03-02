@@ -2,7 +2,7 @@ from typing import List
 
 from hypothesis import given
 
-from bentley_ottmann.core.linear import (find_intersections)
+from bentley_ottmann.core.linear import find_intersections
 from bentley_ottmann.hints import Segment
 from bentley_ottmann.planar import segments_intersect
 from tests.utils import (reverse_segment,

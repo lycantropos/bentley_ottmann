@@ -2,7 +2,7 @@ from typing import Tuple
 
 from hypothesis import given
 
-from bentley_ottmann.core.linear import (find_intersections)
+from bentley_ottmann.core.linear import find_intersections
 from bentley_ottmann.hints import Segment
 from tests.utils import (is_point,
                          reverse_segment)

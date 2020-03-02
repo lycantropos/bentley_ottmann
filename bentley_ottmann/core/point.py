@@ -9,17 +9,17 @@ from bentley_ottmann.hints import (Point,
 RealPoint = Tuple[Real, Real]
 
 
-def _is_real_point(point: Point) -> bool:
+def is_real_point(point: Point) -> bool:
     x, y = point
     return isinstance(x, Real)
 
 
-def _to_real_point(point: Point) -> RealPoint:
+def to_real_point(point: Point) -> RealPoint:
     x, y = point
     return float(x), float(y)
 
 
-def _to_scalar_point(point: Point, coordinate_type: Type[Scalar]) -> Point:
+def to_scalar_point(point: Point, coordinate_type: Type[Scalar]) -> Point:
     x, y = point
     return (coordinate_type(x.numerator) / x.denominator
             if isinstance(x, Fraction)
@@ -29,6 +29,6 @@ def _to_scalar_point(point: Point, coordinate_type: Type[Scalar]) -> Point:
             else coordinate_type(y))
 
 
-def _to_rational_point(point: Point) -> Point:
+def to_rational_point(point: Point) -> Point:
     x, y = point
     return Fraction(x), Fraction(y)
