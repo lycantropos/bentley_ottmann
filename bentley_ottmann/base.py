@@ -20,10 +20,10 @@ from .hints import Scalar
 from .linear import (RealSegment,
                      Segment,
                      SegmentsRelationship,
-                     _find_intersection,
                      _is_real_segment,
                      _to_rational_segment,
                      _to_real_segment,
+                     find_intersection,
                      find_intersections,
                      point_orientation_with_segment,
                      to_segments_relationship)
@@ -112,8 +112,8 @@ class Event:
             end_x, end_y = self.end
             if x == end_x:
                 return end_y
-            _, result = _find_intersection(self.segment,
-                                           ((x, start_y), (x, end_y)))
+            _, result = find_intersection(self.segment,
+                                          ((x, start_y), (x, end_y)))
             return result
 
 
@@ -609,7 +609,7 @@ def _detect_intersection(first_event: Event, second_event: Event,
         # segments intersect
         yield first_event, second_event
 
-        point = _find_intersection(first_segment, second_segment)
+        point = find_intersection(first_segment, second_segment)
         if point != first_event.start and point != first_event.end:
             divide_segment(first_event, point, relationship)
         if point != second_event.start and point != second_event.end:
