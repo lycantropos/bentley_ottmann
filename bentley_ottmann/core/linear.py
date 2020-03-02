@@ -129,20 +129,15 @@ def point_orientation_with_segment(point: RealPoint,
 
 
 def _point_in_segment(point: RealPoint, segment: RealSegment) -> bool:
-    segment_start, segment_end = segment
-    if point == segment_start or point == segment_end:
-        return True
-    else:
-        segment_start_x, segment_start_y = segment_start
-        segment_end_x, segment_end_y = segment_end
-        left_x, right_x = ((segment_start_x, segment_end_x)
-                           if segment_start_x < segment_end_x
-                           else (segment_end_x, segment_start_x))
-        bottom_y, top_y = ((segment_start_y, segment_end_y)
-                           if segment_start_y < segment_end_y
-                           else (segment_end_y, segment_start_y))
-        point_x, point_y = point
-        return left_x <= point_x <= right_x and bottom_y <= point_y <= top_y
+    (start_x, start_y), (end_x, end_y) = segment
+    left_x, right_x = ((start_x, end_x)
+                       if start_x < end_x
+                       else (end_x, start_x))
+    bottom_y, top_y = ((start_y, end_y)
+                       if start_y < end_y
+                       else (end_y, start_y))
+    point_x, point_y = point
+    return left_x <= point_x <= right_x and bottom_y <= point_y <= top_y
 
 
 def find_intersections(left: Segment,
@@ -157,8 +152,7 @@ def find_intersections(left: Segment,
     if relationship is SegmentsRelationship.NONE:
         return ()
     elif relationship is SegmentsRelationship.CROSS:
-        intersection_point = find_intersection(left_real,
-                                               right_real)
+        intersection_point = find_intersection(left_real, right_real)
         if not are_real_segments:
             start, _ = left
             start_x, _ = start
@@ -172,16 +166,23 @@ def find_intersections(left: Segment,
         return first_intersection_point, second_intersection_point
 
 
+def point_in_segment(point, segment):
+    return (point in segment
+            or _point_in_segment(point, segment)
+            and (point_orientation_with_segment(point, segment)
+                 is Orientation.COLLINEAR))
+
+
 def find_intersection(left: RealSegment, right: RealSegment) -> Point:
     left_start, left_end = left
     right_start, right_end = right
-    if _point_in_segment(right_start, left):
+    if point_in_segment(right_start, left):
         return right_start
-    elif _point_in_segment(right_end, left):
+    elif point_in_segment(right_end, left):
         return right_end
-    elif _point_in_segment(left_start, right):
+    elif point_in_segment(left_start, right):
         return left_start
-    elif _point_in_segment(left_end, right):
+    elif point_in_segment(left_end, right):
         return left_end
     else:
         left_start_x, left_start_y = left_start
