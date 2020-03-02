@@ -166,11 +166,11 @@ def find_intersections(left: Segment,
         return first_intersection_point, second_intersection_point
 
 
-def point_in_segment(point, segment):
+def point_in_segment(point: RealPoint, segment: RealSegment) -> bool:
     return (point in segment
-            or _point_in_segment(point, segment)
-            and (point_orientation_with_segment(point, segment)
-                 is Orientation.COLLINEAR))
+            or (_point_in_segment(point, segment)
+                and (point_orientation_with_segment(point, segment)
+                     is Orientation.COLLINEAR)))
 
 
 def find_intersection(left: RealSegment, right: RealSegment) -> Point:
