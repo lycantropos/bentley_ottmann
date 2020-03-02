@@ -4,7 +4,7 @@ from enum import (IntEnum,
 from robust import (parallelogram,
                     projection)
 
-from .hints import Scalar
+from bentley_ottmann.hints import Scalar
 from .point import RealPoint
 
 

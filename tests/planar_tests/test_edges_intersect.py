@@ -4,14 +4,14 @@ from typing import List
 
 from hypothesis import given
 
-from bentley_ottmann.base import (_vertices_to_edges,
-                                  edges_intersect)
-from bentley_ottmann.linear import (SegmentsRelationship,
-                                    find_intersections,
-                                    to_segments_relationship)
-from bentley_ottmann.point import (Point,
-                                   _is_real_point,
-                                   _to_real_point)
+from bentley_ottmann.core.linear import (SegmentsRelationship,
+                                         find_intersections,
+                                         to_segments_relationship)
+from bentley_ottmann.core.point import (_is_real_point,
+                                        _to_real_point)
+from bentley_ottmann.hints import Point
+from bentley_ottmann.planar import (_vertices_to_edges,
+                                    edges_intersect)
 from tests.utils import reverse_point_coordinates
 from . import strategies
 

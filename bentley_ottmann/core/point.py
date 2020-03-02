@@ -3,9 +3,9 @@ from numbers import Real
 from typing import (Tuple,
                     Type)
 
-from .hints import Scalar
+from bentley_ottmann.hints import (Point,
+                                   Scalar)
 
-Point = Tuple[Scalar, Scalar]
 RealPoint = Tuple[Real, Real]
 
 

@@ -7,18 +7,18 @@ from typing import (Tuple,
 
 from robust import parallelogram
 
+from bentley_ottmann.hints import (Point,
+                                   Segment)
 from .angular import (AngleKind,
                       Orientation,
                       to_angle_kind,
                       to_orientation)
-from .point import (Point,
-                    RealPoint,
+from .point import (RealPoint,
                     _is_real_point,
                     _to_rational_point,
                     _to_real_point,
                     _to_scalar_point)
 
-Segment = Tuple[Point, Point]
 RealSegment = Tuple[RealPoint, RealPoint]
 
 
@@ -148,11 +148,11 @@ def _point_in_segment(point: RealPoint, segment: RealSegment) -> bool:
 def find_intersections(left: Segment,
                        right: Segment) -> Union[Tuple[()], Tuple[Point],
                                                 Tuple[Point, Point]]:
-    are_real_segments = _is_real_segment(left)
+    are_real_segments = is_real_segment(left)
     left_real, right_real = ((left, right)
                              if are_real_segments
-                             else (_to_real_segment(left),
-                                   _to_real_segment(right)))
+                             else (to_real_segment(left),
+                                   to_real_segment(right)))
     relationship = to_segments_relationship(left_real, right_real)
     if relationship is SegmentsRelationship.NONE:
         return ()
@@ -191,9 +191,6 @@ def find_intersection(left: RealSegment, right: RealSegment) -> Point:
 
         denominator = parallelogram.signed_area(left_start, left_end,
                                                 right_start, right_end)
-        denominator_inv = (Fraction(1, denominator)
-                           if isinstance(denominator, Rational)
-                           else 1 / denominator)
         left_base_numerator = ((left_start_x - right_start_x)
                                * (right_start_y - right_end_y)
                                - (left_start_y - right_start_y)
@@ -214,19 +211,22 @@ def find_intersection(left: RealSegment, right: RealSegment) -> Point:
             numerator_y = (right_start_y * denominator
                            + right_base_numerator
                            * (right_end_y - right_start_y))
+        denominator_inv = (Fraction(1, denominator)
+                           if isinstance(denominator, Rational)
+                           else 1 / denominator)
         return numerator_x * denominator_inv, numerator_y * denominator_inv
 
 
-def _is_real_segment(segment: Segment) -> bool:
+def is_real_segment(segment: Segment) -> bool:
     start, _ = segment
     return _is_real_point(start)
 
 
-def _to_rational_segment(segment: Segment) -> Segment:
+def to_rational_segment(segment: Segment) -> Segment:
     start, end = segment
     return _to_rational_point(start), _to_rational_point(end)
 
 
-def _to_real_segment(segment: Segment) -> Segment:
+def to_real_segment(segment: Segment) -> Segment:
     start, end = segment
     return _to_real_point(start), _to_real_point(end)
