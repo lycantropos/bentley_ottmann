@@ -5,13 +5,15 @@ from typing import (Any,
                     Callable,
                     Dict,
                     Iterable,
+                    Sequence,
                     Tuple,
                     TypeVar)
 
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
 
-from bentley_ottmann.hints import (Point,
+from bentley_ottmann.hints import (Contour,
+                                   Point,
                                    Scalar,
                                    Segment)
 
@@ -75,3 +77,8 @@ def is_point(object_: Any) -> bool:
             and len(object_) == 2
             and all(isinstance(coordinate, Number)
                     for coordinate in object_))
+
+
+def contour_to_segments(contour: Contour) -> Sequence[Segment]:
+    return [(contour[index], contour[(index + 1) % len(contour)])
+            for index in range(len(contour))]

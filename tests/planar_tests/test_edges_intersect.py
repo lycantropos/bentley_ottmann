@@ -1,6 +1,5 @@
 from itertools import (chain,
                        combinations)
-from typing import List
 
 from hypothesis import given
 
@@ -9,33 +8,33 @@ from bentley_ottmann.core.linear import (SegmentsRelationship,
                                          to_segments_relationship)
 from bentley_ottmann.core.point import (is_real_point,
                                         to_real_point)
-from bentley_ottmann.hints import Point
-from bentley_ottmann.planar import (_vertices_to_edges,
-                                    edges_intersect)
-from tests.utils import reverse_point_coordinates
+from bentley_ottmann.hints import Contour
+from bentley_ottmann.planar import edges_intersect
+from tests.utils import (contour_to_segments,
+                         reverse_point_coordinates)
 from . import strategies
 
 
 @given(strategies.vertices_lists)
-def test_basic(vertices: List[Point]) -> None:
-    result = edges_intersect(vertices)
+def test_basic(contour: Contour) -> None:
+    result = edges_intersect(contour)
 
     assert isinstance(result, bool)
 
 
 @given(strategies.empty_vertices_lists)
-def test_base_case(vertices: List[Point]) -> None:
-    result = edges_intersect(vertices)
+def test_base_case(contour: Contour) -> None:
+    result = edges_intersect(contour)
 
     assert not result
 
 
 @given(strategies.non_empty_vertices_lists)
-def test_step(vertices: List[Point]) -> None:
-    first_vertex, *rest_vertices = vertices
+def test_step(contour: Contour) -> None:
+    first_vertex, *rest_vertices = contour
 
     result = edges_intersect(rest_vertices)
-    next_result = edges_intersect(vertices)
+    next_result = edges_intersect(contour)
 
     first_vertex_real, rest_vertices_real = (
         (first_vertex, rest_vertices)
@@ -44,7 +43,7 @@ def test_step(vertices: List[Point]) -> None:
               [to_real_point(vertex) for vertex in rest_vertices]))
     first_edge, last_edge = ((first_vertex_real, rest_vertices_real[0]),
                              (rest_vertices_real[-1], first_vertex_real))
-    rest_edges = _vertices_to_edges(rest_vertices_real)
+    rest_edges = contour_to_segments(rest_vertices_real)
     assert (next_result
             is (result
                 and len(rest_vertices) > 2
@@ -72,15 +71,15 @@ def test_step(vertices: List[Point]) -> None:
 
 
 @given(strategies.vertices_lists)
-def test_reversed(vertices: List[Point]) -> None:
-    result = edges_intersect(vertices)
+def test_reversed(contour: Contour) -> None:
+    result = edges_intersect(contour)
 
-    assert result is edges_intersect(vertices[::-1])
+    assert result is edges_intersect(contour[::-1])
 
 
 @given(strategies.vertices_lists)
-def test_reversed_coordinates(vertices: List[Point]) -> None:
-    result = edges_intersect(vertices)
+def test_reversed_coordinates(contour: Contour) -> None:
+    result = edges_intersect(contour)
 
     assert result is edges_intersect([reverse_point_coordinates(vertex)
-                                      for vertex in vertices])
+                                      for vertex in contour])
