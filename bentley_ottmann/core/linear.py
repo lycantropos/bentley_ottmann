@@ -1,7 +1,6 @@
 from enum import (IntEnum,
                   unique)
 from fractions import Fraction
-from numbers import Rational
 from typing import (Tuple,
                     Union)
 
@@ -192,15 +191,35 @@ def find_intersection(left: RealSegment, right: RealSegment) -> Point:
 
         denominator = parallelogram.signed_area(left_start, left_end,
                                                 right_start, right_end)
-        left_base_numerator = ((left_start_x - right_start_x)
-                               * (right_start_y - right_end_y)
-                               - (left_start_y - right_start_y)
-                               * (right_start_x - right_end_x))
-        right_base_numerator = ((left_start_y - left_end_y)
-                                * (left_start_x - right_start_x)
-                                - (left_start_x - left_end_x)
-                                * (left_start_y - right_start_y))
-        if abs(left_base_numerator) < abs(right_base_numerator):
+        left_base_numerator = parallelogram.signed_area(
+                left_start, right_start, right_start, right_end)
+        right_base_numerator = parallelogram.signed_area(
+                left_start, right_start, left_start, left_end)
+        base_numerators_diff = (abs(right_base_numerator)
+                                - abs(left_base_numerator))
+        if not base_numerators_diff:
+            left_delta_x, left_delta_y = (left_end_x - left_start_x,
+                                          left_end_y - left_start_y)
+            right_delta_x, right_delta_y = (right_end_x - right_start_x,
+                                            right_end_y - right_start_y)
+            left_numerator_x = (left_start_x * denominator
+                                + left_delta_x * left_base_numerator)
+            left_numerator_y = (left_start_y * denominator
+                                + left_delta_y * left_base_numerator)
+            right_numerator_x = (right_start_x * denominator
+                                 + right_delta_x * right_base_numerator)
+            right_numerator_y = (right_start_y * denominator
+                                 + right_delta_y * right_base_numerator)
+            numerator_x, numerator_y = ((Fraction(left_numerator_x
+                                                  + right_numerator_x, 2),
+                                         Fraction(left_numerator_y
+                                                  + right_numerator_y, 2))
+                                        if isinstance(denominator, int)
+                                        else ((left_numerator_x
+                                               + right_numerator_x) / 2,
+                                              (left_numerator_y
+                                               + right_numerator_y) / 2))
+        elif base_numerators_diff > 0:
             numerator_x = (left_start_x * denominator
                            + left_base_numerator * (left_end_x - left_start_x))
             numerator_y = (left_start_y * denominator
@@ -213,7 +232,7 @@ def find_intersection(left: RealSegment, right: RealSegment) -> Point:
                            + right_base_numerator
                            * (right_end_y - right_start_y))
         denominator_inv = (Fraction(1, denominator)
-                           if isinstance(denominator, Rational)
+                           if isinstance(denominator, int)
                            else 1 / denominator)
         return numerator_x * denominator_inv, numerator_y * denominator_inv
 
