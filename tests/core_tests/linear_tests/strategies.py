@@ -5,9 +5,9 @@ from typing import (Callable,
 
 from hypothesis import strategies
 
-from bentley_ottmann.hints import Scalar, Segment
-from tests.strategies import (real_segments_strategies,
-                              segments_strategies)
+from bentley_ottmann.hints import (Scalar,
+                                   Segment)
+from tests.strategies import segments_strategies
 from tests.utils import (Strategy,
                          identity,
                          reflect_segment,
@@ -100,10 +100,6 @@ def to_maybe_intersecting_segments(segments: Strategy[Segment]
 
 
 segments = segments_strategies.flatmap(identity)
-real_segments = real_segments_strategies.flatmap(identity)
 segments_pairs = (
         segments_strategies.flatmap(to_pairs)
         | segments_strategies.flatmap(to_maybe_intersecting_segments))
-real_segments_pairs = (
-        real_segments_strategies.flatmap(to_pairs)
-        | real_segments_strategies.flatmap(to_maybe_intersecting_segments))
