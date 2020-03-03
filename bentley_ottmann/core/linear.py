@@ -6,7 +6,8 @@ from robust.linear import (SegmentsRelationship,
                            segments_intersection,
                            segments_relationship)
 
-from bentley_ottmann.hints import (Point,
+from bentley_ottmann.hints import (Base,
+                                   Point,
                                    Segment)
 from .point import (is_real_point,
                     to_rational_point,
@@ -32,16 +33,19 @@ def find_intersections(left: Segment,
     elif relationship is SegmentsRelationship.CROSS:
         intersection_point = segments_intersection(left_real, right_real)
         if not are_real_segments:
-            start, _ = left
-            start_x, _ = start
-            coordinate_type = type(start_x)
             intersection_point = to_scalar_point(intersection_point,
-                                                 coordinate_type)
+                                                 _to_segment_base(left))
         return intersection_point,
     else:
         _, first_intersection_point, second_intersection_point, _ = sorted(
                 left + right)
         return first_intersection_point, second_intersection_point
+
+
+def _to_segment_base(segment: Segment) -> Base:
+    start, _ = segment
+    start_x, _ = start
+    return type(start_x)
 
 
 def is_real_segment(segment: Segment) -> bool:
