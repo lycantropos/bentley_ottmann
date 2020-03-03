@@ -7,7 +7,7 @@ from reprit.base import generate_repr
 from bentley_ottmann.hints import Scalar
 from .linear import (RealSegment,
                      SegmentsRelationship,
-                     segments_intersection)
+                     find_intersection)
 from .point import RealPoint
 
 
@@ -92,6 +92,6 @@ class Event:
             end_x, end_y = self.end
             if x == end_x:
                 return end_y
-            _, result = segments_intersection(self.segment,
-                                              ((x, start_y), (x, end_y)))
+            _, result = find_intersection(self.segment,
+                                          ((x, start_y), (x, end_y)))
             return result

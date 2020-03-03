@@ -9,8 +9,8 @@ from .events_queue import (EventsQueue,
                            EventsQueueKey)
 from .linear import (RealSegment,
                      SegmentsRelationship,
+                     find_intersection,
                      is_real_segment,
-                     segments_intersection,
                      segments_relationship,
                      to_rational_segment,
                      to_real_segment)
@@ -127,7 +127,7 @@ def detect_intersection(first_event: Event, second_event: Event,
         # segments intersect
         yield first_event, second_event
 
-        point = segments_intersection(first_segment, second_segment)
+        point = find_intersection(first_segment, second_segment)
         if point != first_event.start and point != first_event.end:
             divide_segment(first_event, point, relationship, events_queue)
         if point != second_event.start and point != second_event.end:
