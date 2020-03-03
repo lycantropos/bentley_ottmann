@@ -9,11 +9,11 @@ from .events_queue import (EventsQueue,
                            EventsQueueKey)
 from .linear import (RealSegment,
                      SegmentsRelationship,
-                     find_intersection,
                      is_real_segment,
+                     segments_intersection,
+                     segments_relationship,
                      to_rational_segment,
-                     to_real_segment,
-                     to_segments_relationship)
+                     to_real_segment)
 from .point import RealPoint
 from .sweep_line import SweepLine
 from .utils import (merge_ids,
@@ -119,7 +119,7 @@ def detect_intersection(first_event: Event, second_event: Event,
                         events_queue: EventsQueue
                         ) -> Iterable[Tuple[Event, Event]]:
     first_segment, second_segment = first_event.segment, second_event.segment
-    relationship = to_segments_relationship(first_segment, second_segment)
+    relationship = segments_relationship(first_segment, second_segment)
 
     if relationship is SegmentsRelationship.NONE:
         return
@@ -127,7 +127,7 @@ def detect_intersection(first_event: Event, second_event: Event,
         # segments intersect
         yield first_event, second_event
 
-        point = find_intersection(first_segment, second_segment)
+        point = segments_intersection(first_segment, second_segment)
         if point != first_event.start and point != first_event.end:
             divide_segment(first_event, point, relationship, events_queue)
         if point != second_event.start and point != second_event.end:
