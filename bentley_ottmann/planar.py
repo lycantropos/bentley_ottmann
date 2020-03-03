@@ -152,7 +152,6 @@ def segments_intersections(segments: Sequence[Segment],
     ...                         ((2., 0.), (0., 2.))])
     {(1.0, 1.0): {(0, 1)}}
 
-
     :param segments: sequence of segments.
     :param accurate:
         flag that tells whether to use slow but more accurate arithmetic
