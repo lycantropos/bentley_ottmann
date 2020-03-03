@@ -7,7 +7,9 @@ from typing import (Optional,
 
 from hypothesis import strategies
 
-from bentley_ottmann.hints import Point, Scalar, Segment
+from bentley_ottmann.hints import (Point,
+                                   Scalar,
+                                   Segment)
 from tests.utils import (Strategy,
                          pack,
                          to_pairs)
@@ -74,15 +76,12 @@ def to_decimal(number: SupportsFloat) -> Decimal:
     return Decimal(number)
 
 
-real_scalars_strategies_factories = {float: to_floats,
-                                     Fraction: strategies.fractions,
-                                     int: strategies.integers}
 scalars_strategies_factories = {Decimal: to_decimals,
-                                **real_scalars_strategies_factories}
+                                float: to_floats,
+                                Fraction: strategies.fractions,
+                                int: strategies.integers}
 scalars_strategies = strategies.sampled_from(
         [factory() for factory in scalars_strategies_factories.values()])
-real_scalars_strategies = strategies.sampled_from(
-        [factory() for factory in real_scalars_strategies_factories.values()])
 
 
 def coordinates_to_segments(coordinates: Strategy[Scalar]
@@ -97,4 +96,3 @@ def coordinates_to_points(coordinates: Strategy[Scalar]) -> Strategy[Point]:
 
 points_strategies = scalars_strategies.map(coordinates_to_points)
 segments_strategies = scalars_strategies.map(coordinates_to_segments)
-real_segments_strategies = real_scalars_strategies.map(coordinates_to_segments)
