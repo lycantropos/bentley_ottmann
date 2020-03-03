@@ -78,14 +78,14 @@ With segments (defined as pairs of endpoints' coordinates)
 ```
 we can check if they intersect
 ```python
->>> from bentley_ottmann.base import segments_intersect
+>>> from bentley_ottmann.planar import segments_intersect
 >>> segments_intersect(unit_segments)
 True
 
 ```
 we can also find in which points segments intersect
 ```python
->>> from bentley_ottmann.base import segments_intersections
+>>> from bentley_ottmann.planar import segments_intersections
 >>> segments_intersections(unit_segments)
 {(0.0, 0.0): {(0, 1)}}
 
@@ -100,7 +100,7 @@ With polygons (defined as sequence of vertices' coordinates)
 ```
 we can check if they are self-intersecting or not
 ```python
->>> from bentley_ottmann.base import edges_intersect
+>>> from bentley_ottmann.planar import edges_intersect
 >>> edges_intersect(triangle)
 False
 >>> edges_intersect(degenerate_triangle)
