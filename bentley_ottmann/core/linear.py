@@ -3,7 +3,7 @@ from typing import (Tuple,
 
 from robust.hints import Segment as RealSegment
 from robust.linear import (SegmentsRelationship,
-                           segments_intersection,
+                           segments_intersection as find_intersection,
                            segments_relationship)
 
 from bentley_ottmann.hints import (Base,
@@ -31,7 +31,7 @@ def find_intersections(left: Segment,
     if relationship is SegmentsRelationship.NONE:
         return ()
     elif relationship is SegmentsRelationship.CROSS:
-        intersection_point = segments_intersection(left_real, right_real)
+        intersection_point = find_intersection(left_real, right_real)
         if not are_real_segments:
             intersection_point = to_scalar_point(intersection_point,
                                                  _to_segment_base(left))
