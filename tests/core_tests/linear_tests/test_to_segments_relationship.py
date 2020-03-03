@@ -4,7 +4,7 @@ from hypothesis import given
 
 from bentley_ottmann.core.linear import (RealSegment,
                                          SegmentsRelationship,
-                                         to_segments_relationship)
+                                         segments_relationship)
 from tests.utils import (reflect_segment,
                          reverse_segment)
 from . import strategies
@@ -14,7 +14,7 @@ from . import strategies
 def test_basic(segments_pair: Tuple[RealSegment, RealSegment]) -> None:
     first_segment, second_segment = segments_pair
 
-    result = to_segments_relationship(first_segment, second_segment)
+    result = segments_relationship(first_segment, second_segment)
 
     assert isinstance(result, SegmentsRelationship)
 
@@ -23,27 +23,27 @@ def test_basic(segments_pair: Tuple[RealSegment, RealSegment]) -> None:
 def test_commutativity(segments_pair: Tuple[RealSegment, RealSegment]) -> None:
     first_segment, second_segment = segments_pair
 
-    result = to_segments_relationship(first_segment, second_segment)
+    result = segments_relationship(first_segment, second_segment)
 
-    assert result is to_segments_relationship(second_segment, first_segment)
+    assert result is segments_relationship(second_segment, first_segment)
 
 
 @given(strategies.real_segments)
 def test_self(segment: RealSegment) -> None:
-    result = to_segments_relationship(segment, segment)
+    result = segments_relationship(segment, segment)
 
     assert result is SegmentsRelationship.OVERLAP
 
 
 @given(strategies.real_segments)
 def test_reversed(segment: RealSegment) -> None:
-    result = to_segments_relationship(segment, reverse_segment(segment))
+    result = segments_relationship(segment, reverse_segment(segment))
 
     assert result is SegmentsRelationship.OVERLAP
 
 
 @given(strategies.real_segments)
 def test_reflected(segment: RealSegment) -> None:
-    result = to_segments_relationship(segment, reflect_segment(segment))
+    result = segments_relationship(segment, reflect_segment(segment))
 
     assert result is SegmentsRelationship.CROSS

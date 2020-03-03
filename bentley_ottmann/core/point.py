@@ -1,12 +1,11 @@
 from fractions import Fraction
 from numbers import Real
-from typing import (Tuple,
-                    Type)
+from typing import Type
+
+from robust.hints import Point as RealPoint
 
 from bentley_ottmann.hints import (Point,
                                    Scalar)
-
-RealPoint = Tuple[Real, Real]
 
 
 def is_real_point(point: Point) -> bool:

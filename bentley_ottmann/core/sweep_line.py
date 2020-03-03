@@ -6,11 +6,11 @@ from typing import (Callable,
 
 from dendroid import red_black
 from reprit.base import generate_repr
+from robust.angular import (Orientation,
+                            orientation)
 
 from bentley_ottmann.hints import Scalar
-from .angular import Orientation
 from .event import Event
-from .linear import point_orientation_with_segment
 from .point import RealPoint
 from .utils import merge_ids
 
@@ -80,10 +80,8 @@ class SweepLineKey:
         other_start_x, other_start_y = other_event.start
         end_x, end_y = event.end
         other_end_x, other_end_y = other_event.end
-        orientation_with_other_start = point_orientation_with_segment(
-                other_start, event.segment)
-        orientation_with_other_end = point_orientation_with_segment(
-                other_end, event.segment)
+        orientation_with_other_start = orientation(end, start, other_start)
+        orientation_with_other_end = orientation(end, start, other_end)
         if orientation_with_other_start is orientation_with_other_end:
             if orientation_with_other_start is not Orientation.COLLINEAR:
                 # other segment fully lies on one side

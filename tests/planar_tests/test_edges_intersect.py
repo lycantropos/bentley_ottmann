@@ -5,7 +5,7 @@ from hypothesis import given
 
 from bentley_ottmann.core.linear import (SegmentsRelationship,
                                          find_intersections,
-                                         to_segments_relationship)
+                                         segments_relationship)
 from bentley_ottmann.core.point import (is_real_point,
                                         to_real_point)
 from bentley_ottmann.hints import Contour
@@ -53,7 +53,7 @@ def test_step(contour: Contour) -> None:
                          for other_index in chain(
                             range(index - 1),
                             range(index + 2, len(rest_edges) - 1)))
-                     or any(to_segments_relationship(edge, other_edge)
+                     or any(segments_relationship(edge, other_edge)
                             is SegmentsRelationship.OVERLAP
                             for edge, other_edge in combinations(
                                     rest_edges[:-1], 2)))
@@ -62,11 +62,11 @@ def test_step(contour: Contour) -> None:
                 or any(find_intersections(last_edge, edge)
                        for edge in rest_edges[:-2])
                 or len(rest_vertices) > 1
-                and (to_segments_relationship(first_edge, rest_edges[0])
+                and (segments_relationship(first_edge, rest_edges[0])
                      is SegmentsRelationship.OVERLAP
-                     or to_segments_relationship(first_edge, last_edge)
+                     or segments_relationship(first_edge, last_edge)
                      is SegmentsRelationship.OVERLAP
-                     or to_segments_relationship(last_edge, rest_edges[0])
+                     or segments_relationship(last_edge, rest_edges[0])
                      is SegmentsRelationship.OVERLAP)))
 
 
