@@ -5,7 +5,8 @@ from typing import (Dict,
                     Set,
                     Tuple)
 
-from bentley_ottmann.hints import (Point,
+from bentley_ottmann.hints import (Contour,
+                                   Point,
                                    Segment)
 from .core import planar as _planar
 from .core.linear import (SegmentsRelationship,
@@ -14,26 +15,26 @@ from .core.utils import (merge_ids as _merge_ids,
                          to_pairs_combinations as _to_pairs_combinations)
 
 
-def edges_intersect(vertices: Sequence[Point],
+def edges_intersect(contour: Contour,
                     *,
                     accurate: bool = True) -> bool:
     """
-    Checks if polygon has self-intersection.
+    Checks if polygonal contour has self-intersection.
 
     Based on Shamos-Hoey algorithm.
 
     Time complexity:
-        ``O(len(segments) * log len(segments))``
+        ``O(len(contour) * log len(contour))``
     Memory complexity:
-        ``O(len(segments))``
+        ``O(len(contour))``
     Reference:
         https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
-    :param vertices: sequence of polygon vertices.
+    :param contour: contour to check.
     :param accurate:
         flag that tells whether to use slow but more accurate arithmetic
         for floating point numbers.
-    :returns: true if polygon is self-intersecting, false otherwise.
+    :returns: true if contour is self-intersecting, false otherwise.
 
     .. note::
         Consecutive equal vertices like ``(2., 0.)`` in
@@ -51,10 +52,11 @@ def edges_intersect(vertices: Sequence[Point],
     >>> edges_intersect([(0., 0.), (2., 0.), (1., 0.)])
     True
     """
-    if not _all_unique(vertices):
+    if not _all_unique(contour):
         return True
 
-    edges = _vertices_to_edges(vertices)
+    edges = [(contour[index], contour[(index + 1) % len(contour)])
+             for index in range(len(contour))]
 
     def non_neighbours_intersect(edges_ids: Iterable[Tuple[int, int]],
                                  last_edge_index: int = len(edges) - 1
@@ -68,11 +70,6 @@ def edges_intersect(vertices: Sequence[Point],
                 or non_neighbours_intersect(_to_pairs_combinations(_merge_ids(
                     first_event.segments_ids, second_event.segments_ids))))
                for first_event, second_event in _planar.sweep(edges, accurate))
-
-
-def _vertices_to_edges(vertices: Sequence[Point]) -> Sequence[Segment]:
-    return [(vertices[index], vertices[(index + 1) % len(vertices)])
-            for index in range(len(vertices))]
 
 
 def _all_unique(values: Iterable[Hashable]) -> bool:
