@@ -96,16 +96,16 @@ def to_events_queue(segments: Sequence[RealSegment]) -> EventsQueue:
             same_segments_ids.append(segments_with_ids[index][1])
             index += 1
         start, end = segment
-        segments_relationship = (SegmentsRelationship.NONE
-                                 if len(same_segments_ids) == 1
-                                 else SegmentsRelationship.OVERLAP)
+        relationship = (SegmentsRelationship.NONE
+                        if len(same_segments_ids) == 1
+                        else SegmentsRelationship.OVERLAP)
         start_event = Event(is_left_endpoint=True,
-                            relationship=segments_relationship,
+                            relationship=relationship,
                             start=start,
                             complement=None,
                             segments_ids=same_segments_ids)
         end_event = Event(is_left_endpoint=False,
-                          relationship=segments_relationship,
+                          relationship=relationship,
                           start=end,
                           complement=start_event,
                           segments_ids=same_segments_ids)
