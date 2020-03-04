@@ -118,6 +118,44 @@ def segments_intersect(segments: Sequence[Segment],
     return any(_planar.sweep(segments, accurate))
 
 
+def segments_overlap(segments: Sequence[Segment],
+                     *,
+                     accurate: bool = True) -> bool:
+    """
+    Checks if segments have at least one overlap.
+
+    Based on Shamos-Hoey algorithm.
+
+    Time complexity:
+        ``O((len(segments) + len(intersections)) * log len(segments))``
+    Memory complexity:
+        ``O(len(segments))``
+    Reference:
+        https://en.wikipedia.org/wiki/Sweep_line_algorithm
+
+    :param segments: sequence of segments.
+    :param accurate:
+        flag that tells whether to use slow but more accurate arithmetic
+        for floating point numbers.
+    :returns: true if segments overlap found, false otherwise.
+
+    >>> segments_overlap([])
+    False
+    >>> segments_overlap([((0., 0.), (2., 2.))])
+    False
+    >>> segments_overlap([((0., 0.), (2., 0.)), ((0., 2.), (2., 2.))])
+    False
+    >>> segments_overlap([((0., 0.), (2., 2.)), ((0., 0.), (2., 2.))])
+    True
+    >>> segments_overlap([((0., 0.), (2., 2.)), ((2., 0.), (0., 2.))])
+    False
+    """
+    return any(first_event.relationship is SegmentsRelationship.OVERLAP
+               or second_event.relationship is SegmentsRelationship.OVERLAP
+               for first_event, second_event in _planar.sweep(segments,
+                                                              accurate))
+
+
 def segments_intersections(segments: Sequence[Segment],
                            *,
                            accurate: bool = True
