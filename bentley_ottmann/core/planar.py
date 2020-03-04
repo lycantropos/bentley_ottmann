@@ -148,6 +148,7 @@ def detect_intersection(first_event: Event, second_event: Event,
                                  second_event.segments_ids)
         if len(sorted_events) == 2:
             # both line segments are equal
+            first_event.relationship = second_event.relationship = relationship
             first_event.segments_ids = second_event.segments_ids = segments_ids
         elif len(sorted_events) == 3:
             # line segments share endpoint
