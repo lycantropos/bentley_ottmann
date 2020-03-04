@@ -6,6 +6,6 @@ Welcome to bentley_ottmann's documentation!
    it should be considered as implementation detail
    that can change and should not be relied upon.
 
-.. automodule:: bentley_ottmann.base
+.. automodule:: bentley_ottmann.planar
     :members:
     :special-members:
