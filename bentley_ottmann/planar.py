@@ -139,14 +139,11 @@ def segments_intersections(segments: Sequence[Segment],
     {}
     >>> segments_intersections([((0., 0.), (2., 2.))])
     {}
-    >>> segments_intersections([((0., 0.), (2., 0.)),
-    ...                         ((0., 2.), (2., 2.))])
+    >>> segments_intersections([((0., 0.), (2., 0.)), ((0., 2.), (2., 2.))])
     {}
-    >>> segments_intersections([((0., 0.), (2., 2.)),
-    ...                         ((0., 0.), (2., 2.))])
+    >>> segments_intersections([((0., 0.), (2., 2.)), ((0., 0.), (2., 2.))])
     {(0.0, 0.0): {(0, 1)}, (2.0, 2.0): {(0, 1)}}
-    >>> segments_intersections([((0., 0.), (2., 2.)),
-    ...                         ((2., 0.), (0., 2.))])
+    >>> segments_intersections([((0., 0.), (2., 2.)), ((2., 0.), (0., 2.))])
     {(1.0, 1.0): {(0, 1)}}
 
     :param segments: sequence of segments.
