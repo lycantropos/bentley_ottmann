@@ -108,14 +108,11 @@ def segments_intersect(segments: Sequence[Segment],
     False
     >>> segments_intersect([((0., 0.), (2., 2.))])
     False
-    >>> segments_intersect([((0., 0.), (2., 0.)),
-    ...                     ((0., 2.), (2., 2.))])
+    >>> segments_intersect([((0., 0.), (2., 0.)), ((0., 2.), (2., 2.))])
     False
-    >>> segments_intersect([((0., 0.), (2., 2.)),
-    ...                     ((0., 0.), (2., 2.))])
+    >>> segments_intersect([((0., 0.), (2., 2.)), ((0., 0.), (2., 2.))])
     True
-    >>> segments_intersect([((0., 0.), (2., 2.)),
-    ...                     ((2., 0.), (0., 2.))])
+    >>> segments_intersect([((0., 0.), (2., 2.)), ((2., 0.), (0., 2.))])
     True
     """
     return any(_planar.sweep(segments, accurate))
