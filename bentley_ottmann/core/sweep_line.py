@@ -41,11 +41,17 @@ class SweepLine:
     def remove(self, event: Event) -> None:
         self._tree.remove(event)
 
-    def above(self, event: Event) -> Event:
-        return self._tree.next(event)
+    def above(self, event: Event) -> Optional[Event]:
+        try:
+            return self._tree.next(event)
+        except ValueError:
+            return None
 
-    def below(self, event: Event) -> Event:
-        return self._tree.prev(event)
+    def below(self, event: Event) -> Optional[Event]:
+        try:
+            return self._tree.prev(event)
+        except ValueError:
+            return None
 
 
 class SweepLineKey:

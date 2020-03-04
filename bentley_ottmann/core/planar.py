@@ -49,14 +49,8 @@ def sweep(segments: Sequence[Segment],
 
             if event.is_left_endpoint:
                 sweep_line.add(event)
-                try:
-                    below_event = sweep_line.below(event)
-                except ValueError:
-                    below_event = None
-                try:
-                    above_event = sweep_line.above(event)
-                except ValueError:
-                    above_event = None
+                above_event, below_event = (sweep_line.above(event),
+                                            sweep_line.below(event))
                 if below_event is not None:
                     yield from detect_intersection(below_event, event,
                                                    events_queue=events_queue)
@@ -67,14 +61,8 @@ def sweep(segments: Sequence[Segment],
                 event = event.complement
                 if event not in sweep_line:
                     continue
-                try:
-                    below_event = sweep_line.below(event)
-                except ValueError:
-                    below_event = None
-                try:
-                    above_event = sweep_line.above(event)
-                except ValueError:
-                    above_event = None
+                above_event, below_event = (sweep_line.above(event),
+                                            sweep_line.below(event))
                 sweep_line.remove(event)
                 if below_event is not None and above_event is not None:
                     yield from detect_intersection(below_event, above_event,
