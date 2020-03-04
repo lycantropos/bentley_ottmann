@@ -63,8 +63,7 @@ def reverse_segment(segment: Segment) -> Segment:
 
 def reverse_segment_coordinates(segment: Segment) -> Segment:
     start, end = segment
-    return (reverse_point_coordinates(start),
-            reverse_point_coordinates(end))
+    return reverse_point_coordinates(start), reverse_point_coordinates(end)
 
 
 def reverse_point_coordinates(point: Point) -> Point:
