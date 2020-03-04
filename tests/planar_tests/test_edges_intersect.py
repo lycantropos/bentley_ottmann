@@ -15,21 +15,21 @@ from tests.utils import (contour_to_segments,
 from . import strategies
 
 
-@given(strategies.vertices_lists)
+@given(strategies.contours)
 def test_basic(contour: Contour) -> None:
     result = edges_intersect(contour)
 
     assert isinstance(result, bool)
 
 
-@given(strategies.empty_vertices_lists)
+@given(strategies.empty_contours)
 def test_base_case(contour: Contour) -> None:
     result = edges_intersect(contour)
 
     assert not result
 
 
-@given(strategies.non_empty_vertices_lists)
+@given(strategies.non_empty_contours)
 def test_step(contour: Contour) -> None:
     first_vertex, *rest_vertices = contour
 
@@ -70,14 +70,14 @@ def test_step(contour: Contour) -> None:
                      is SegmentsRelationship.OVERLAP)))
 
 
-@given(strategies.vertices_lists)
+@given(strategies.contours)
 def test_reversed(contour: Contour) -> None:
     result = edges_intersect(contour)
 
     assert result is edges_intersect(contour[::-1])
 
 
-@given(strategies.vertices_lists)
+@given(strategies.contours)
 def test_reversed_coordinates(contour: Contour) -> None:
     result = edges_intersect(contour)
 
