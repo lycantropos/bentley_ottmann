@@ -30,16 +30,16 @@ def find_intersections(left: Segment,
     relationship = segments_relationship(left_real, right_real)
     if relationship is SegmentsRelationship.NONE:
         return ()
-    elif relationship is SegmentsRelationship.CROSS:
+    elif relationship is SegmentsRelationship.OVERLAP:
+        _, first_intersection_point, second_intersection_point, _ = sorted(
+                left + right)
+        return first_intersection_point, second_intersection_point
+    else:
         intersection_point = find_intersection(left_real, right_real)
         if not are_real_segments:
             intersection_point = to_scalar_point(intersection_point,
                                                  _to_segment_base(left))
         return intersection_point,
-    else:
-        _, first_intersection_point, second_intersection_point, _ = sorted(
-                left + right)
-        return first_intersection_point, second_intersection_point
 
 
 def _to_segment_base(segment: Segment) -> Base:
