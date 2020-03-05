@@ -2,7 +2,8 @@ from typing import Tuple
 
 from hypothesis import given
 
-from bentley_ottmann.core.linear import (find_intersections,
+from bentley_ottmann.core.linear import (SegmentsRelationship,
+                                         find_intersections,
                                          is_real_segment,
                                          segments_relationship,
                                          to_real_segment)
@@ -49,13 +50,16 @@ def test_connection_with_segments_relationship(
     result = find_intersections(left_segment, right_segment)
 
     are_real_segments = is_real_segment(left_segment)
+    relationship = segments_relationship(left_segment
+                                         if are_real_segments
+                                         else to_real_segment(left_segment),
+                                         right_segment
+                                         if are_real_segments
+                                         else to_real_segment(right_segment))
     assert (len(result)
-            == segments_relationship(left_segment
-                                     if are_real_segments
-                                     else to_real_segment(left_segment),
-                                     right_segment
-                                     if are_real_segments
-                                     else to_real_segment(right_segment)))
+            == (0 if relationship is SegmentsRelationship.NONE
+                else (2 if relationship is SegmentsRelationship.OVERLAP
+                      else 1)))
 
 
 @given(strategies.segments)
