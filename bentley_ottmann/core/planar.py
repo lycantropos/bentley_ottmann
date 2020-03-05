@@ -111,16 +111,7 @@ def detect_intersection(first_event: Event, second_event: Event,
 
     if relationship is SegmentsRelationship.NONE:
         return
-    elif relationship is SegmentsRelationship.CROSS:
-        # segments intersect
-        yield first_event, second_event
-
-        point = find_intersection(first_segment, second_segment)
-        if point != first_event.start and point != first_event.end:
-            divide_segment(first_event, point, relationship, events_queue)
-        if point != second_event.start and point != second_event.end:
-            divide_segment(second_event, point, relationship, events_queue)
-    else:
+    elif relationship is SegmentsRelationship.OVERLAP:
         # segments overlap
         yield first_event, second_event
 
@@ -167,6 +158,15 @@ def detect_intersection(first_event: Event, second_event: Event,
                            # no line segment includes totally the other one
                            else sorted_events[1], sorted_events[2].start,
                            relationship, events_queue, segments_ids)
+    else:
+        # segments intersect
+        yield first_event, second_event
+
+        point = find_intersection(first_segment, second_segment)
+        if point != first_event.start and point != first_event.end:
+            divide_segment(first_event, point, relationship, events_queue)
+        if point != second_event.start and point != second_event.end:
+            divide_segment(second_event, point, relationship, events_queue)
 
 
 def divide_segment(event: Event,
