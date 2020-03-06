@@ -86,80 +86,49 @@ class SweepLineKey:
         other_start_x, other_start_y = other_event.start
         end_x, end_y = event.end
         other_end_x, other_end_y = other_event.end
-        orientation_with_other_start = orientation(end, start, other_start)
-        orientation_with_other_end = orientation(end, start, other_end)
-        if orientation_with_other_start is orientation_with_other_end:
-            if orientation_with_other_start is not Orientation.COLLINEAR:
+        other_start_orientation = orientation(end, start, other_start)
+        other_end_orientation = orientation(end, start, other_end)
+        if other_start_orientation is other_end_orientation:
+            if other_start_orientation is not Orientation.COLLINEAR:
                 # other segment fully lies on one side
-                return orientation_with_other_start is (
-                    Orientation.COUNTERCLOCKWISE
-                    if event.is_left_endpoint
-                    else Orientation.CLOCKWISE)
+                return other_start_orientation is Orientation.COUNTERCLOCKWISE
             # segments are collinear
             elif start_x == other_start_x:
                 if start_y != other_start_y:
                     # segments are vertical
                     return start_y < other_start_y
                 # segments have same start
+                elif end_y != other_end_y:
+                    return end_y < other_end_y
                 elif end_x != other_end_x:
-                    return end_x > other_end_x
-                elif event.is_intersection is not other_event.is_intersection:
-                    return event.is_intersection
+                    # segments are horizontal
+                    return end_x < other_end_x
                 else:
+                    # segments are equal
                     event.segments_ids = other_event.segments_ids = merge_ids(
                             event.segments_ids, other_event.segments_ids)
-                    return not event.is_intersection
-            # same start, different ends
-            elif event.is_left_endpoint is not other_event.is_left_endpoint:
-                # one start is a left endpoint
-                # and the other is a right endpoint,
-                # the right endpoint goes above
-                return event.is_left_endpoint
+                    return False
+            elif start_y != other_start_y:
+                return start_y < other_start_y
             else:
-                # both events are left endpoints or both are right endpoints
-                return start_x > other_start_x
-        elif start == other_start:
-            if event.is_vertical:
-                return start_y > end_y
-            else:
-                return orientation_with_other_end is (
-                    Orientation.COUNTERCLOCKWISE
-                    if start_x < end_x
-                    else Orientation.CLOCKWISE)
-        elif start_x == other_start_x:
-            return start_y < other_start_y
-        elif orientation_with_other_start is Orientation.COLLINEAR:
-            if other_event.is_vertical:
-                return other_start_y < other_end_y
-            elif start_x == other_end_x:
-                return start_y < other_end_y
-            else:
-                return event.below_than_at_x(other_event,
-                                             self.sweep_line.current_x)
-        elif start == other_end:
-            if event.is_vertical:
-                return start_y > end_y
-            else:
-                return orientation_with_other_start is (
-                    Orientation.COUNTERCLOCKWISE
-                    if start_x < other_start_x
-                    else Orientation.CLOCKWISE)
-        elif start_x == other_end_x:
-            return start_y < other_end_y
-        elif orientation_with_other_end is Orientation.COLLINEAR:
-            if event.is_vertical:
-                return start_y < other_end_y
-            else:
-                return orientation_with_other_start is (
-                    Orientation.COUNTERCLOCKWISE
-                    if start_x < end_x
-                    else Orientation.CLOCKWISE)
+                # segments are horizontal
+                return start_x < other_start_x
+        start_orientation = orientation(other_end, other_start, start)
+        end_orientation = orientation(other_end, other_start, end)
+        if start_orientation is end_orientation:
+            return start_orientation is Orientation.CLOCKWISE
+        elif other_start_orientation is Orientation.COLLINEAR:
+            return other_end_orientation is Orientation.COUNTERCLOCKWISE
+        elif start_orientation is Orientation.COLLINEAR:
+            return end_orientation is Orientation.CLOCKWISE
         elif event.is_vertical:
-            other_y_at_start_x = other_event.y_at(start_x)
-            if other_y_at_start_x != start_y:
-                return start_y < other_y_at_start_x
-            else:
-                return start_y > end_y
+            return start_orientation is Orientation.CLOCKWISE
+        elif other_event.is_vertical:
+            return other_start_orientation is Orientation.COUNTERCLOCKWISE
+        elif other_end_orientation is Orientation.COLLINEAR:
+            return other_start_orientation is Orientation.COUNTERCLOCKWISE
+        elif end_orientation is Orientation.COLLINEAR:
+            return start_orientation is Orientation.CLOCKWISE
         else:
-            return event.below_than_at_x(other_event,
-                                         self.sweep_line.current_x)
+            current_x = self.sweep_line.current_x
+            return event.y_at(current_x) < other_event.y_at(current_x)
