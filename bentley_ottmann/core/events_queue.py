@@ -38,21 +38,21 @@ class EventsQueueKey:
             # different starts, but same x-coordinate,
             # the event with lower y-coordinate is processed first
             return start_y < other_start_y
-        elif event.end == other_event.end:
-            # same segments
-            return (event.segments_ids < other_event.segments_ids
-                    if event.is_intersection is other_event.is_intersection
-                    else event.is_intersection)
         elif event.is_left_endpoint is not other_event.is_left_endpoint:
             # same start, but one is a left endpoint
             # and the other is a right endpoint,
             # the right endpoint is processed first
             return not event.is_left_endpoint
-        else:
+        elif event.end != other_event.end:
             # same start, different end,
             # both events are left endpoints
             # or both are right endpoints
             return event.end < other_event.end
+        else:
+            # same segments
+            return (event.segments_ids < other_event.segments_ids
+                    if event.is_intersection is other_event.is_intersection
+                    else event.is_intersection)
 
 
 EventsQueue = cast(Callable[..., PriorityQueue[Event]],
