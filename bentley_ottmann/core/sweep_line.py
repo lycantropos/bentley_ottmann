@@ -82,18 +82,18 @@ class SweepLineKey:
             return False
         start, other_start = event.start, other_event.start
         end, other_end = event.end, other_event.end
-        start_x, start_y = event.start
-        other_start_x, other_start_y = other_event.start
-        end_x, end_y = event.end
-        other_end_x, other_end_y = other_event.end
         other_start_orientation = orientation(end, start, other_start)
         other_end_orientation = orientation(end, start, other_end)
         if other_start_orientation is other_end_orientation:
+            start_x, start_y = event.start
+            other_start_x, other_start_y = other_event.start
             if other_start_orientation is not Orientation.COLLINEAR:
                 # other segment fully lies on one side
                 return other_start_orientation is Orientation.COUNTERCLOCKWISE
             # segments are collinear
             elif start_x == other_start_x:
+                end_x, end_y = event.end
+                other_end_x, other_end_y = other_event.end
                 if start_y != other_start_y:
                     # segments are vertical
                     return start_y < other_start_y
