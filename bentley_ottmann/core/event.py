@@ -12,8 +12,8 @@ from .point import RealPoint
 
 
 class Event:
-    __slots__ = ('is_left_endpoint', '_relationship',
-                 'start', 'complement', '_segments_ids')
+    __slots__ = ('is_left_endpoint', 'relationship',
+                 'start', 'complement', 'segments_ids')
 
     def __init__(self,
                  is_left_endpoint: bool,
@@ -22,28 +22,12 @@ class Event:
                  complement: Optional['Event'],
                  segments_ids: Sequence[int]) -> None:
         self.is_left_endpoint = is_left_endpoint
-        self._relationship = relationship
+        self.relationship = relationship
         self.start = start
         self.complement = complement
-        self._segments_ids = segments_ids
+        self.segments_ids = segments_ids
 
     __repr__ = recursive_repr()(generate_repr(__init__))
-
-    @property
-    def segments_ids(self) -> Sequence[int]:
-        return self._segments_ids
-
-    @segments_ids.setter
-    def segments_ids(self, segments_ids: Sequence[int]) -> None:
-        self._segments_ids = self.complement._segments_ids = segments_ids
-
-    @property
-    def relationship(self) -> SegmentsRelationship:
-        return self._relationship
-
-    @relationship.setter
-    def relationship(self, relationship: SegmentsRelationship) -> None:
-        self._relationship = self.complement._relationship = relationship
 
     @property
     def is_intersection(self) -> bool:
