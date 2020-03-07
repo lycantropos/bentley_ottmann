@@ -16,17 +16,10 @@ class EventsQueueKey:
 
     __repr__ = generate_repr(__init__)
 
-    def __eq__(self, other: 'EventsQueueKey') -> bool:
-        return (self.event == other.event
-                if isinstance(other, EventsQueueKey)
-                else NotImplemented)
-
     def __lt__(self, other: 'EventsQueueKey') -> bool:
         """
         Checks if the event should be processed before the other.
         """
-        if not isinstance(other, EventsQueueKey):
-            return NotImplemented
         event, other_event = self.event, other.event
         start_x, start_y = event.start
         other_start_x, other_start_y = other_event.start
