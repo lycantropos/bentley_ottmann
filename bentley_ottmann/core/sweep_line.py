@@ -1,7 +1,6 @@
 from functools import partial
 from typing import (Callable,
                     Optional,
-                    Sequence,
                     cast)
 
 from dendroid import red_black
@@ -16,18 +15,12 @@ from .utils import merge_ids
 
 
 class SweepLine:
-    def __init__(self, *events: Event,
-                 current_x: Optional[Scalar] = None) -> None:
+    def __init__(self, current_x: Optional[Scalar] = None) -> None:
         self.current_x = current_x
-        self._tree = red_black.tree(*events,
-                                    key=cast(Callable[[Event], SweepLineKey],
+        self._tree = red_black.tree(key=cast(Callable[[Event], SweepLineKey],
                                              partial(SweepLineKey, self)))
 
     __repr__ = generate_repr(__init__)
-
-    @property
-    def events(self) -> Sequence[Event]:
-        return list(self._tree)
 
     def __contains__(self, event: Event) -> bool:
         return event in self._tree
