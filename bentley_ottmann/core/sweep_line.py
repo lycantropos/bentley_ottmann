@@ -56,18 +56,11 @@ class SweepLineKey:
 
     __repr__ = generate_repr(__init__)
 
-    def __eq__(self, other: 'SweepLineKey') -> bool:
-        return (self.event == other.event
-                if isinstance(other, SweepLineKey)
-                else NotImplemented)
-
     def __lt__(self, other: 'SweepLineKey') -> bool:
         """
         Checks if the segment (or at least the point) associated with event
         is lower than other's.
         """
-        if not isinstance(other, SweepLineKey):
-            return NotImplemented
         if self is other:
             return False
         event, other_event = self.event, other.event
