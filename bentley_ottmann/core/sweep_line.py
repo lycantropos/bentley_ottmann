@@ -8,14 +8,14 @@ from reprit.base import generate_repr
 from robust.angular import (Orientation,
                             orientation)
 
-from bentley_ottmann.hints import Scalar
+from bentley_ottmann.hints import (Coordinate,
+                                   Point)
 from .event import Event
-from .point import RealPoint
 from .utils import merge_ids
 
 
 class SweepLine:
-    def __init__(self, current_x: Optional[Scalar] = None) -> None:
+    def __init__(self, current_x: Optional[Coordinate] = None) -> None:
         self.current_x = current_x
         self._tree = red_black.tree(key=cast(Callable[[Event], SweepLineKey],
                                              partial(SweepLineKey, self)))
@@ -25,7 +25,7 @@ class SweepLine:
     def __contains__(self, event: Event) -> bool:
         return event in self._tree
 
-    def move_to(self, point: RealPoint) -> None:
+    def move_to(self, point: Point) -> None:
         self.current_x, _ = point
 
     def add(self, event: Event) -> None:

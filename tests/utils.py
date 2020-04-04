@@ -14,7 +14,7 @@ from hypothesis.strategies import SearchStrategy
 
 from bentley_ottmann.hints import (Contour,
                                    Point,
-                                   Scalar,
+                                   Coordinate,
                                    Segment)
 
 Domain = TypeVar('Domain')
@@ -43,7 +43,7 @@ def apply(function: Callable[..., Range],
 
 def scale_segment(segment: Segment,
                   *,
-                  scale: Scalar) -> Segment:
+                  scale: Coordinate) -> Segment:
     start, end = segment
     start_x, start_y = start
     end_x, end_y = end

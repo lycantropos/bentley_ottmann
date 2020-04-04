@@ -3,7 +3,8 @@ from typing import List
 
 from hypothesis import given
 
-from bentley_ottmann.core.linear import find_intersections
+from bentley_ottmann.core.linear import (segments_intersections
+                                         as segments_pair_intersections)
 from bentley_ottmann.hints import Segment
 from bentley_ottmann.planar import segments_intersections
 from tests.utils import is_point
@@ -44,15 +45,15 @@ def test_step(segments: List[Segment]) -> None:
 
     assert (next_result.keys() ==
             (result.keys()
-             | set(chain.from_iterable(find_intersections(last_segment,
-                                                          segment)
-                                       for segment in rest_segments))))
+             | set(chain.from_iterable(
+                            segments_pair_intersections(last_segment, segment)
+                            for segment in rest_segments))))
     assert all(segment_id < next_segment_id == len(segments) - 1
                for point, intersections in next_result.items()
                for segment_id, next_segment_id in (intersections
                                                    - result.get(point, set())))
-    assert all(point in find_intersections(segments[segment_id],
-                                           segments[next_segment_id])
+    assert all(point in segments_pair_intersections(segments[segment_id],
+                                                    segments[next_segment_id])
                for point, intersections in next_result.items()
                for segment_id, next_segment_id in (intersections
                                                    - result.get(point, set())))

@@ -4,10 +4,8 @@ from itertools import (chain,
 from hypothesis import given
 
 from bentley_ottmann.core.linear import (SegmentsRelationship,
-                                         find_intersections,
+                                         segments_intersections,
                                          segments_relationship)
-from bentley_ottmann.core.point import (is_real_point,
-                                        to_real_point)
 from bentley_ottmann.hints import Contour
 from bentley_ottmann.planar import edges_intersect
 from tests.utils import (contour_to_segments,
@@ -36,19 +34,14 @@ def test_step(contour: Contour) -> None:
     result = edges_intersect(rest_vertices)
     next_result = edges_intersect(contour)
 
-    first_vertex_real, rest_vertices_real = (
-        (first_vertex, rest_vertices)
-        if is_real_point(first_vertex)
-        else (to_real_point(first_vertex),
-              [to_real_point(vertex) for vertex in rest_vertices]))
-    first_edge, last_edge = ((first_vertex_real, rest_vertices_real[0]),
-                             (rest_vertices_real[-1], first_vertex_real))
-    rest_edges = contour_to_segments(rest_vertices_real)
+    first_edge, last_edge = ((first_vertex, rest_vertices[0]),
+                             (rest_vertices[-1], first_vertex))
+    rest_edges = contour_to_segments(rest_vertices)
     assert (next_result
             is (result
                 and len(rest_vertices) > 2
-                and (any(find_intersections(rest_edges[index],
-                                            rest_edges[other_index])
+                and (any(segments_intersections(rest_edges[index],
+                                                rest_edges[other_index])
                          for index in range(len(rest_edges) - 1)
                          for other_index in chain(
                             range(index - 1),
@@ -57,9 +50,9 @@ def test_step(contour: Contour) -> None:
                             is SegmentsRelationship.OVERLAP
                             for edge, other_edge in combinations(
                                     rest_edges[:-1], 2)))
-                or any(find_intersections(first_edge, edge)
+                or any(segments_intersections(first_edge, edge)
                        for edge in rest_edges[1:-1])
-                or any(find_intersections(last_edge, edge)
+                or any(segments_intersections(last_edge, edge)
                        for edge in rest_edges[:-2])
                 or len(rest_vertices) > 1
                 and (segments_relationship(first_edge, rest_edges[0])

@@ -4,11 +4,11 @@ from typing import (Optional,
 
 from reprit.base import generate_repr
 
-from bentley_ottmann.hints import Scalar
-from .linear import (RealSegment,
+from bentley_ottmann.hints import (Coordinate,
+                                   Point)
+from .linear import (Segment,
                      SegmentsRelationship,
-                     find_intersection)
-from .point import RealPoint
+                     segments_intersection)
 
 
 class Event:
@@ -18,7 +18,7 @@ class Event:
     def __init__(self,
                  is_left_endpoint: bool,
                  relationship: SegmentsRelationship,
-                 start: RealPoint,
+                 start: Point,
                  complement: Optional['Event'],
                  segments_ids: Sequence[int]) -> None:
         self.is_left_endpoint = is_left_endpoint
@@ -46,14 +46,14 @@ class Event:
         return start_y == end_y
 
     @property
-    def end(self) -> RealPoint:
+    def end(self) -> Point:
         return self.complement.start
 
     @property
-    def segment(self) -> RealSegment:
+    def segment(self) -> Segment:
         return self.start, self.end
 
-    def below_than_at_x(self, other: 'Event', x: Scalar) -> bool:
+    def below_than_at_x(self, other: 'Event', x: Coordinate) -> bool:
         y_at_x, other_y_at_x = self.y_at(x), other.y_at(x)
         if other_y_at_x != y_at_x:
             return y_at_x < other_y_at_x
@@ -65,7 +65,7 @@ class Event:
             return ((start_y, end_y, other_end_x)
                     < (other_start_y, other_end_y, end_x))
 
-    def y_at(self, x: Scalar) -> Scalar:
+    def y_at(self, x: Coordinate) -> Coordinate:
         if self.is_vertical or self.is_horizontal:
             _, start_y = self.start
             return start_y
@@ -76,6 +76,6 @@ class Event:
             end_x, end_y = self.end
             if x == end_x:
                 return end_y
-            _, result = find_intersection(self.segment,
-                                          ((x, start_y), (x, end_y)))
+            _, result = segments_intersection(self.segment,
+                                              ((x, start_y), (x, end_y)))
             return result

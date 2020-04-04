@@ -1,12 +1,10 @@
-from decimal import Decimal
 from numbers import Real
 from typing import (Sequence,
                     Tuple,
-                    Type,
-                    TypeVar)
+                    Type)
 
-Scalar = TypeVar('Scalar', Real, Decimal)
-Base = Type[Scalar]
-Point = Tuple[Scalar, Scalar]
+Coordinate = Real
+Base = Type[Coordinate]
+Point = Tuple[Coordinate, Coordinate]
 Segment = Tuple[Point, Point]
 Contour = Sequence[Point]

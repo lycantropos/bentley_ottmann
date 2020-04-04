@@ -2,7 +2,7 @@ from typing import List
 
 from hypothesis import given
 
-from bentley_ottmann.core.linear import find_intersections
+from bentley_ottmann.core.linear import segments_intersections
 from bentley_ottmann.hints import Segment
 from bentley_ottmann.planar import segments_overlap
 from tests.utils import (reverse_segment,
@@ -32,9 +32,9 @@ def test_step(segments: List[Segment]) -> None:
     next_result = segments_overlap(segments)
 
     assert (next_result
-            is (result or any(len(find_intersections(first_segment, segment))
-                              == 2
-                              for segment in rest_segments)))
+            is (result
+                or any(len(segments_intersections(first_segment, segment)) == 2
+                       for segment in rest_segments)))
 
 
 @given(strategies.segments_lists)

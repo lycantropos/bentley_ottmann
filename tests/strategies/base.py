@@ -2,37 +2,24 @@ import sys
 from decimal import Decimal
 from fractions import Fraction
 from operator import ne
-from typing import (Optional,
-                    SupportsFloat)
+from typing import Optional
 
 from hypothesis import strategies
 
-from bentley_ottmann.hints import (Point,
-                                   Scalar,
+from bentley_ottmann.hints import (Coordinate,
+                                   Point,
                                    Segment)
 from tests.utils import (Strategy,
                          pack,
                          to_pairs)
 
-MAX_FLOAT = 1.e10
+MAX_FLOAT = 1.e15
 MIN_FLOAT = -MAX_FLOAT
 
 
-def to_decimals(*,
-                min_value: Optional[Scalar] = MIN_FLOAT,
-                max_value: Optional[Scalar] = MAX_FLOAT,
-                allow_nan: bool = False,
-                allow_infinity: bool = False) -> Strategy:
-    return (strategies.decimals(min_value=min_value,
-                                max_value=max_value,
-                                allow_nan=allow_nan,
-                                allow_infinity=allow_infinity)
-            .map(to_digits_count))
-
-
-def to_floats(*,
-              min_value: Optional[Scalar] = MIN_FLOAT,
-              max_value: Optional[Scalar] = MAX_FLOAT,
+def to_floats(min_value: Optional[Coordinate] = MIN_FLOAT,
+              max_value: Optional[Coordinate] = MAX_FLOAT,
+              *,
               allow_nan: bool = False,
               allow_infinity: bool = False) -> Strategy:
     return (strategies.floats(min_value=min_value,
@@ -42,10 +29,10 @@ def to_floats(*,
             .map(to_digits_count))
 
 
-def to_digits_count(number: Scalar,
+def to_digits_count(number: float,
                     *,
-                    max_digits_count: int = sys.float_info.dig) -> Scalar:
-    decimal = to_decimal(number).normalize()
+                    max_digits_count: int = sys.float_info.dig) -> float:
+    decimal = Decimal(number).normalize()
     _, significant_digits, exponent = decimal.as_tuple()
     significant_digits_count = len(significant_digits)
     if exponent < 0:
@@ -65,32 +52,24 @@ def to_digits_count(number: Scalar,
         decimal *= 10 ** (-exponent - significant_digits_count)
         whole_digits_count = 1
     decimal = round(decimal, max(max_digits_count - whole_digits_count, 0))
-    return type(number)(str(decimal))
+    return float(str(decimal))
 
 
-def to_decimal(number: SupportsFloat) -> Decimal:
-    if isinstance(number, Decimal):
-        return number
-    elif not isinstance(number, (int, float)):
-        number = float(number)
-    return Decimal(number)
-
-
-scalars_strategies_factories = {Decimal: to_decimals,
-                                float: to_floats,
+scalars_strategies_factories = {float: to_floats,
                                 Fraction: strategies.fractions,
                                 int: strategies.integers}
 scalars_strategies = strategies.sampled_from(
         [factory() for factory in scalars_strategies_factories.values()])
 
 
-def coordinates_to_segments(coordinates: Strategy[Scalar]
+def coordinates_to_segments(coordinates: Strategy[Coordinate]
                             ) -> Strategy[Segment]:
     return (to_pairs(coordinates_to_points(coordinates))
             .filter(pack(ne)))
 
 
-def coordinates_to_points(coordinates: Strategy[Scalar]) -> Strategy[Point]:
+def coordinates_to_points(coordinates: Strategy[Coordinate]
+                          ) -> Strategy[Point]:
     return to_pairs(coordinates)
 
 
