@@ -5,9 +5,9 @@ from typing import (Optional,
 from reprit.base import generate_repr
 
 from bentley_ottmann.hints import (Coordinate,
-                                   Point)
-from .linear import (Segment,
-                     SegmentsRelationship,
+                                   Point,
+                                   Segment)
+from .linear import (SegmentsRelationship,
                      segments_intersection)
 
 
