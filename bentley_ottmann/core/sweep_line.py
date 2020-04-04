@@ -48,7 +48,7 @@ class SweepLine:
 
 
 class SweepLineKey:
-    __slots__ = ('sweep_line', 'event')
+    __slots__ = 'sweep_line', 'event'
 
     def __init__(self, sweep_line: SweepLine, event: Event) -> None:
         self.sweep_line = sweep_line
