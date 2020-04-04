@@ -9,8 +9,8 @@ from bentley_ottmann.hints import (Contour,
                                    Point,
                                    Segment)
 from .core import planar as _planar
-from .core.linear import (SegmentsRelationship,
-                          find_intersections)
+from .core.linear import (SegmentsRelationship as _SegmentsRelationship,
+                          segments_intersections as _segments_intersections)
 from .core.utils import (merge_ids as _merge_ids,
                          to_pairs_combinations as _to_pairs_combinations)
 
@@ -65,8 +65,8 @@ def edges_intersect(contour: Contour,
                    and (segment_id != 0 or next_segment_id != last_edge_index)
                    for segment_id, next_segment_id in edges_ids)
 
-    return any((first_event.relationship is SegmentsRelationship.OVERLAP
-                or second_event.relationship is SegmentsRelationship.OVERLAP
+    return any((first_event.relationship is _SegmentsRelationship.OVERLAP
+                or second_event.relationship is _SegmentsRelationship.OVERLAP
                 or non_neighbours_intersect(_to_pairs_combinations(_merge_ids(
                     first_event.segments_ids, second_event.segments_ids))))
                for first_event, second_event in _planar.sweep(edges, accurate))
@@ -150,8 +150,8 @@ def segments_overlap(segments: Sequence[Segment],
     >>> segments_overlap([((0., 0.), (2., 2.)), ((2., 0.), (0., 2.))])
     False
     """
-    return any(first_event.relationship is SegmentsRelationship.OVERLAP
-               or second_event.relationship is SegmentsRelationship.OVERLAP
+    return any(first_event.relationship is _SegmentsRelationship.OVERLAP
+               or second_event.relationship is _SegmentsRelationship.OVERLAP
                for first_event, second_event in _planar.sweep(segments,
                                                               accurate))
 
@@ -195,8 +195,8 @@ def segments_intersections(segments: Sequence[Segment],
     for first_event, second_event in _planar.sweep(segments, accurate):
         for segment_id, next_segment_id in _to_pairs_combinations(_merge_ids(
                 first_event.segments_ids, second_event.segments_ids)):
-            for point in find_intersections(segments[segment_id],
-                                            segments[next_segment_id]):
+            for point in _segments_intersections(segments[segment_id],
+                                                 segments[next_segment_id]):
                 result.setdefault(point, set()).add((segment_id,
                                                      next_segment_id))
     return result

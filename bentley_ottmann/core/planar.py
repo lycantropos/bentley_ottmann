@@ -3,18 +3,15 @@ from typing import (Iterable,
                     Sequence,
                     Tuple)
 
-from bentley_ottmann.hints import Segment
+from bentley_ottmann.hints import Point
 from .event import Event
 from .events_queue import (EventsQueue,
                            EventsQueueKey)
-from .linear import (RealSegment,
+from .linear import (Segment,
                      SegmentsRelationship,
-                     find_intersection,
-                     is_real_segment,
+                     segments_intersection,
                      segments_relationship,
-                     to_rational_segment,
-                     to_real_segment)
-from .point import RealPoint
+                     to_rational_segment)
 from .sweep_line import SweepLine
 from .utils import (merge_ids,
                     to_pairs_combinations)
@@ -24,15 +21,6 @@ def sweep(segments: Sequence[Segment],
           accurate: bool) -> Iterable[Tuple[Event, Event]]:
     if accurate:
         segments = [to_rational_segment(segment) for segment in segments]
-    else:
-        try:
-            first_segment = segments[0]
-        except IndexError:
-            return
-        else:
-            if not is_real_segment(first_segment):
-                # underlying calculations don't work with `decimal.Decimal`
-                segments = [to_real_segment(segment) for segment in segments]
     events_queue = to_events_queue(segments)
     sweep_line = SweepLine()
     while events_queue:
@@ -69,7 +57,7 @@ def sweep(segments: Sequence[Segment],
                                                    events_queue=events_queue)
 
 
-def to_events_queue(segments: Sequence[RealSegment]) -> EventsQueue:
+def to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
     segments_with_ids = sorted(
             (sorted(segment), segment_id)
             for segment_id, segment in enumerate(segments))
@@ -162,7 +150,7 @@ def detect_intersection(first_event: Event, second_event: Event,
         # segments intersect
         yield first_event, second_event
 
-        point = find_intersection(first_segment, second_segment)
+        point = segments_intersection(first_segment, second_segment)
         if point != first_event.start and point != first_event.end:
             divide_segment(first_event, point, relationship, events_queue)
         if point != second_event.start and point != second_event.end:
@@ -170,7 +158,7 @@ def detect_intersection(first_event: Event, second_event: Event,
 
 
 def divide_segment(event: Event,
-                   break_point: RealPoint,
+                   break_point: Point,
                    relationship: SegmentsRelationship,
                    events_queue: EventsQueue,
                    segments_ids: Optional[Sequence[int]] = None) -> None:
