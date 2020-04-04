@@ -104,7 +104,8 @@ def detect_intersection(first_event: Event, second_event: Event,
         yield first_event, second_event
 
         sorted_events = []
-        if first_event.start == second_event.start:
+        starts_equal = first_event.start == second_event.start
+        if starts_equal:
             sorted_events.append(None)
         elif EventsQueueKey(first_event) > EventsQueueKey(second_event):
             sorted_events.append(second_event)
@@ -113,7 +114,8 @@ def detect_intersection(first_event: Event, second_event: Event,
             sorted_events.append(first_event)
             sorted_events.append(second_event)
 
-        if first_event.end == second_event.end:
+        ends_equal = first_event.end == second_event.end
+        if ends_equal:
             sorted_events.append(None)
         elif (EventsQueueKey(first_event.complement)
               > EventsQueueKey(second_event.complement)):
@@ -125,15 +127,15 @@ def detect_intersection(first_event: Event, second_event: Event,
 
         segments_ids = merge_ids(first_event.segments_ids,
                                  second_event.segments_ids)
-        if len(sorted_events) == 2:
+        if starts_equal and ends_equal:
             # both line segments are equal
             first_event.relationship = second_event.relationship = relationship
             first_event.segments_ids = second_event.segments_ids = segments_ids
-        elif len(sorted_events) == 3:
+        elif starts_equal or ends_equal:
             # line segments share endpoint
             divide_segment(sorted_events[2].complement
                            # line segments share the left endpoint
-                           if sorted_events[2]
+                           if starts_equal
                            # line segments share the right endpoint
                            else sorted_events[0], sorted_events[1].start,
                            relationship, events_queue, segments_ids)
