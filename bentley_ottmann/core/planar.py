@@ -3,12 +3,12 @@ from typing import (Iterable,
                     Sequence,
                     Tuple)
 
-from bentley_ottmann.hints import Point
+from bentley_ottmann.hints import (Point,
+                                   Segment)
 from .event import Event
 from .events_queue import (EventsQueue,
                            EventsQueueKey)
-from .linear import (Segment,
-                     SegmentsRelationship,
+from .linear import (SegmentsRelationship,
                      segments_intersection,
                      segments_relationship,
                      to_rational_segment)
