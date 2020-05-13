@@ -36,9 +36,9 @@ def edges_intersect(contour: Contour,
         flag that tells whether to use slow but more accurate arithmetic
         for floating point numbers.
     :param validate:
-        flag that tells whether to check segments for degeneracies
+        flag that tells whether to check contour for degeneracies
         and raise an exception in case of occurrence.
-    :raises ValueError: if ``validate`` flag is set and degenerate segment found.
+    :raises ValueError: if ``validate`` flag is set and contour is degenerate.
     :returns: true if contour is self-intersecting, false otherwise.
 
     .. note::
@@ -112,7 +112,8 @@ def segments_intersect(segments: Sequence[Segment],
     :param validate:
         flag that tells whether to check segments for degeneracies
         and raise an exception in case of occurrence.
-    :raises ValueError: if ``validate`` flag is set and degenerate segment found.
+    :raises ValueError:
+        if ``validate`` flag is set and degenerate segment found.
     :returns: true if segments intersection found, false otherwise.
 
     >>> segments_intersect([])
@@ -152,7 +153,8 @@ def segments_overlap(segments: Sequence[Segment],
     :param validate:
         flag that tells whether to check segments for degeneracies
         and raise an exception in case of occurrence.
-    :raises ValueError: if ``validate`` flag is set and degenerate segment found.
+    :raises ValueError:
+        if ``validate`` flag is set and degenerate segment found.
     :returns: true if segments overlap found, false otherwise.
 
     >>> segments_overlap([])
@@ -209,7 +211,8 @@ def segments_intersections(segments: Sequence[Segment],
     :param validate:
         flag that tells whether to check segments for degeneracies
         and raise an exception in case of occurrence.
-    :raises ValueError: if ``validate`` flag is set and degenerate segment found.
+    :raises ValueError:
+        if ``validate`` flag is set and degenerate segment found.
     :returns:
         mapping between intersection points and corresponding segments indices.
     """
