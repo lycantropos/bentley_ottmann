@@ -57,6 +57,9 @@ def edges_intersect(contour: Contour,
     >>> edges_intersect([(0., 0.), (2., 0.), (1., 0.)])
     True
     """
+    if validate and len(contour) < 3:
+        raise ValueError('Contour {contour} is degenerate.'
+                         .format(contour=contour))
     if not _all_unique(contour):
         return True
 
@@ -75,7 +78,7 @@ def edges_intersect(contour: Contour,
                 or non_neighbours_intersect(_to_pairs_combinations(_merge_ids(
                     first_event.segments_ids, second_event.segments_ids))))
                for first_event, second_event in _planar.sweep(edges, accurate,
-                                                              validate))
+                                                              False))
 
 
 def _all_unique(values: Iterable[Hashable]) -> bool:
