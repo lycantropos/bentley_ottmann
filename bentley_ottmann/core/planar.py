@@ -11,6 +11,7 @@ from .events_queue import (EventsQueue,
 from .linear import (SegmentsRelationship,
                      segments_intersection,
                      segments_relationship,
+                     sort_endpoints,
                      to_rational_segment)
 from .sweep_line import SweepLine
 from .utils import (merge_ids,
@@ -58,9 +59,8 @@ def sweep(segments: Sequence[Segment],
 
 
 def to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
-    segments_with_ids = sorted(
-            (sorted(segment), segment_id)
-            for segment_id, segment in enumerate(segments))
+    segments_with_ids = sorted((sort_endpoints(segment), segment_id)
+                               for segment_id, segment in enumerate(segments))
     events_queue = EventsQueue()
     index = 0
     while index < len(segments_with_ids):
