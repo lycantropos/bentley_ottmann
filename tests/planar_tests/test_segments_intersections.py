@@ -1,6 +1,7 @@
 from itertools import chain
 from typing import List
 
+import pytest
 from hypothesis import given
 
 from bentley_ottmann.core.linear import (segments_intersections
@@ -57,3 +58,9 @@ def test_step(segments: List[Segment]) -> None:
                for point, intersections in next_result.items()
                for segment_id, next_segment_id in (intersections
                                                    - result.get(point, set())))
+
+
+@given(strategies.degenerate_segments_lists)
+def test_degenerate_segments(segments: List[Segment]) -> None:
+    with pytest.raises(ValueError):
+        segments_intersections(segments)
