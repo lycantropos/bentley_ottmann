@@ -9,12 +9,20 @@ from tests.strategies import (points_strategies,
                               segments_strategies)
 from tests.utils import Strategy
 
-contours = points_strategies.flatmap(strategies.lists)
-non_empty_contours = (points_strategies
-                      .flatmap(partial(strategies.lists,
-                                       min_size=3)))
+contours = points_strategies.flatmap(partial(strategies.lists,
+                                             min_size=3))
+non_triangular_contours = (points_strategies
+                           .flatmap(partial(strategies.lists,
+                                            min_size=4)))
+triangular_contours = (points_strategies
+                       .flatmap(partial(strategies.lists,
+                                        min_size=3,
+                                        max_size=3)))
+degenerate_contours = (points_strategies
+                       .flatmap(partial(strategies.lists,
+                                        max_size=2)))
 segments_lists = segments_strategies.flatmap(strategies.lists)
-empty_contours = empty_segments_lists = strategies.builds(list)
+empty_segments_lists = strategies.builds(list)
 non_empty_segments_lists = (segments_strategies
                             .flatmap(partial(strategies.lists,
                                              min_size=1)))
