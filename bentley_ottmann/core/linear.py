@@ -15,3 +15,10 @@ segments_intersections = segments_intersections
 def to_rational_segment(segment: Segment) -> Segment:
     start, end = segment
     return to_rational_point(start), to_rational_point(end)
+
+
+def sort_endpoints(segment: Segment) -> Segment:
+    start, end = segment
+    return (segment
+            if start < end
+            else (end, start))
