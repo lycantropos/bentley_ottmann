@@ -17,7 +17,8 @@ from .core.utils import (merge_ids as _merge_ids,
 
 def edges_intersect(contour: Contour,
                     *,
-                    accurate: bool = True) -> bool:
+                    accurate: bool = True,
+                    validate: bool = True) -> bool:
     """
     Checks if polygonal contour has self-intersection.
 
@@ -34,6 +35,10 @@ def edges_intersect(contour: Contour,
     :param accurate:
         flag that tells whether to use slow but more accurate arithmetic
         for floating point numbers.
+    :param validate:
+        flag that tells whether to check segments for degeneracies
+        and raise an exception in case of occurrence.
+    :raises ValueError: if ``validate`` flag is set and degenerate segment found.
     :returns: true if contour is self-intersecting, false otherwise.
 
     .. note::
@@ -69,7 +74,8 @@ def edges_intersect(contour: Contour,
                 or second_event.relationship is _SegmentsRelationship.OVERLAP
                 or non_neighbours_intersect(_to_pairs_combinations(_merge_ids(
                     first_event.segments_ids, second_event.segments_ids))))
-               for first_event, second_event in _planar.sweep(edges, accurate))
+               for first_event, second_event in _planar.sweep(edges, accurate,
+                                                              validate))
 
 
 def _all_unique(values: Iterable[Hashable]) -> bool:
@@ -85,7 +91,8 @@ def _all_unique(values: Iterable[Hashable]) -> bool:
 
 def segments_intersect(segments: Sequence[Segment],
                        *,
-                       accurate: bool = True) -> bool:
+                       accurate: bool = True,
+                       validate: bool = True) -> bool:
     """
     Checks if segments have at least one intersection.
 
@@ -102,6 +109,10 @@ def segments_intersect(segments: Sequence[Segment],
     :param accurate:
         flag that tells whether to use slow but more accurate arithmetic
         for floating point numbers.
+    :param validate:
+        flag that tells whether to check segments for degeneracies
+        and raise an exception in case of occurrence.
+    :raises ValueError: if ``validate`` flag is set and degenerate segment found.
     :returns: true if segments intersection found, false otherwise.
 
     >>> segments_intersect([])
@@ -115,12 +126,13 @@ def segments_intersect(segments: Sequence[Segment],
     >>> segments_intersect([((0., 0.), (2., 2.)), ((2., 0.), (0., 2.))])
     True
     """
-    return any(_planar.sweep(segments, accurate))
+    return any(_planar.sweep(segments, accurate, validate))
 
 
 def segments_overlap(segments: Sequence[Segment],
                      *,
-                     accurate: bool = True) -> bool:
+                     accurate: bool = True,
+                     validate: bool = True) -> bool:
     """
     Checks if segments have at least one overlap.
 
@@ -137,6 +149,10 @@ def segments_overlap(segments: Sequence[Segment],
     :param accurate:
         flag that tells whether to use slow but more accurate arithmetic
         for floating point numbers.
+    :param validate:
+        flag that tells whether to check segments for degeneracies
+        and raise an exception in case of occurrence.
+    :raises ValueError: if ``validate`` flag is set and degenerate segment found.
     :returns: true if segments overlap found, false otherwise.
 
     >>> segments_overlap([])
@@ -153,12 +169,14 @@ def segments_overlap(segments: Sequence[Segment],
     return any(first_event.relationship is _SegmentsRelationship.OVERLAP
                or second_event.relationship is _SegmentsRelationship.OVERLAP
                for first_event, second_event in _planar.sweep(segments,
-                                                              accurate))
+                                                              accurate,
+                                                              validate))
 
 
 def segments_intersections(segments: Sequence[Segment],
                            *,
-                           accurate: bool = True
+                           accurate: bool = True,
+                           validate: bool = True
                            ) -> Dict[Point, Set[Tuple[int, int]]]:
     """
     Returns mapping between intersection points
@@ -188,11 +206,16 @@ def segments_intersections(segments: Sequence[Segment],
     :param accurate:
         flag that tells whether to use slow but more accurate arithmetic
         for floating point numbers.
+    :param validate:
+        flag that tells whether to check segments for degeneracies
+        and raise an exception in case of occurrence.
+    :raises ValueError: if ``validate`` flag is set and degenerate segment found.
     :returns:
         mapping between intersection points and corresponding segments indices.
     """
     result = {}
-    for first_event, second_event in _planar.sweep(segments, accurate):
+    for first_event, second_event in _planar.sweep(segments, accurate,
+                                                   validate):
         for segment_id, next_segment_id in _to_pairs_combinations(_merge_ids(
                 first_event.segments_ids, second_event.segments_ids)):
             for point in _segments_intersections(segments[segment_id],

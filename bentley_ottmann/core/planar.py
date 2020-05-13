@@ -19,7 +19,14 @@ from .utils import (merge_ids,
 
 
 def sweep(segments: Sequence[Segment],
-          accurate: bool) -> Iterable[Tuple[Event, Event]]:
+          accurate: bool,
+          validate: bool) -> Iterable[Tuple[Event, Event]]:
+    if validate:
+        for segment in segments:
+            start, end = segment
+            if start == end:
+                raise ValueError('Degenerate segment found: {segment}.'
+                                 .format(segment=segment))
     if accurate:
         segments = [to_rational_segment(segment) for segment in segments]
     events_queue = to_events_queue(segments)
