@@ -1,5 +1,6 @@
 from typing import List
 
+import pytest
 from hypothesis import given
 
 from bentley_ottmann.core.linear import segments_intersections
@@ -58,3 +59,9 @@ def test_reversed_coordinates(segments: List[Segment]) -> None:
 
     assert result is segments_intersect([reverse_segment_coordinates(segment)
                                          for segment in segments])
+
+
+@given(strategies.degenerate_segments_lists)
+def test_degenerate_segments(segments: List[Segment]) -> None:
+    with pytest.raises(ValueError):
+        segments_intersect(segments)
