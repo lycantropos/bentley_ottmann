@@ -133,12 +133,12 @@ def segments_intersect(segments: Sequence[Segment],
     return any(_planar.sweep(segments, accurate, validate))
 
 
-def segments_overlap(segments: Sequence[Segment],
-                     *,
-                     accurate: bool = True,
-                     validate: bool = True) -> bool:
+def segments_overlap_or_cross(segments: Sequence[Segment],
+                              *,
+                              accurate: bool = True,
+                              validate: bool = True) -> bool:
     """
-    Checks if segments have at least one overlap.
+    Checks if at least one pair of segments overlaps or crosses.
 
     Based on Shamos-Hoey algorithm.
 
@@ -158,21 +158,22 @@ def segments_overlap(segments: Sequence[Segment],
         and raise an exception in case of occurrence.
     :raises ValueError:
         if ``validate`` flag is set and degenerate segment found.
-    :returns: true if segments overlap found, false otherwise.
+    :returns: true if segments overlap or cross found, false otherwise.
 
-    >>> segments_overlap([])
+    >>> segments_overlap_or_cross([])
     False
-    >>> segments_overlap([((0., 0.), (2., 2.))])
+    >>> segments_overlap_or_cross([((0., 0.), (2., 2.))])
     False
-    >>> segments_overlap([((0., 0.), (2., 0.)), ((0., 2.), (2., 2.))])
+    >>> segments_overlap_or_cross([((0., 0.), (2., 0.)), ((0., 2.), (2., 2.))])
     False
-    >>> segments_overlap([((0., 0.), (2., 2.)), ((0., 0.), (2., 2.))])
+    >>> segments_overlap_or_cross([((0., 0.), (2., 2.)), ((0., 0.), (2., 2.))])
     True
-    >>> segments_overlap([((0., 0.), (2., 2.)), ((2., 0.), (0., 2.))])
+    >>> segments_overlap_or_cross([((0., 0.), (2., 2.)), ((2., 0.), (0., 2.))])
     False
     """
-    return any(first_event.relationship is _SegmentsRelationship.OVERLAP
-               or second_event.relationship is _SegmentsRelationship.OVERLAP
+    relationships = _SegmentsRelationship.CROSS, _SegmentsRelationship.OVERLAP
+    return any(first_event.relationship in relationships
+               or second_event.relationship in relationships
                for first_event, second_event in _planar.sweep(segments,
                                                               accurate,
                                                               validate))
