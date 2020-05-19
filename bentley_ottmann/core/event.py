@@ -53,18 +53,6 @@ class Event:
     def segment(self) -> Segment:
         return self.start, self.end
 
-    def below_than_at_x(self, other: 'Event', x: Coordinate) -> bool:
-        y_at_x, other_y_at_x = self.y_at(x), other.y_at(x)
-        if other_y_at_x != y_at_x:
-            return y_at_x < other_y_at_x
-        else:
-            _, start_y = self.start
-            _, other_start_y = other.start
-            end_x, end_y = self.end
-            other_end_x, other_end_y = other.end
-            return ((start_y, end_y, other_end_x)
-                    < (other_start_y, other_end_y, end_x))
-
     def y_at(self, x: Coordinate) -> Coordinate:
         if self.is_vertical or self.is_horizontal:
             _, start_y = self.start
