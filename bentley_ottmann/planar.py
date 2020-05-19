@@ -169,7 +169,7 @@ def segments_overlap_or_cross(segments: Sequence[Segment],
     >>> segments_overlap_or_cross([((0., 0.), (2., 2.)), ((0., 0.), (2., 2.))])
     True
     >>> segments_overlap_or_cross([((0., 0.), (2., 2.)), ((2., 0.), (0., 2.))])
-    False
+    True
     """
     relationships = _SegmentsRelationship.CROSS, _SegmentsRelationship.OVERLAP
     return any(first_event.relationship in relationships
