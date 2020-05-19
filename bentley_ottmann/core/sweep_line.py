@@ -61,8 +61,6 @@ class SweepLineKey:
         Checks if the segment (or at least the point) associated with event
         is lower than other's.
         """
-        if self is other:
-            return False
         event, other_event = self.event, other.event
         if event is other_event:
             return False
