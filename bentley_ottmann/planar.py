@@ -133,7 +133,7 @@ def segments_intersect(segments: Sequence[Segment],
     return any(_planar.sweep(segments, accurate, validate))
 
 
-def segments_overlap_or_cross(segments: Sequence[Segment],
+def segments_cross_or_overlap(segments: Sequence[Segment],
                               *,
                               accurate: bool = True,
                               validate: bool = True) -> bool:
@@ -160,15 +160,15 @@ def segments_overlap_or_cross(segments: Sequence[Segment],
         if ``validate`` flag is set and degenerate segment found.
     :returns: true if segments overlap or cross found, false otherwise.
 
-    >>> segments_overlap_or_cross([])
+    >>> segments_cross_or_overlap([])
     False
-    >>> segments_overlap_or_cross([((0., 0.), (2., 2.))])
+    >>> segments_cross_or_overlap([((0., 0.), (2., 2.))])
     False
-    >>> segments_overlap_or_cross([((0., 0.), (2., 0.)), ((0., 2.), (2., 2.))])
+    >>> segments_cross_or_overlap([((0., 0.), (2., 0.)), ((0., 2.), (2., 2.))])
     False
-    >>> segments_overlap_or_cross([((0., 0.), (2., 2.)), ((0., 0.), (2., 2.))])
+    >>> segments_cross_or_overlap([((0., 0.), (2., 2.)), ((0., 0.), (2., 2.))])
     True
-    >>> segments_overlap_or_cross([((0., 0.), (2., 2.)), ((2., 0.), (0., 2.))])
+    >>> segments_cross_or_overlap([((0., 0.), (2., 2.)), ((2., 0.), (0., 2.))])
     True
     """
     relationships = _SegmentsRelationship.CROSS, _SegmentsRelationship.OVERLAP
