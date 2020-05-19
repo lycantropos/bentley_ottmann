@@ -26,19 +26,18 @@ degenerate_contours = (points_strategies
                                         max_size=2)))
 
 
-def points_to_segments_lists(points: Strategy[Point]
-                             ) -> Strategy[List[Segment]]:
-    def points_to_segments_list(points: List[Point]) -> List[Segment]:
-        return list(combinations(points, 2))
+def points_to_nets(points: Strategy[Point]) -> Strategy[List[Segment]]:
+    def to_net(points_list: List[Point]) -> List[Segment]:
+        return list(combinations(points_list, 2))
 
     return (strategies.lists(points,
                              min_size=2,
                              max_size=8,
                              unique=True)
-            .map(points_to_segments_list))
+            .map(to_net))
 
 
-nets = points_strategies.flatmap(points_to_segments_lists)
+nets = points_strategies.flatmap(points_to_nets)
 segments_lists = (segments_strategies.flatmap(strategies.lists)
                   | nets)
 empty_segments_lists = strategies.builds(list)
