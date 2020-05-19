@@ -1,10 +1,13 @@
 from functools import partial
-from itertools import repeat
-from typing import Tuple
+from itertools import (combinations,
+                       repeat)
+from typing import (List,
+                    Tuple)
 
 from hypothesis import strategies
 
-from bentley_ottmann.hints import Point
+from bentley_ottmann.hints import (Point,
+                                   Segment)
 from tests.strategies import (points_strategies,
                               segments_strategies)
 from tests.utils import Strategy
@@ -21,11 +24,28 @@ triangular_contours = (points_strategies
 degenerate_contours = (points_strategies
                        .flatmap(partial(strategies.lists,
                                         max_size=2)))
-segments_lists = segments_strategies.flatmap(strategies.lists)
+
+
+def points_to_segments_lists(points: Strategy[Point]
+                             ) -> Strategy[List[Segment]]:
+    def points_to_segments_list(points: List[Point]) -> List[Segment]:
+        return list(combinations(points, 2))
+
+    return (strategies.lists(points,
+                             min_size=2,
+                             max_size=8,
+                             unique=True)
+            .map(points_to_segments_list))
+
+
+nets = points_strategies.flatmap(points_to_segments_lists)
+segments_lists = (segments_strategies.flatmap(strategies.lists)
+                  | nets)
 empty_segments_lists = strategies.builds(list)
-non_empty_segments_lists = (segments_strategies
-                            .flatmap(partial(strategies.lists,
-                                             min_size=1)))
+non_empty_segments_lists = ((segments_strategies
+                             .flatmap(partial(strategies.lists,
+                                              min_size=1)))
+                            | nets)
 
 
 def points_to_degenerate_segments(points: Strategy[Point]
