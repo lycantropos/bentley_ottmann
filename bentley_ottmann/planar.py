@@ -138,7 +138,7 @@ def segments_cross_or_overlap(segments: Sequence[Segment],
                               accurate: bool = True,
                               validate: bool = True) -> bool:
     """
-    Checks if at least one pair of segments overlaps or crosses.
+    Checks if at least one pair of segments crosses or overlaps.
 
     Based on Shamos-Hoey algorithm.
 
