@@ -63,7 +63,7 @@ def edges_intersect(contour: Contour,
     if not _all_unique(contour):
         return True
 
-    edges = [(contour[index], contour[(index + 1) % len(contour)])
+    edges = [(contour[index - 1], contour[index])
              for index in range(len(contour))]
 
     def non_neighbours_intersect(edges_ids: Iterable[Tuple[int, int]],
