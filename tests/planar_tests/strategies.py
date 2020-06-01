@@ -10,7 +10,8 @@ from bentley_ottmann.hints import (Point,
                                    Segment)
 from tests.strategies import (points_strategies,
                               segments_strategies)
-from tests.utils import Strategy
+from tests.utils import (Strategy,
+                         scale_segment)
 
 contours = points_strategies.flatmap(partial(strategies.lists,
                                              min_size=3))
@@ -40,6 +41,17 @@ def points_to_nets(points: Strategy[Point]) -> Strategy[List[Segment]]:
 nets = points_strategies.flatmap(points_to_nets)
 segments_lists = (segments_strategies.flatmap(strategies.lists)
                   | nets)
+
+
+def to_overlapped_segments(segments: List[Segment],
+                           scale: int) -> List[Segment]:
+    return segments + [scale_segment(segment,
+                                     scale=scale)
+                       for segment in segments]
+
+
+segments_lists |= strategies.builds(to_overlapped_segments, segments_lists,
+                                    strategies.integers(1, 100))
 empty_segments_lists = strategies.builds(list)
 non_empty_segments_lists = ((segments_strategies
                              .flatmap(partial(strategies.lists,
