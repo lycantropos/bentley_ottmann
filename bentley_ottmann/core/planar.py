@@ -128,18 +128,19 @@ def detect_intersection(below_event: Event, event: Event,
         segments_ids = merge_ids(below_event.segments_ids,
                                  event.segments_ids)
         if starts_equal:
-            # both line segments are equal or share the left endpoint
             if ends_equal:
+                # segments are equal
                 below_event.segments_ids = event.segments_ids = segments_ids
                 event.set_both_relationships(relationship)
                 below_event.set_both_relationships(relationship)
             else:
+                # segments share the left endpoint
                 end_min.set_both_relationships(relationship)
                 end_max.complement.relationship = relationship
                 divide_segment(end_max.complement, end_min.start, events_queue,
                                segments_ids)
         elif ends_equal:
-            # the line segments share the right endpoint
+            # segments share the right endpoint
             start_max.set_both_relationships(relationship)
             start_min.complement.relationship = relationship
             divide_segment(start_min, start_max.start, events_queue,
