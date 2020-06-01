@@ -1,4 +1,5 @@
 from typing import (Iterable,
+                    List,
                     Optional,
                     Sequence,
                     Tuple)
@@ -31,9 +32,14 @@ def sweep(segments: Sequence[Segment],
         segments = [to_rational_segment(segment) for segment in segments]
     events_queue = to_events_queue(segments)
     sweep_line = SweepLine()
+    prev_start = None
+    prev_same_start_events = []  # type: List[Event]
     while events_queue:
         event = events_queue.pop()
-        start, same_start_events = event.start, [event]
+        start = event.start
+        same_start_events = (prev_same_start_events + [event]
+                             if start == prev_start
+                             else [event])
         while events_queue and events_queue.peek().start == start:
             same_start_events.append(events_queue.pop())
         for event, other_event in to_pairs_combinations(same_start_events):
@@ -63,6 +69,7 @@ def sweep(segments: Sequence[Segment],
                         yield from detect_intersection(
                                 below_event, above_event,
                                 events_queue=events_queue)
+        prev_start, prev_same_start_events = start, same_start_events
 
 
 def to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
