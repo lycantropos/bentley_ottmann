@@ -46,9 +46,6 @@ def sweep(segments: Sequence[Segment],
             yield event, other_event
         sweep_line.move_to(start)
         for event in same_start_events:
-            if len(event.segments_ids) > 1:
-                yield event, event
-
             if event.is_left_endpoint:
                 sweep_line.add(event)
                 above_event, below_event = (sweep_line.above(event),
@@ -68,6 +65,8 @@ def sweep(segments: Sequence[Segment],
                     if below_event is not None and above_event is not None:
                         detect_intersection(below_event, above_event,
                                             events_queue=events_queue)
+                if len(event.segments_ids) > 1:
+                    yield event, event
         prev_start, prev_same_start_events = start, same_start_events
 
 
