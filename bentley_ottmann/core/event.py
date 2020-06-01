@@ -30,10 +30,6 @@ class Event:
     __repr__ = recursive_repr()(generate_repr(__init__))
 
     @property
-    def is_intersection(self) -> bool:
-        return self.relationship is not SegmentsRelationship.NONE
-
-    @property
     def is_vertical(self) -> bool:
         start_x, _ = self.start
         end_x, _ = self.end
