@@ -62,12 +62,8 @@ class Event:
             _, start_y = self.start
             return start_y
         else:
-            start_x, start_y = self.start
-            if x == start_x:
-                return start_y
-            end_x, end_y = self.end
-            if x == end_x:
-                return end_y
+            _, start_y = self.start
+            _, end_y = self.end
             _, result = segments_intersection(self.segment,
                                               ((x, start_y), (x, end_y)))
             return result
