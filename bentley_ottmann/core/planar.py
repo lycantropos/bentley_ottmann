@@ -54,11 +54,11 @@ def sweep(segments: Sequence[Segment],
                 above_event, below_event = (sweep_line.above(event),
                                             sweep_line.below(event))
                 if below_event is not None:
-                    yield from detect_intersection(below_event, event,
-                                                   events_queue=events_queue)
+                    detect_intersection(below_event, event,
+                                        events_queue=events_queue)
                 if above_event is not None:
-                    yield from detect_intersection(event, above_event,
-                                                   events_queue=events_queue)
+                    detect_intersection(event, above_event,
+                                        events_queue=events_queue)
             else:
                 event = event.complement
                 if event in sweep_line:
@@ -66,9 +66,8 @@ def sweep(segments: Sequence[Segment],
                                                 sweep_line.below(event))
                     sweep_line.remove(event)
                     if below_event is not None and above_event is not None:
-                        yield from detect_intersection(
-                                below_event, above_event,
-                                events_queue=events_queue)
+                        detect_intersection(below_event, above_event,
+                                            events_queue=events_queue)
         prev_start, prev_same_start_events = start, same_start_events
 
 
@@ -106,15 +105,12 @@ def to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
 
 
 def detect_intersection(below_event: Event, event: Event,
-                        events_queue: EventsQueue
-                        ) -> Iterable[Tuple[Event, Event]]:
+                        events_queue: EventsQueue) -> None:
     below_segment, segment = below_event.segment, event.segment
     relationship = segments_relationship(below_segment, segment)
 
     if relationship is SegmentsRelationship.OVERLAP:
         # segments overlap
-        yield below_event, event
-
         starts_equal = event.start == below_event.start
         if starts_equal:
             start_min = start_max = None
@@ -173,8 +169,6 @@ def detect_intersection(below_event: Event, event: Event,
                            segments_ids)
     elif relationship is not SegmentsRelationship.NONE:
         # segments touch or cross
-        yield below_event, event
-
         point = segments_intersection(below_segment, segment)
         if point != below_event.start and point != below_event.end:
             divide_segment(below_event, point, events_queue)
