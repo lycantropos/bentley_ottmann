@@ -12,8 +12,8 @@ from .linear import (SegmentsRelationship,
 
 
 class Event:
-    __slots__ = ('is_left_endpoint', 'relationship',
-                 'start', 'complement', 'segments_ids')
+    __slots__ = ('is_left_endpoint', 'relationship', 'start', 'complement',
+                 'segments_ids')
 
     def __init__(self,
                  is_left_endpoint: bool,
