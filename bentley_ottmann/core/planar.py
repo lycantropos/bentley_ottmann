@@ -164,7 +164,7 @@ def detect_intersection(below_event: Event, event: Event,
             divide_segment(start_min, start_max.start, events_queue,
                            segments_ids)
     elif relationship is not SegmentsRelationship.NONE:
-        # segments intersect
+        # segments touch or cross
         yield below_event, event
 
         point = segments_intersection(below_segment, segment)
