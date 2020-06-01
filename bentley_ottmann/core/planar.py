@@ -33,13 +33,13 @@ def sweep(segments: Sequence[Segment],
     sweep_line = SweepLine()
     while events_queue:
         event = events_queue.pop()
-        point, same_point_events = event.start, [event]
+        point, same_start_events = event.start, [event]
         while events_queue and events_queue.peek().start == point:
-            same_point_events.append(events_queue.pop())
-        for event, other_event in to_pairs_combinations(same_point_events):
+            same_start_events.append(events_queue.pop())
+        for event, other_event in to_pairs_combinations(same_start_events):
             yield event, other_event
         sweep_line.move_to(point)
-        for event in same_point_events:
+        for event in same_start_events:
             if len(event.segments_ids) > 1:
                 yield event, event
 
