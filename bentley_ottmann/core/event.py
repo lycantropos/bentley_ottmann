@@ -53,6 +53,10 @@ class Event:
     def segment(self) -> Segment:
         return self.start, self.end
 
+    def set_both_relationships(self, relationship: SegmentsRelationship
+                               ) -> None:
+        self.relationship = self.complement.relationship = relationship
+
     def y_at(self, x: Coordinate) -> Coordinate:
         if self.is_vertical or self.is_horizontal:
             _, start_y = self.start
