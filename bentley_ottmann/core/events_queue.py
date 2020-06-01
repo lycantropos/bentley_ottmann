@@ -39,11 +39,7 @@ class EventsQueueKey:
         else:
             # same start,
             # both events are left endpoints or both are right endpoints
-            return ((event.segments_ids < other_event.segments_ids
-                     if event.is_intersection is other_event.is_intersection
-                     else event.is_intersection)
-                    if event.end == other_event.end
-                    else event.end < other_event.end)
+            return event.end < other_event.end
 
 
 EventsQueue = cast(Callable[..., PriorityQueue[Event]],
