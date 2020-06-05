@@ -71,8 +71,8 @@ class SweepLineKey:
         other_start_orientation = orientation(end, start, other_start)
         other_end_orientation = orientation(end, start, other_end)
         if other_start_orientation is other_end_orientation:
-            start_x, start_y = event.start
-            other_start_x, other_start_y = other_event.start
+            start_x, start_y = start
+            other_start_x, other_start_y = other_start
             if other_start_orientation is not Orientation.COLLINEAR:
                 # other segment fully lies on one side
                 return other_start_orientation is Orientation.COUNTERCLOCKWISE
