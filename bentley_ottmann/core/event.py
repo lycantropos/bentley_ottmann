@@ -4,11 +4,9 @@ from typing import (Optional,
 
 from reprit.base import generate_repr
 
-from bentley_ottmann.hints import (Coordinate,
-                                   Point,
+from bentley_ottmann.hints import (Point,
                                    Segment)
-from .linear import (SegmentsRelationship,
-                     segments_intersection)
+from .linear import SegmentsRelationship
 
 
 class Event:
@@ -30,18 +28,6 @@ class Event:
     __repr__ = recursive_repr()(generate_repr(__init__))
 
     @property
-    def is_vertical(self) -> bool:
-        start_x, _ = self.start
-        end_x, _ = self.end
-        return start_x == end_x
-
-    @property
-    def is_horizontal(self) -> bool:
-        _, start_y = self.start
-        _, end_y = self.end
-        return start_y == end_y
-
-    @property
     def end(self) -> Point:
         return self.complement.start
 
@@ -52,14 +38,3 @@ class Event:
     def set_both_relationships(self, relationship: SegmentsRelationship
                                ) -> None:
         self.relationship = self.complement.relationship = relationship
-
-    def y_at(self, x: Coordinate) -> Coordinate:
-        if self.is_vertical or self.is_horizontal:
-            _, start_y = self.start
-            return start_y
-        else:
-            _, start_y = self.start
-            _, end_y = self.end
-            _, result = segments_intersection(self.segment,
-                                              ((x, start_y), (x, end_y)))
-            return result
