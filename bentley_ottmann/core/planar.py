@@ -44,7 +44,6 @@ def sweep(segments: Sequence[Segment],
             same_start_events.append(events_queue.pop())
         for event, other_event in to_pairs_combinations(same_start_events):
             yield event, other_event
-        sweep_line.move_to(start)
         for event in same_start_events:
             if event.is_left_endpoint:
                 sweep_line.add(event)

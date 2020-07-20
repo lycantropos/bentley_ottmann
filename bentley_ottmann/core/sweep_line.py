@@ -1,34 +1,24 @@
-from functools import partial
-from typing import (Callable,
-                    Optional,
-                    cast)
+from typing import Optional
 
 from dendroid import red_black
 from reprit.base import generate_repr
 from robust.angular import (Orientation,
                             orientation)
 
-from bentley_ottmann.hints import (Coordinate,
-                                   Point)
 from .event import Event
 from .utils import merge_ids
 
 
 class SweepLine:
-    __slots__ = 'current_x', '_tree'
+    __slots__ = '_tree',
 
-    def __init__(self, current_x: Optional[Coordinate] = None) -> None:
-        self.current_x = current_x
-        self._tree = red_black.tree(key=cast(Callable[[Event], SweepLineKey],
-                                             partial(SweepLineKey, self)))
+    def __init__(self) -> None:
+        self._tree = red_black.tree(key=SweepLineKey)
 
     __repr__ = generate_repr(__init__)
 
     def __contains__(self, event: Event) -> bool:
         return event in self._tree
-
-    def move_to(self, point: Point) -> None:
-        self.current_x, _ = point
 
     def add(self, event: Event) -> None:
         self._tree.add(event)
@@ -50,10 +40,9 @@ class SweepLine:
 
 
 class SweepLineKey:
-    __slots__ = 'sweep_line', 'event'
+    __slots__ = 'event',
 
-    def __init__(self, sweep_line: SweepLine, event: Event) -> None:
-        self.sweep_line = sweep_line
+    def __init__(self, event: Event) -> None:
         self.event = event
 
     __repr__ = generate_repr(__init__)
@@ -107,14 +96,7 @@ class SweepLineKey:
             return other_end_orientation is Orientation.COUNTERCLOCKWISE
         elif start_orientation is Orientation.COLLINEAR:
             return end_orientation is Orientation.CLOCKWISE
-        elif event.is_vertical:
-            return start_orientation is Orientation.CLOCKWISE
-        elif other_event.is_vertical:
-            return other_start_orientation is Orientation.COUNTERCLOCKWISE
-        elif other_end_orientation is Orientation.COLLINEAR:
-            return other_start_orientation is Orientation.COUNTERCLOCKWISE
         elif end_orientation is Orientation.COLLINEAR:
             return start_orientation is Orientation.CLOCKWISE
         else:
-            current_x = self.sweep_line.current_x
-            return event.y_at(current_x) < other_event.y_at(current_x)
+            return other_start_orientation is Orientation.COUNTERCLOCKWISE
