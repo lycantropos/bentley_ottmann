@@ -5,8 +5,8 @@ services:
     build:
       context: .
       args:
-        - PYTHON_IMAGE=${PYPY_IMAGE_NAME}
-        - PYTHON_IMAGE_VERSION=${PYPY_IMAGE_VERSION}
+        - IMAGE_NAME=${PYPY_IMAGE_NAME}
+        - IMAGE_VERSION=${PYPY_IMAGE_VERSION}
     image: lycantropos/bentley_ottmann-pypy:0.9.0
     volumes:
       - ./bentley_ottmann/:/opt/bentley_ottmann/bentley_ottmann/
