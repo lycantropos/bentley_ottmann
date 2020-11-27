@@ -1,43 +1,29 @@
 bentley_ottmann
 ===============
 
-[![](https://travis-ci.com/lycantropos/bentley_ottmann.svg?branch=master)](https://travis-ci.com/lycantropos/bentley_ottmann "Travis CI")
 [![](https://dev.azure.com/lycantropos/bentley_ottmann/_apis/build/status/lycantropos.bentley_ottmann?branchName=master)](https://dev.azure.com/lycantropos/bentley_ottmann/_build/latest?definitionId=20&branchName=master "Azure Pipelines")
 [![](https://readthedocs.org/projects/bentley_ottmann/badge/?version=latest)](https://bentley-ottmann.readthedocs.io/en/latest "Documentation")
 [![](https://codecov.io/gh/lycantropos/bentley_ottmann/branch/master/graph/badge.svg)](https://codecov.io/gh/lycantropos/bentley_ottmann "Codecov")
 [![](https://img.shields.io/github/license/lycantropos/bentley_ottmann.svg)](https://github.com/lycantropos/bentley_ottmann/blob/master/LICENSE "License")
 [![](https://badge.fury.io/py/bentley-ottmann.svg)](https://badge.fury.io/py/bentley-ottmann "PyPI")
 
-In what follows
-- `python` is an alias for `python3.5` or any later
-version (`python3.6` and so on),
-- `pypy` is an alias for `pypy3.5` or any later
-version (`pypy3.6` and so on).
+In what follows `python` is an alias for `python3.5` or `pypy3.5`
+or any later version (`python3.6`, `pypy3.6` and so on).
 
 Installation
 ------------
 
-Install the latest `pip` & `setuptools` packages versions:
-- with `CPython`
-  ```bash
-  python -m pip install --upgrade pip setuptools
-  ```
-- with `PyPy`
-  ```bash
-  pypy -m pip install --upgrade pip setuptools
-  ```
+Install the latest `pip` & `setuptools` packages versions
+```bash
+python -m pip install --upgrade pip setuptools
+```
 
 ### User
 
 Download and install the latest stable version from `PyPI` repository:
-- with `CPython`
-  ```bash
-  python -m pip install --upgrade bentley_ottmann
-  ```
-- with `PyPy`
-  ```bash
-  pypy -m pip install --upgrade bentley_ottmann
-  ```
+```bash
+python -m pip install --upgrade bentley_ottmann
+```
 
 ### Developer
 
@@ -47,25 +33,15 @@ git clone https://github.com/lycantropos/bentley_ottmann.git
 cd bentley_ottmann
 ```
 
-Install dependencies:
-- with `CPython`
-  ```bash
-  python -m pip install --force-reinstall -r requirements.txt
-  ```
-- with `PyPy`
-  ```bash
-  pypy -m pip install --force-reinstall -r requirements.txt
-  ```
+Install dependencies
+```bash
+python -m pip install --force-reinstall -r requirements.txt
+```
 
-Install:
-- with `CPython`
-  ```bash
-  python setup.py install
-  ```
-- with `PyPy`
-  ```bash
-  pypy setup.py install
-  ```
+Install
+```bash
+python setup.py install
+```
 
 Usage
 -----
@@ -154,15 +130,10 @@ This will set version to `major.minor.patch`.
 
 ### Running tests
 
-Install dependencies:
-- with `CPython`
-  ```bash
-  python -m pip install --force-reinstall -r requirements-tests.txt
-  ```
-- with `PyPy`
-  ```bash
-  pypy -m pip install --force-reinstall -r requirements-tests.txt
-  ```
+Install dependencies
+```bash
+python -m pip install --force-reinstall -r requirements-tests.txt
+```
 
 Plain
 ```bash
