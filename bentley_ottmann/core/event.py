@@ -2,11 +2,9 @@ from reprlib import recursive_repr
 from typing import (Optional,
                     Sequence)
 
+from ground.hints import Point
+from ground.linear import SegmentsRelationship
 from reprit.base import generate_repr
-
-from bentley_ottmann.hints import (Point,
-                                   Segment)
-from .linear import SegmentsRelationship
 
 
 class Event:
@@ -30,10 +28,6 @@ class Event:
     @property
     def end(self) -> Point:
         return self.complement.start
-
-    @property
-    def segment(self) -> Segment:
-        return self.start, self.end
 
     def set_both_relationships(self, relationship: SegmentsRelationship
                                ) -> None:
