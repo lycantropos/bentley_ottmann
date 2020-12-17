@@ -46,10 +46,12 @@ python setup.py install
 Usage
 -----
 
-With segments (defined as pairs of endpoints' coordinates)
+With segments
 ```python
->>> unit_segments = [((0., 0.), (1., 0.)), 
-...                  ((0., 0.), (0., 1.))]
+>>> from ground.geometries import to_point_cls, to_segment_cls
+>>> Point, Segment = to_point_cls(), to_segment_cls()
+>>> unit_segments = [Segment(Point(0, 0), Point(1, 0)), 
+...                  Segment(Point(0, 0), Point(0, 1))]
 
 ```
 we can check if they intersect
@@ -62,16 +64,18 @@ True
 we can also find in which points segments intersect
 ```python
 >>> from bentley_ottmann.planar import segments_intersections
->>> segments_intersections(unit_segments)
-{(0.0, 0.0): {(0, 1)}}
+>>> segments_intersections(unit_segments) == {(0, 0): {(0, 1)}}
+True
 
 ```
-here we can see that `0`th and `1`st segments intersect at point `(0.0, 0.0)`.
+here we can see that `0`th and `1`st segments intersect at point `(0, 0)`.
 
-With polygons (defined as sequence of vertices' coordinates)
+With contours
 ```python
->>> triangle = [(0., 0.), (1., 0.), (0., 1.)]
->>> degenerate_triangle = [(0., 0.), (2., 0.), (1., 0.)]
+>>> from ground.geometries import to_contour_cls
+>>> Contour = to_contour_cls()
+>>> triangle = Contour([Point(0, 0), Point(1, 0), Point(0, 1)])
+>>> degenerate_triangle = Contour([Point(0, 0), Point(2, 0), Point(1, 0)])
 
 ```
 we can check if they are self-intersecting or not
