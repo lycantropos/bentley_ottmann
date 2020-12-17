@@ -2,12 +2,11 @@ from itertools import chain
 from typing import List
 
 import pytest
+from ground.hints import Segment
 from hypothesis import given
 
-from bentley_ottmann.core.linear import (segments_intersections
-                                         as segments_pair_intersections)
-from bentley_ottmann.hints import Segment
 from bentley_ottmann.planar import segments_intersections
+from tests.hints import SegmentsIntersector
 from tests.utils import is_point
 from . import strategies
 
@@ -38,23 +37,28 @@ def test_base_case(segments: List[Segment]) -> None:
 
 
 @given(strategies.non_empty_segments_lists)
-def test_step(segments: List[Segment]) -> None:
+def test_step(segments_intersector: SegmentsIntersector,
+              segments: List[Segment]) -> None:
     *rest_segments, last_segment = segments
 
     result = segments_intersections(rest_segments)
     next_result = segments_intersections(segments)
 
-    assert (next_result.keys() ==
-            (result.keys()
-             | set(chain.from_iterable(
-                            segments_pair_intersections(last_segment, segment)
+    assert (next_result.keys()
+            == (result.keys()
+                | set(chain.from_iterable(
+                            segments_intersector(last_segment.start,
+                                                 last_segment.end,
+                                                 segment.start, segment.end)
                             for segment in rest_segments))))
     assert all(segment_id < next_segment_id == len(segments) - 1
                for point, intersections in next_result.items()
                for segment_id, next_segment_id in (intersections
                                                    - result.get(point, set())))
-    assert all(point in segments_pair_intersections(segments[segment_id],
-                                                    segments[next_segment_id])
+    assert all(point in segments_intersector(segments[segment_id].start,
+                                             segments[segment_id].end,
+                                             segments[next_segment_id].start,
+                                             segments[next_segment_id].end)
                for point, intersections in next_result.items()
                for segment_id, next_segment_id in (intersections
                                                    - result.get(point, set())))

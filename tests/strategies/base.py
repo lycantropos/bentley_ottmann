@@ -4,12 +4,12 @@ from fractions import Fraction
 from operator import ne
 from typing import Optional
 
+from ground.hints import Coordinate
 from hypothesis import strategies
 
-from bentley_ottmann.hints import (Coordinate,
-                                   Point,
-                                   Segment)
-from tests.utils import (Strategy,
+from tests.utils import (Point,
+                         Segment,
+                         Strategy,
                          pack,
                          to_pairs)
 
@@ -55,23 +55,33 @@ def to_digits_count(number: float,
     return float(str(decimal))
 
 
-scalars_strategies_factories = {float: to_floats,
-                                Fraction: strategies.fractions,
-                                int: strategies.integers}
-scalars_strategies = strategies.sampled_from(
-        [factory() for factory in scalars_strategies_factories.values()])
+rational_coordinates_strategies_factories = {Fraction: strategies.fractions,
+                                             int: strategies.integers}
+coordinates_strategies_factories = {
+    float: to_floats,
+    **rational_coordinates_strategies_factories}
+coordinates_strategies = strategies.sampled_from(
+        [factory() for factory in coordinates_strategies_factories.values()])
+rational_coordinates_strategies = strategies.sampled_from(
+        [factory()
+         for factory in rational_coordinates_strategies_factories.values()])
 
 
 def coordinates_to_segments(coordinates: Strategy[Coordinate]
                             ) -> Strategy[Segment]:
     return (to_pairs(coordinates_to_points(coordinates))
-            .filter(pack(ne)))
+            .filter(pack(ne))
+            .map(pack(Segment)))
 
 
 def coordinates_to_points(coordinates: Strategy[Coordinate]
                           ) -> Strategy[Point]:
-    return to_pairs(coordinates)
+    return strategies.builds(Point, coordinates, coordinates)
 
 
-points_strategies = scalars_strategies.map(coordinates_to_points)
-segments_strategies = scalars_strategies.map(coordinates_to_segments)
+points_strategies = coordinates_strategies.map(coordinates_to_points)
+rational_points_strategies = (rational_coordinates_strategies
+                              .map(coordinates_to_points))
+segments_strategies = coordinates_strategies.map(coordinates_to_segments)
+rational_segments_strategies = (rational_coordinates_strategies
+                                .map(coordinates_to_segments))

@@ -1,5 +1,4 @@
 from functools import partial
-from numbers import Number
 from types import MappingProxyType
 from typing import (Any,
                     Callable,
@@ -9,17 +8,19 @@ from typing import (Any,
                     Tuple,
                     TypeVar)
 
+from ground.geometries import (to_contour_cls,
+                               to_point_cls,
+                               to_segment_cls)
+from ground.hints import Coordinate
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
-
-from bentley_ottmann.hints import (Contour,
-                                   Point,
-                                   Coordinate,
-                                   Segment)
 
 Domain = TypeVar('Domain')
 Range = TypeVar('Range')
 Strategy = SearchStrategy
+Contour = to_contour_cls()
+Point = to_point_cls()
+Segment = to_segment_cls()
 
 
 def to_pairs(strategy: Strategy[Domain]) -> Strategy[Tuple[Domain, Domain]]:
@@ -41,14 +42,24 @@ def apply(function: Callable[..., Range],
     return function(*args, **kwargs)
 
 
+def is_point(object_: Any) -> bool:
+    return isinstance(object_, Point)
+
+
+def contour_to_edges(contour: Contour) -> Sequence[Segment]:
+    vertices = contour.vertices
+    return [Segment(vertices[index], vertices[(index + 1) % len(vertices)])
+            for index in range(len(vertices))]
+
+
 def scale_segment(segment: Segment,
                   *,
                   scale: Coordinate) -> Segment:
-    start, end = segment
-    start_x, start_y = start
-    end_x, end_y = end
-    return (start, (start_x + scale * (end_x - start_x),
-                    start_y + scale * (end_y - start_y)))
+    start, end = segment.start, segment.end
+    start_x, start_y = start.x, start.y
+    end_x, end_y = end.x, end.y
+    return Segment(start, Point(start_x + scale * (end_x - start_x),
+                                start_y + scale * (end_y - start_y)))
 
 
 def reflect_segment(segment: Segment) -> Segment:
@@ -56,28 +67,23 @@ def reflect_segment(segment: Segment) -> Segment:
                          scale=-1)
 
 
+def reverse_contour(contour: Contour) -> Contour:
+    return Contour(contour.vertices[::-1])
+
+
+def reverse_contour_coordinates(contour: Contour) -> Contour:
+    return Contour([reverse_point_coordinates(vertex)
+                    for vertex in contour.vertices])
+
+
 def reverse_segment(segment: Segment) -> Segment:
-    start, end = segment
-    return end, start
+    return Segment(segment.end, segment.start)
 
 
 def reverse_segment_coordinates(segment: Segment) -> Segment:
-    start, end = segment
-    return reverse_point_coordinates(start), reverse_point_coordinates(end)
+    return Segment(reverse_point_coordinates(segment.start),
+                   reverse_point_coordinates(segment.end))
 
 
 def reverse_point_coordinates(point: Point) -> Point:
-    x, y = point
-    return y, x
-
-
-def is_point(object_: Any) -> bool:
-    return (isinstance(object_, tuple)
-            and len(object_) == 2
-            and all(isinstance(coordinate, Number)
-                    for coordinate in object_))
-
-
-def contour_to_segments(contour: Contour) -> Sequence[Segment]:
-    return [(contour[index], contour[(index + 1) % len(contour)])
-            for index in range(len(contour))]
+    return Point(point.y, point.x)
