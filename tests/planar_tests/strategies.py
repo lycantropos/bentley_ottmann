@@ -7,8 +7,6 @@ from typing import List
 from hypothesis import strategies
 
 from tests.strategies import (points_strategies,
-                              rational_points_strategies,
-                              rational_segments_strategies,
                               segments_strategies)
 from tests.utils import (Contour,
                          Point,
@@ -20,10 +18,10 @@ from tests.utils import (Contour,
 contours = (points_strategies.flatmap(partial(strategies.lists,
                                               min_size=3))
             .map(Contour))
-non_triangular_rational_contours = (rational_points_strategies
-                                    .flatmap(partial(strategies.lists,
-                                                     min_size=4))
-                                    .map(Contour))
+non_triangular_contours = (points_strategies
+                           .flatmap(partial(strategies.lists,
+                                            min_size=4))
+                           .map(Contour))
 triangular_contours = (points_strategies
                        .flatmap(partial(strategies.lists,
                                         min_size=3,
@@ -61,7 +59,7 @@ def to_overlapped_segments(segments: List[Segment],
 segments_lists |= strategies.builds(to_overlapped_segments, segments_lists,
                                     strategies.integers(1, 100))
 empty_segments_lists = strategies.builds(list)
-non_empty_segments_lists = ((rational_segments_strategies
+non_empty_segments_lists = ((segments_strategies
                              .flatmap(partial(strategies.lists,
                                               min_size=1)))
                             | nets)

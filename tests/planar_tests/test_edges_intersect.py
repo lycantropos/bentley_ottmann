@@ -34,7 +34,7 @@ def test_base_case(segment_containment_checker: SegmentContainmentChecker,
                                                  mid_vertex)
 
 
-@given(strategies.non_triangular_rational_contours)
+@given(strategies.non_triangular_contours)
 def test_step(segments_intersector: SegmentsIntersector,
               segments_relater: SegmentsRelater,
               contour: Contour) -> None:
