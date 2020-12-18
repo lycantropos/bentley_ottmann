@@ -12,7 +12,7 @@ from ground.hints import (Contour,
 from ground.linear import (SegmentsRelationship as _SegmentsRelationship,
                            to_segments_intersector as _to_segments_intersector)
 
-from .core import planar as _planar
+from .core.planar import sweep as _sweep
 from .core.utils import (merge_ids as _merge_ids,
                          to_pairs_combinations as _to_pairs_combinations)
 
@@ -78,7 +78,7 @@ def edges_intersect(contour: Contour,
                 or second_event.relationship is _SegmentsRelationship.OVERLAP
                 or non_neighbours_intersect(_to_pairs_combinations(_merge_ids(
                     first_event.segments_ids, second_event.segments_ids))))
-               for first_event, second_event in _planar.sweep(edges, False))
+               for first_event, second_event in _sweep(edges, False))
 
 
 def _all_unique(values: Iterable[Hashable]) -> bool:
@@ -131,7 +131,7 @@ def segments_intersect(segments: Sequence[Segment],
     ...                     Segment(Point(2, 0), Point(0, 2))])
     True
     """
-    return any(_planar.sweep(segments, validate))
+    return any(_sweep(segments, validate))
 
 
 def segments_cross_or_overlap(segments: Sequence[Segment],
@@ -176,8 +176,7 @@ def segments_cross_or_overlap(segments: Sequence[Segment],
     relationships = _SegmentsRelationship.CROSS, _SegmentsRelationship.OVERLAP
     return any(first_event.relationship in relationships
                or second_event.relationship in relationships
-               for first_event, second_event in _planar.sweep(segments,
-                                                              validate))
+               for first_event, second_event in _sweep(segments, validate))
 
 
 def segments_intersections(segments: Sequence[Segment],
@@ -226,7 +225,7 @@ def segments_intersections(segments: Sequence[Segment],
     """
     result = {}
     segments_intersector = _to_segments_intersector()
-    for first_event, second_event in _planar.sweep(segments, validate):
+    for first_event, second_event in _sweep(segments, validate):
         for segment_id, next_segment_id in _to_pairs_combinations(_merge_ids(
                 first_event.segments_ids, second_event.segments_ids)):
             segment, next_segment = (segments[segment_id],
