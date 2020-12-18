@@ -12,7 +12,7 @@ from ground.hints import (Contour,
 from ground.linear import (SegmentsRelationship as _SegmentsRelationship,
                            to_segments_intersector as _to_segments_intersector)
 
-from .core.planar import sweep as _sweep
+from .core.base import sweep as _sweep
 from .core.utils import (merge_ids as _merge_ids,
                          to_pairs_combinations as _to_pairs_combinations)
 
