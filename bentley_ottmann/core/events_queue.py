@@ -54,6 +54,8 @@ class EventsQueue:
         self._segments_relater = to_segments_relater()
         self._segments_intersector = to_connected_segments_intersector()
 
+    __repr__ = generate_repr(__init__)
+
     def __bool__(self) -> bool:
         return bool(self._queue)
 
