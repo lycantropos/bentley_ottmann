@@ -52,9 +52,9 @@ def edges_intersect(contour: Contour,
 
     >>> from ground.geometries import to_contour_cls, to_point_cls
     >>> Contour, Point = to_contour_cls(), to_point_cls()
-    >>> edges_intersect(Contour([Point(0., 0.), Point(2., 0.), Point(2., 2.)]))
+    >>> edges_intersect(Contour([Point(0, 0), Point(2, 0), Point(2, 2)]))
     False
-    >>> edges_intersect(Contour([Point(0., 0.), Point(2., 0.), Point(1., 0.)]))
+    >>> edges_intersect(Contour([Point(0, 0), Point(2, 0), Point(1, 0)]))
     True
     """
     vertices = contour.vertices
