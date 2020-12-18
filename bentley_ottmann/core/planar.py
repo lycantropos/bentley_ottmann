@@ -13,13 +13,7 @@ from .sweep_line import SweepLine
 from .utils import to_pairs_combinations
 
 
-def sweep(segments: Sequence[Segment],
-          validate: bool) -> Iterable[Tuple[Event, Event]]:
-    if validate:
-        for segment in segments:
-            if segment.start == segment.end:
-                raise ValueError('Degenerate segment found: {segment}.'
-                                 .format(segment=segment))
+def sweep(segments: Sequence[Segment]) -> Iterable[Tuple[Event, Event]]:
     events_queue = to_events_queue(segments)
     sweep_line = SweepLine()
     prev_start = None

@@ -17,9 +17,7 @@ from .core.utils import (merge_ids as _merge_ids,
                          to_pairs_combinations as _to_pairs_combinations)
 
 
-def edges_intersect(contour: Contour,
-                    *,
-                    validate: bool = True) -> bool:
+def edges_intersect(contour: Contour) -> bool:
     """
     Checks if polygonal contour has self-intersection.
 
@@ -33,10 +31,6 @@ def edges_intersect(contour: Contour,
         https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
     :param contour: contour to check.
-    :param validate:
-        flag that tells whether to check contour for degeneracies
-        and raise an exception in case of occurrence.
-    :raises ValueError: if ``validate`` flag is set and contour is degenerate.
     :returns: true if contour is self-intersecting, false otherwise.
 
     .. note::
@@ -58,7 +52,7 @@ def edges_intersect(contour: Contour,
     True
     """
     vertices = contour.vertices
-    if validate and len(vertices) < 3:
+    if len(vertices) < 3:
         raise ValueError('Contour {contour} is degenerate.'
                          .format(contour=contour))
     if not _all_unique(vertices):
@@ -78,7 +72,7 @@ def edges_intersect(contour: Contour,
                 or second_event.relationship is _SegmentsRelationship.OVERLAP
                 or non_neighbours_intersect(_to_pairs_combinations(_merge_ids(
                     first_event.segments_ids, second_event.segments_ids))))
-               for first_event, second_event in _sweep(edges, False))
+               for first_event, second_event in _sweep(edges))
 
 
 def _all_unique(values: Iterable[Hashable]) -> bool:
@@ -92,9 +86,7 @@ def _all_unique(values: Iterable[Hashable]) -> bool:
     return True
 
 
-def segments_intersect(segments: Sequence[Segment],
-                       *,
-                       validate: bool = True) -> bool:
+def segments_intersect(segments: Sequence[Segment]) -> bool:
     """
     Checks if segments have at least one intersection.
 
@@ -108,11 +100,6 @@ def segments_intersect(segments: Sequence[Segment],
         https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
     :param segments: sequence of segments.
-    :param validate:
-        flag that tells whether to check segments for degeneracies
-        and raise an exception in case of occurrence.
-    :raises ValueError:
-        if ``validate`` flag is set and degenerate segment found.
     :returns: true if segments intersection found, false otherwise.
 
     >>> from ground.geometries import to_point_cls, to_segment_cls
@@ -131,12 +118,10 @@ def segments_intersect(segments: Sequence[Segment],
     ...                     Segment(Point(2, 0), Point(0, 2))])
     True
     """
-    return any(_sweep(segments, validate))
+    return any(_sweep(segments))
 
 
-def segments_cross_or_overlap(segments: Sequence[Segment],
-                              *,
-                              validate: bool = True) -> bool:
+def segments_cross_or_overlap(segments: Sequence[Segment]) -> bool:
     """
     Checks if at least one pair of segments crosses or overlaps.
 
@@ -150,11 +135,6 @@ def segments_cross_or_overlap(segments: Sequence[Segment],
         https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
     :param segments: sequence of segments.
-    :param validate:
-        flag that tells whether to check segments for degeneracies
-        and raise an exception in case of occurrence.
-    :raises ValueError:
-        if ``validate`` flag is set and degenerate segment found.
     :returns: true if segments overlap or cross found, false otherwise.
 
     >>> from ground.geometries import to_point_cls, to_segment_cls
@@ -176,12 +156,10 @@ def segments_cross_or_overlap(segments: Sequence[Segment],
     relationships = _SegmentsRelationship.CROSS, _SegmentsRelationship.OVERLAP
     return any(first_event.relationship in relationships
                or second_event.relationship in relationships
-               for first_event, second_event in _sweep(segments, validate))
+               for first_event, second_event in _sweep(segments))
 
 
-def segments_intersections(segments: Sequence[Segment],
-                           *,
-                           validate: bool = True
+def segments_intersections(segments: Sequence[Segment]
                            ) -> Dict[Point, Set[Tuple[int, int]]]:
     """
     Returns mapping between intersection points
@@ -215,17 +193,12 @@ def segments_intersections(segments: Sequence[Segment],
     True
 
     :param segments: sequence of segments.
-    :param validate:
-        flag that tells whether to check segments for degeneracies
-        and raise an exception in case of occurrence.
-    :raises ValueError:
-        if ``validate`` flag is set and degenerate segment found.
     :returns:
         mapping between intersection points and corresponding segments indices.
     """
     result = {}
     segments_intersector = _to_segments_intersector()
-    for first_event, second_event in _sweep(segments, validate):
+    for first_event, second_event in _sweep(segments):
         for segment_id, next_segment_id in _to_pairs_combinations(_merge_ids(
                 first_event.segments_ids, second_event.segments_ids)):
             segment, next_segment = (segments[segment_id],

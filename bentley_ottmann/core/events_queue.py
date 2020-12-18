@@ -134,6 +134,10 @@ class EventsQueue:
         return self._queue.pop()
 
     def push(self, event: Event) -> None:
+        if event.start == event.end:
+            raise ValueError('Degenerate segment found '
+                             'with both endpoints being: {}.'
+                             .format(event.start))
         self._queue.push(event)
 
     def _divide_segment(self,
