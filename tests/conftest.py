@@ -1,13 +1,8 @@
 import pytest
-from ground.linear import (to_segment_containment_checker,
-                           to_segments_intersector,
-                           to_segments_relater)
+from ground.base import (Context,
+                         get_context)
 from hypothesis import (HealthCheck,
                         settings)
-
-from tests.hints import (SegmentContainmentChecker,
-                         SegmentsIntersector,
-                         SegmentsRelater)
 
 settings.register_profile('default',
                           deadline=None,
@@ -16,15 +11,5 @@ settings.register_profile('default',
 
 
 @pytest.fixture(scope='session')
-def segment_containment_checker() -> SegmentContainmentChecker:
-    return to_segment_containment_checker()
-
-
-@pytest.fixture(scope='session')
-def segments_intersector() -> SegmentsIntersector:
-    return to_segments_intersector()
-
-
-@pytest.fixture(scope='session')
-def segments_relater() -> SegmentsRelater:
-    return to_segments_relater()
+def context() -> Context:
+    return get_context()

@@ -1,10 +1,8 @@
-from typing import Tuple
+from typing import Callable
 
 from ground.core.hints import (QuaternaryPointFunction,
-                               TernaryPointFunction)
+                               Range)
 from ground.hints import Point
-from ground.linear import SegmentsRelationship
 
-SegmentContainmentChecker = TernaryPointFunction[bool]
-SegmentsIntersector = QuaternaryPointFunction[Tuple[Point, ...]]
-SegmentsRelater = QuaternaryPointFunction[SegmentsRelationship]
+TernaryPointFunction = Callable[[Point, Point, Point], Range]
+QuaternaryPointFunction = QuaternaryPointFunction

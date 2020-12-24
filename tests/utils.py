@@ -8,9 +8,7 @@ from typing import (Any,
                     Tuple,
                     TypeVar)
 
-from ground.geometries import (to_contour_cls,
-                               to_point_cls,
-                               to_segment_cls)
+from ground.base import get_context
 from ground.hints import Coordinate
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
@@ -18,9 +16,10 @@ from hypothesis.strategies import SearchStrategy
 Domain = TypeVar('Domain')
 Range = TypeVar('Range')
 Strategy = SearchStrategy
-Contour = to_contour_cls()
-Point = to_point_cls()
-Segment = to_segment_cls()
+context = get_context()
+Contour = context.contour_cls
+Point = context.point_cls
+Segment = context.segment_cls
 
 
 def to_pairs(strategy: Strategy[Domain]) -> Strategy[Tuple[Domain, Domain]]:
