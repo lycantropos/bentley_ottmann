@@ -48,8 +48,9 @@ Usage
 
 With segments
 ```python
->>> from ground.geometries import to_point_cls, to_segment_cls
->>> Point, Segment = to_point_cls(), to_segment_cls()
+>>> from ground.base import get_context
+>>> context = get_context()
+>>> Point, Segment = context.point_cls, context.segment_cls
 >>> unit_segments = [Segment(Point(0, 0), Point(1, 0)), 
 ...                  Segment(Point(0, 0), Point(0, 1))]
 
@@ -64,7 +65,7 @@ True
 we can also find in which points segments intersect
 ```python
 >>> from bentley_ottmann.planar import segments_intersections
->>> segments_intersections(unit_segments) == {(0, 0): {(0, 1)}}
+>>> segments_intersections(unit_segments) == {Point(0, 0): {(0, 1)}}
 True
 
 ```
@@ -72,8 +73,7 @@ here we can see that `0`th and `1`st segments intersect at point `(0, 0)`.
 
 With contours
 ```python
->>> from ground.geometries import to_contour_cls
->>> Contour = to_contour_cls()
+>>> Contour = context.contour_cls
 >>> triangle = Contour([Point(0, 0), Point(1, 0), Point(0, 1)])
 >>> degenerate_triangle = Contour([Point(0, 0), Point(2, 0), Point(1, 0)])
 
