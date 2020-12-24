@@ -1,10 +1,9 @@
 from typing import (Optional,
                     Sequence)
 
+from ground.base import (SegmentsRelationship,
+                         get_context)
 from ground.hints import Point
-from ground.linear import (SegmentsRelationship,
-                           to_connected_segments_intersector,
-                           to_segments_relater)
 from prioq.base import PriorityQueue
 from reprit.base import generate_repr
 
@@ -47,12 +46,13 @@ class EventsQueueKey:
 
 
 class EventsQueue:
-    __slots__ = '_queue', '_segments_relater', '_segments_intersector'
+    __slots__ = '_queue', '_segments_relationship', '_segments_intersection'
 
     def __init__(self) -> None:
         self._queue = PriorityQueue(key=EventsQueueKey)
-        self._segments_relater = to_segments_relater()
-        self._segments_intersector = to_connected_segments_intersector()
+        context = get_context()
+        self._segments_relationship = context.segments_relationship
+        self._segments_intersection = context.segments_intersection
 
     __repr__ = generate_repr(__init__)
 
@@ -60,7 +60,7 @@ class EventsQueue:
         return bool(self._queue)
 
     def detect_intersection(self, below_event: Event, event: Event) -> None:
-        relationship = self._segments_relater(
+        relationship = self._segments_relationship(
                 below_event.start, below_event.end, event.start, event.end)
         if relationship is SegmentsRelationship.OVERLAP:
             # segments overlap
@@ -116,7 +116,7 @@ class EventsQueue:
                 self._divide_segment(start_min, start_max.start, segments_ids)
         elif relationship is not SegmentsRelationship.NONE:
             # segments touch or cross
-            point = self._segments_intersector(
+            point = self._segments_intersection(
                     below_event.start, below_event.end, event.start, event.end)
             if point != below_event.start and point != below_event.end:
                 self._divide_segment(below_event, point)

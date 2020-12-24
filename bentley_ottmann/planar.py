@@ -5,12 +5,11 @@ from typing import (Dict,
                     Set,
                     Tuple)
 
-from ground.geometries import to_segment_cls as _to_segment_cls
+from ground.base import get_context as _get_context
 from ground.hints import (Contour,
                           Point,
                           Segment)
-from ground.linear import (SegmentsRelationship as _SegmentsRelationship,
-                           to_segments_intersector as _to_segments_intersector)
+from ground.base import SegmentsRelationship as _SegmentsRelationship
 
 from .core.base import sweep as _sweep
 from .core.utils import (merge_ids as _merge_ids,
@@ -44,8 +43,9 @@ def edges_intersect(contour: Contour) -> bool:
         if you don't want them to be treated as such
         -- filter out before passing as argument.
 
-    >>> from ground.geometries import to_contour_cls, to_point_cls
-    >>> Contour, Point = to_contour_cls(), to_point_cls()
+    >>> from ground.base import get_context
+    >>> context = get_context()
+    >>> Contour, Point = context.contour_cls, context.point_cls
     >>> edges_intersect(Contour([Point(0, 0), Point(2, 0), Point(2, 2)]))
     False
     >>> edges_intersect(Contour([Point(0, 0), Point(2, 0), Point(1, 0)]))
@@ -57,7 +57,7 @@ def edges_intersect(contour: Contour) -> bool:
                          .format(contour=contour))
     if not _all_unique(vertices):
         return True
-    segment_cls = _to_segment_cls()
+    segment_cls = _get_context().segment_cls
     edges = [segment_cls(vertices[index - 1], vertices[index])
              for index in range(len(vertices))]
 
@@ -102,8 +102,9 @@ def segments_intersect(segments: Sequence[Segment]) -> bool:
     :param segments: sequence of segments.
     :returns: true if segments intersection found, false otherwise.
 
-    >>> from ground.geometries import to_point_cls, to_segment_cls
-    >>> Point, Segment = to_point_cls(), _to_segment_cls()
+    >>> from ground.base import get_context
+    >>> context = get_context()
+    >>> Point, Segment = context.point_cls, context.segment_cls
     >>> segments_intersect([])
     False
     >>> segments_intersect([Segment(Point(0, 0), Point(2, 2))])
@@ -137,8 +138,9 @@ def segments_cross_or_overlap(segments: Sequence[Segment]) -> bool:
     :param segments: sequence of segments.
     :returns: true if segments overlap or cross found, false otherwise.
 
-    >>> from ground.geometries import to_point_cls, to_segment_cls
-    >>> Point, Segment = to_point_cls(), _to_segment_cls()
+    >>> from ground.base import get_context
+    >>> context = get_context()
+    >>> Point, Segment = context.point_cls, context.segment_cls
     >>> segments_cross_or_overlap([])
     False
     >>> segments_cross_or_overlap([Segment(Point(0, 0), Point(2, 2))])
@@ -174,8 +176,9 @@ def segments_intersections(segments: Sequence[Segment]
     Reference:
         https://en.wikipedia.org/wiki/Bentley%E2%80%93Ottmann_algorithm
 
-    >>> from ground.geometries import to_point_cls, to_segment_cls
-    >>> Point, Segment = to_point_cls(), _to_segment_cls()
+    >>> from ground.base import get_context
+    >>> context = get_context()
+    >>> Point, Segment = context.point_cls, context.segment_cls
     >>> segments_intersections([]) == {}
     True
     >>> segments_intersections([Segment(Point(0, 0), Point(2, 2))]) == {}
@@ -185,11 +188,11 @@ def segments_intersections(segments: Sequence[Segment]
     True
     >>> (segments_intersections([Segment(Point(0, 0), Point(2, 2)),
     ...                          Segment(Point(0, 0), Point(2, 2))])
-    ...  == {(0, 0): {(0, 1)}, (2, 2): {(0, 1)}})
+    ...  == {Point(0, 0): {(0, 1)}, Point(2, 2): {(0, 1)}})
     True
     >>> (segments_intersections([Segment(Point(0, 0), Point(2, 2)),
     ...                          Segment(Point(2, 0), Point(0, 2))])
-    ...  == {(1, 1): {(0, 1)}})
+    ...  == {Point(1, 1): {(0, 1)}})
     True
 
     :param segments: sequence of segments.
@@ -197,7 +200,7 @@ def segments_intersections(segments: Sequence[Segment]
         mapping between intersection points and corresponding segments indices.
     """
     result = {}
-    segments_intersector = _to_segments_intersector()
+    segments_intersector = _get_context().segments_intersections
     for first_event, second_event in _sweep(segments):
         for segment_id, next_segment_id in _to_pairs_combinations(_merge_ids(
                 first_event.segments_ids, second_event.segments_ids)):

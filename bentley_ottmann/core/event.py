@@ -2,8 +2,8 @@ from reprlib import recursive_repr
 from typing import (Optional,
                     Sequence)
 
+from ground.base import SegmentsRelationship
 from ground.hints import Point
-from ground.linear import SegmentsRelationship
 from reprit.base import generate_repr
 
 

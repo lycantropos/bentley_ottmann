@@ -3,9 +3,9 @@ from typing import (Iterable,
                     Sequence,
                     Tuple)
 
+from ground.base import SegmentsRelationship
 from ground.hints import (Point,
                           Segment)
-from ground.linear import SegmentsRelationship
 
 from .event import Event
 from .events_queue import EventsQueue
