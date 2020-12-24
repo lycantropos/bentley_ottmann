@@ -123,7 +123,7 @@ steps:
     displayName: 'Run tests'
   - bash: coverage xml
     displayName: 'Collect coverage'
-  - bash: python -m codecov -f coverage.xml -X gcov
+  - bash: python -m codecov -f coverage.xml -X gcov --build "$AGENT_JOBNAME"
     condition: succeeded()
     displayName: 'Upload coverage'
     env:
