@@ -68,8 +68,10 @@ def edges_intersect(contour: Contour) -> bool:
                    and (segment_id != 0 or next_segment_id != last_edge_index)
                    for segment_id, next_segment_id in edges_ids)
 
-    return any((first_event.relation is _Relation.OVERLAP
-                or second_event.relation is _Relation.OVERLAP
+    non_overlap_relations = (_Relation.CROSS, _Relation.DISJOINT,
+                             _Relation.TOUCH)
+    return any((first_event.relation not in non_overlap_relations
+                or second_event.relation not in non_overlap_relations
                 or non_neighbours_intersect(_to_pairs_combinations(_merge_ids(
                     first_event.segments_ids, second_event.segments_ids))))
                for first_event, second_event in _sweep(edges))
