@@ -46,13 +46,11 @@ def test_step(context: Context,
     next_result = segments_intersections(segments)
 
     assert (next_result.keys()
-            == (result.keys()
-                | set(chain.from_iterable(
-                            segments_pair_intersections(last_segment.start,
-                                                        last_segment.end,
-                                                        segment.start,
-                                                        segment.end)
-                            for segment in rest_segments))))
+            == (result.keys() | set(chain.from_iterable(
+                    segments_pair_intersections(last_segment.start,
+                                                last_segment.end,
+                                                segment.start, segment.end)
+                    for segment in rest_segments))))
     assert all(segment_id < next_segment_id == len(segments) - 1
                for point, intersections in next_result.items()
                for segment_id, next_segment_id in (intersections
