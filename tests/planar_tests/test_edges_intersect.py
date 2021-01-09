@@ -3,7 +3,7 @@ from itertools import (chain,
 
 import pytest
 from ground.base import (Context,
-                         SegmentsRelationship)
+                         Relation)
 from hypothesis import given
 
 from bentley_ottmann.planar import edges_intersect
@@ -11,7 +11,8 @@ from tests.utils import (Contour,
                          Segment,
                          contour_to_edges,
                          reverse_contour,
-                         reverse_contour_coordinates)
+                         reverse_contour_coordinates,
+                         segments_pair_intersections)
 from . import strategies
 
 
@@ -42,10 +43,12 @@ def test_step(context: Context, contour: Contour) -> None:
     first_edge, last_edge = (Segment(first_vertex, rest_vertices[0]),
                              Segment(rest_vertices[-1], first_vertex))
     rest_edges = contour_to_edges(rest_contour)
+    overlap_relations = (Relation.COMPONENT, Relation.COMPOSITE,
+                         Relation.EQUAL, Relation.OVERLAP)
     assert (next_result
             is (result
                 and len(rest_vertices) > 2
-                and (any(context.segments_intersections(
+                and (any(segments_pair_intersections(
                             rest_edges[index].start, rest_edges[index].end,
                             rest_edges[other_index].start,
                             rest_edges[other_index].end)
@@ -53,33 +56,33 @@ def test_step(context: Context, contour: Contour) -> None:
                          for other_index
                          in chain(range(index - 1),
                                   range(index + 2, len(rest_edges) - 1)))
-                     or any(context.segments_relationship(edge.start, edge.end,
-                                                          other_edge.start,
-                                                          other_edge.end)
-                            is SegmentsRelationship.OVERLAP
+                     or any(segments_pair_intersections(edge.start, edge.end,
+                                                        other_edge.start,
+                                                        other_edge.end)
+                            in overlap_relations
                             for edge, other_edge
                             in combinations(rest_edges[:-1], 2)))
-                or any(context.segments_intersections(first_edge.start,
-                                                      first_edge.end,
-                                                      edge.start, edge.end)
+                or any(segments_pair_intersections(first_edge.start,
+                                                   first_edge.end, edge.start,
+                                                   edge.end)
                        for edge in rest_edges[1:-1])
-                or any(context.segments_intersections(last_edge.start,
-                                                      last_edge.end,
-                                                      edge.start, edge.end)
+                or any(segments_pair_intersections(last_edge.start,
+                                                   last_edge.end, edge.start,
+                                                   edge.end)
                        for edge in rest_edges[:-2])
                 or len(rest_vertices) > 1
-                and (context.segments_relationship(
+                and (context.segments_relation(
                             first_edge.start, first_edge.end,
                             rest_edges[0].start, rest_edges[0].end)
-                     is SegmentsRelationship.OVERLAP
-                     or context.segments_relationship(
+                     in overlap_relations
+                     or context.segments_relation(
                                     first_edge.start, first_edge.end,
                                     last_edge.start, last_edge.end)
-                     is SegmentsRelationship.OVERLAP
-                     or context.segments_relationship(
+                     in overlap_relations
+                     or context.segments_relation(
                                     last_edge.start, last_edge.end,
                                     rest_edges[0].start, rest_edges[0].end)
-                     is SegmentsRelationship.OVERLAP)))
+                     in overlap_relations)))
 
 
 @given(strategies.contours)
