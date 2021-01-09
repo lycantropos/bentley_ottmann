@@ -2,7 +2,7 @@ from typing import List
 
 import pytest
 from ground.base import (Context,
-                         SegmentsRelationship)
+                         Relation)
 from hypothesis import given
 
 from bentley_ottmann.planar import segments_cross_or_overlap
@@ -35,12 +35,11 @@ def test_step(context: Context, segments: List[Segment]) -> None:
 
     assert (next_result
             is (result
-                or any(context.segments_relationship(first_segment.start,
-                                                     first_segment.end,
-                                                     segment.start,
-                                                     segment.end)
-                       in (SegmentsRelationship.CROSS,
-                           SegmentsRelationship.OVERLAP)
+                or any(context.segments_relation(first_segment.start,
+                                                 first_segment.end,
+                                                 segment.start, segment.end)
+                       in (Relation.COMPONENT, Relation.COMPOSITE,
+                           Relation.CROSS, Relation.EQUAL, Relation.OVERLAP)
                        for segment in rest_segments)))
 
 
