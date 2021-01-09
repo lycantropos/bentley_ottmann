@@ -8,7 +8,8 @@ from typing import (Any,
                     Tuple,
                     TypeVar)
 
-from ground.base import get_context
+from ground.base import (Relation,
+                         get_context)
 from ground.hints import Coordinate
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
@@ -86,3 +87,20 @@ def reverse_segment_coordinates(segment: Segment) -> Segment:
 
 def reverse_point_coordinates(point: Point) -> Point:
     return Point(point.y, point.x)
+
+
+def segments_pair_intersections(first_start: Point,
+                                first_end: Point,
+                                second_start: Point,
+                                second_end: Point) -> Tuple[Point, ...]:
+    relation = context.segments_relation(first_start, first_end, second_start,
+                                         second_end)
+    if relation is Relation.DISJOINT:
+        return ()
+    elif relation is Relation.TOUCH or relation is Relation.CROSS:
+        return context.segments_intersection(first_start, first_end,
+                                             second_start, second_end),
+    else:
+        _, first_point, second_point, _ = sorted([first_start, first_end,
+                                                  second_start, second_end])
+        return first_point, second_point

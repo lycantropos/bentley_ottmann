@@ -7,7 +7,8 @@ from ground.hints import Segment
 from hypothesis import given
 
 from bentley_ottmann.planar import segments_intersections
-from tests.utils import is_point
+from tests.utils import (is_point,
+                         segments_pair_intersections)
 from . import strategies
 
 
@@ -47,24 +48,23 @@ def test_step(context: Context,
     assert (next_result.keys()
             == (result.keys()
                 | set(chain.from_iterable(
-                            context.segments_intersections(last_segment.start,
-                                                           last_segment.end,
-                                                           segment.start,
-                                                           segment.end)
+                            segments_pair_intersections(last_segment.start,
+                                                        last_segment.end,
+                                                        segment.start,
+                                                        segment.end)
                             for segment in rest_segments))))
     assert all(segment_id < next_segment_id == len(segments) - 1
                for point, intersections in next_result.items()
                for segment_id, next_segment_id in (intersections
                                                    - result.get(point, set())))
-    assert all(
-            point
-            in context.segments_intersections(segments[segment_id].start,
+    assert all(point
+               in segments_pair_intersections(segments[segment_id].start,
                                               segments[segment_id].end,
                                               segments[next_segment_id].start,
                                               segments[next_segment_id].end)
-            for point, intersections in next_result.items()
-            for segment_id, next_segment_id in (intersections
-                                                - result.get(point, set())))
+               for point, intersections in next_result.items()
+               for segment_id, next_segment_id in (intersections
+                                                   - result.get(point, set())))
 
 
 @given(strategies.degenerate_segments_lists)
