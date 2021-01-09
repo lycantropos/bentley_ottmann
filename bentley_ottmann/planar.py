@@ -5,11 +5,11 @@ from typing import (Dict,
                     Set,
                     Tuple)
 
-from ground.base import get_context as _get_context
+from ground.base import (Relation as _Relation,
+                         get_context as _get_context)
 from ground.hints import (Contour,
                           Point,
                           Segment)
-from ground.base import SegmentsRelationship as _SegmentsRelationship
 
 from .core.base import sweep as _sweep
 from .core.utils import (merge_ids as _merge_ids,
@@ -68,8 +68,8 @@ def edges_intersect(contour: Contour) -> bool:
                    and (segment_id != 0 or next_segment_id != last_edge_index)
                    for segment_id, next_segment_id in edges_ids)
 
-    return any((first_event.relationship is _SegmentsRelationship.OVERLAP
-                or second_event.relationship is _SegmentsRelationship.OVERLAP
+    return any((first_event.relation is _Relation.OVERLAP
+                or second_event.relation is _Relation.OVERLAP
                 or non_neighbours_intersect(_to_pairs_combinations(_merge_ids(
                     first_event.segments_ids, second_event.segments_ids))))
                for first_event, second_event in _sweep(edges))
@@ -155,9 +155,9 @@ def segments_cross_or_overlap(segments: Sequence[Segment]) -> bool:
     ...                            Segment(Point(2, 0), Point(0, 2))])
     True
     """
-    relationships = _SegmentsRelationship.CROSS, _SegmentsRelationship.OVERLAP
-    return any(first_event.relationship in relationships
-               or second_event.relationship in relationships
+    rest_relations = _Relation.DISJOINT, _Relation.TOUCH
+    return any(first_event.relation not in rest_relations
+               or second_event.relation not in rest_relations
                for first_event, second_event in _sweep(segments))
 
 
@@ -200,7 +200,26 @@ def segments_intersections(segments: Sequence[Segment]
         mapping between intersection points and corresponding segments indices.
     """
     result = {}
-    segments_intersector = _get_context().segments_intersections
+    context = _get_context()
+
+    def segments_intersector(first_start: Point,
+                             first_end: Point,
+                             second_start: Point,
+                             second_end: Point,
+                             relater=context.segments_relation,
+                             intersector=context.segments_intersection
+                             ) -> Tuple[Point, ...]:
+        relation = relater(first_start, first_end, second_start, second_end)
+        if relation is _Relation.DISJOINT:
+            return ()
+        if relation is _Relation.TOUCH or relation is _Relation.CROSS:
+            return intersector(first_start, first_end, second_start,
+                               second_end),
+        else:
+            _, first_point, second_point, _ = sorted(
+                    [first_start, first_end, second_start, second_end])
+            return first_point, second_point
+
     for first_event, second_event in _sweep(segments):
         for segment_id, next_segment_id in _to_pairs_combinations(_merge_ids(
                 first_event.segments_ids, second_event.segments_ids)):

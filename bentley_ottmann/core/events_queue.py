@@ -1,7 +1,7 @@
 from typing import (Optional,
                     Sequence)
 
-from ground.base import (SegmentsRelationship,
+from ground.base import (Relation,
                          get_context)
 from ground.hints import Point
 from prioq.base import PriorityQueue
@@ -46,13 +46,13 @@ class EventsQueueKey:
 
 
 class EventsQueue:
-    __slots__ = '_queue', '_segments_relationship', '_segments_intersection'
+    __slots__ = '_queue', '_segments_relater', '_segments_intersector'
 
     def __init__(self) -> None:
         self._queue = PriorityQueue(key=EventsQueueKey)
         context = get_context()
-        self._segments_relationship = context.segments_relationship
-        self._segments_intersection = context.segments_intersection
+        self._segments_relater = context.segments_relation
+        self._segments_intersector = context.segments_intersection
 
     __repr__ = generate_repr(__init__)
 
@@ -60,9 +60,21 @@ class EventsQueue:
         return bool(self._queue)
 
     def detect_intersection(self, below_event: Event, event: Event) -> None:
-        relationship = self._segments_relationship(
-                below_event.start, below_event.end, event.start, event.end)
-        if relationship is SegmentsRelationship.OVERLAP:
+        relation = self._segments_relater(below_event.start, below_event.end,
+                                          event.start, event.end)
+        if relation is Relation.TOUCH or relation is Relation.CROSS:
+            # segments touch or cross
+            point = self._segments_intersector(
+                    below_event.start, below_event.end, event.start, event.end)
+            if point != below_event.start and point != below_event.end:
+                self._divide_segment(below_event, point)
+            if point != event.start and point != event.end:
+                self._divide_segment(event, point)
+            event.set_both_relations(max(event.relation,
+                                         relation))
+            below_event.set_both_relations(max(below_event.relation,
+                                               relation))
+        elif relation is not Relation.DISJOINT:
             # segments overlap
             starts_equal = event.start == below_event.start
             if starts_equal:
@@ -86,46 +98,34 @@ class EventsQueue:
                     # segments are equal
                     below_event.segments_ids = event.segments_ids = (
                         segments_ids)
-                    event.set_both_relationships(relationship)
-                    below_event.set_both_relationships(relationship)
+                    event.set_both_relations(relation)
+                    below_event.set_both_relations(relation)
                 else:
                     # segments share the left endpoint
-                    end_min.set_both_relationships(relationship)
-                    end_max.complement.relationship = relationship
+                    end_min.set_both_relations(relation)
+                    end_max.complement.relation = relation
                     self._divide_segment(end_max.complement, end_min.start,
                                          segments_ids)
             elif ends_equal:
                 # segments share the right endpoint
-                start_max.set_both_relationships(relationship)
-                start_min.complement.relationship = relationship
+                start_max.set_both_relations(relation)
+                start_min.complement.relation = relation
                 self._divide_segment(start_min, start_max.start, segments_ids)
             elif start_min is end_max.complement:
                 # one line segment includes the other one
-                start_max.set_both_relationships(relationship)
-                start_min_original_relationship = start_min.relationship
-                start_min.relationship = relationship
+                start_max.set_both_relations(relation)
+                start_min_original_relationship = start_min.relation
+                start_min.relation = relation
                 self._divide_segment(start_min, end_min.start, segments_ids)
-                start_min.relationship = start_min_original_relationship
-                start_min.complement.relationship = relationship
+                start_min.relation = start_min_original_relationship
+                start_min.complement.relation = relation
                 self._divide_segment(start_min, start_max.start, segments_ids)
             else:
                 # no line segment includes the other one
-                start_max.relationship = relationship
+                start_max.relation = relation
                 self._divide_segment(start_max, end_min.start, segments_ids)
-                start_min.complement.relationship = relationship
+                start_min.complement.relation = relation
                 self._divide_segment(start_min, start_max.start, segments_ids)
-        elif relationship is not SegmentsRelationship.NONE:
-            # segments touch or cross
-            point = self._segments_intersection(
-                    below_event.start, below_event.end, event.start, event.end)
-            if point != below_event.start and point != below_event.end:
-                self._divide_segment(below_event, point)
-            if point != event.start and point != event.end:
-                self._divide_segment(event, point)
-            event.set_both_relationships(max(event.relationship,
-                                             relationship))
-            below_event.set_both_relationships(max(below_event.relationship,
-                                                   relationship))
 
     def peek(self) -> Event:
         return self._queue.peek()
@@ -149,12 +149,12 @@ class EventsQueue:
         else:
             event.segments_ids = segments_ids
         left_event = Event(is_left_endpoint=True,
-                           relationship=event.complement.relationship,
+                           relation=event.complement.relation,
                            start=break_point,
                            complement=event.complement,
                            segments_ids=segments_ids)
         right_event = Event(is_left_endpoint=False,
-                            relationship=event.relationship,
+                            relation=event.relation,
                             start=break_point,
                             complement=event,
                             segments_ids=segments_ids)

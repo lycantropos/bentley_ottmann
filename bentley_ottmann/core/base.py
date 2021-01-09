@@ -3,7 +3,7 @@ from typing import (Iterable,
                     Sequence,
                     Tuple)
 
-from ground.base import SegmentsRelationship
+from ground.base import Relation
 from ground.hints import (Point,
                           Segment)
 
@@ -65,16 +65,16 @@ def to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
             same_segments_ids.append(endpoints_with_ids[index][1])
             index += 1
         start, end = endpoints
-        relationship = (SegmentsRelationship.NONE
+        relationship = (Relation.DISJOINT
                         if len(same_segments_ids) == 1
-                        else SegmentsRelationship.OVERLAP)
+                        else Relation.EQUAL)
         start_event = Event(is_left_endpoint=True,
-                            relationship=relationship,
+                            relation=relationship,
                             start=start,
                             complement=None,
                             segments_ids=same_segments_ids)
         end_event = Event(is_left_endpoint=False,
-                          relationship=relationship,
+                          relation=relationship,
                           start=end,
                           complement=start_event,
                           segments_ids=same_segments_ids)
