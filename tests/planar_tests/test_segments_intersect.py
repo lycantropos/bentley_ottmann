@@ -7,7 +7,8 @@ from hypothesis import given
 
 from bentley_ottmann.planar import segments_intersect
 from tests.utils import (reverse_segment,
-                         reverse_segment_coordinates)
+                         reverse_segment_coordinates,
+                         segments_pair_intersections)
 from . import strategies
 
 
@@ -34,10 +35,9 @@ def test_step(context: Context, segments: List[Segment]) -> None:
 
     assert (next_result
             is (result
-                or any(context.segments_intersections(first_segment.start,
-                                                      first_segment.end,
-                                                      segment.start,
-                                                      segment.end)
+                or any(segments_pair_intersections(first_segment.start,
+                                                   first_segment.end,
+                                                   segment.start, segment.end)
                        for segment in rest_segments)))
 
 
