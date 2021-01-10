@@ -17,10 +17,8 @@ def test_basic(segments: List[Segment]) -> None:
     result = segments_intersections(segments)
 
     assert isinstance(result, dict)
-    assert all(is_point(key)
-               for key in result.keys())
-    assert all(isinstance(value, set)
-               for value in result.values())
+    assert all(is_point(key) for key in result.keys())
+    assert all(isinstance(value, set) for value in result.values())
     assert all(isinstance(element, tuple)
                for value in result.values()
                for element in value)
