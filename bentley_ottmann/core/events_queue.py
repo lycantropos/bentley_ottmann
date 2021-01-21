@@ -73,20 +73,20 @@ class EventsQueue:
         elif relation is not Relation.DISJOINT:
             # segments overlap
             starts_equal = event.start == below_event.start
-            if starts_equal:
-                start_min = start_max = None
-            elif EventsQueueKey(event) < EventsQueueKey(below_event):
-                start_min, start_max = event, below_event
-            else:
-                start_min, start_max = below_event, event
+            start_min, start_max = (
+                (None, None)
+                if starts_equal
+                else ((event, below_event)
+                      if EventsQueueKey(event) < EventsQueueKey(below_event)
+                      else (below_event, event)))
             ends_equal = event.end == below_event.end
-            if ends_equal:
-                end_min = end_max = None
-            elif (EventsQueueKey(event.complement)
-                  < EventsQueueKey(below_event.complement)):
-                end_min, end_max = event.complement, below_event.complement
-            else:
-                end_min, end_max = below_event.complement, event.complement
+            end_min, end_max = (
+                (None, None)
+                if ends_equal
+                else ((event.complement, below_event.complement)
+                      if (EventsQueueKey(event.complement)
+                          < EventsQueueKey(below_event.complement))
+                      else (below_event.complement, event.complement)))
             segments_ids = merge_ids(below_event.segments_ids,
                                      event.segments_ids)
             if starts_equal:
