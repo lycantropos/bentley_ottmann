@@ -68,10 +68,8 @@ class EventsQueue:
                 self._divide_segment(below_event, point)
             if point != event.start and point != event.end:
                 self._divide_segment(event, point)
-            event.set_both_relations(max(event.relation,
-                                         relation))
-            below_event.set_both_relations(max(below_event.relation,
-                                               relation))
+            event.set_both_relations(max(event.relation, relation))
+            below_event.set_both_relations(max(below_event.relation, relation))
         elif relation is not Relation.DISJOINT:
             # segments overlap
             starts_equal = event.start == below_event.start
