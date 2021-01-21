@@ -1,8 +1,8 @@
 from typing import (Optional,
                     Sequence)
 
-from ground.base import (Relation,
-                         get_context)
+from ground.base import (Context,
+                         Relation)
 from ground.hints import Point
 from prioq.base import PriorityQueue
 from reprit.base import generate_repr
@@ -46,13 +46,11 @@ class EventsQueueKey:
 
 
 class EventsQueue:
-    __slots__ = '_queue', '_segments_relater', '_segments_intersector'
+    __slots__ = 'context', '_queue'
 
-    def __init__(self) -> None:
+    def __init__(self, context: Context) -> None:
+        self.context = context
         self._queue = PriorityQueue(key=EventsQueueKey)
-        context = get_context()
-        self._segments_relater = context.segments_relation
-        self._segments_intersector = context.segments_intersection
 
     __repr__ = generate_repr(__init__)
 
@@ -60,11 +58,11 @@ class EventsQueue:
         return bool(self._queue)
 
     def detect_intersection(self, below_event: Event, event: Event) -> None:
-        relation = self._segments_relater(below_event.start, below_event.end,
-                                          event.start, event.end)
+        relation = self.context.segments_relation(
+                below_event.start, below_event.end, event.start, event.end)
         if relation is Relation.TOUCH or relation is Relation.CROSS:
             # segments touch or cross
-            point = self._segments_intersector(
+            point = self.context.segments_intersection(
                     below_event.start, below_event.end, event.start, event.end)
             if point != below_event.start and point != below_event.end:
                 self._divide_segment(below_event, point)
@@ -148,16 +146,16 @@ class EventsQueue:
             segments_ids = event.segments_ids
         else:
             event.segments_ids = segments_ids
-        left_event = Event(is_left_endpoint=True,
-                           relation=event.complement.relation,
-                           start=break_point,
-                           complement=event.complement,
-                           segments_ids=segments_ids)
-        right_event = Event(is_left_endpoint=False,
-                            relation=event.relation,
-                            start=break_point,
-                            complement=event,
-                            segments_ids=segments_ids)
-        event.complement.complement, event.complement = left_event, right_event
+        left_event = event.complement.complement = Event(
+                is_left_endpoint=True,
+                relation=event.complement.relation,
+                start=break_point,
+                complement=event.complement,
+                segments_ids=segments_ids)
+        right_event = event.complement = Event(is_left_endpoint=False,
+                                               relation=event.relation,
+                                               start=break_point,
+                                               complement=event,
+                                               segments_ids=segments_ids)
         self.push(left_event)
         self.push(right_event)

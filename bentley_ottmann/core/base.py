@@ -3,7 +3,8 @@ from typing import (Iterable,
                     Sequence,
                     Tuple)
 
-from ground.base import Relation
+from ground.base import (Context,
+                         Relation)
 from ground.hints import (Point,
                           Segment)
 
@@ -13,9 +14,11 @@ from .sweep_line import SweepLine
 from .utils import to_pairs_combinations
 
 
-def sweep(segments: Sequence[Segment]) -> Iterable[Tuple[Event, Event]]:
-    events_queue = to_events_queue(segments)
-    sweep_line = SweepLine()
+def sweep(segments: Sequence[Segment],
+          *,
+          context: Context) -> Iterable[Tuple[Event, Event]]:
+    events_queue = to_events_queue(segments, context=context)
+    sweep_line = SweepLine(context)
     prev_start = None
     prev_same_start_events = []  # type: List[Event]
     while events_queue:
@@ -51,10 +54,12 @@ def sweep(segments: Sequence[Segment]) -> Iterable[Tuple[Event, Event]]:
         prev_start, prev_same_start_events = start, same_start_events
 
 
-def to_events_queue(segments: Sequence[Segment]) -> EventsQueue:
+def to_events_queue(segments: Sequence[Segment],
+                    *,
+                    context: Context) -> EventsQueue:
     endpoints_with_ids = sorted((sort_endpoints(segment), segment_id)
                                 for segment_id, segment in enumerate(segments))
-    result = EventsQueue()
+    result = EventsQueue(context)
     index = 0
     while index < len(endpoints_with_ids):
         endpoints, segment_id = endpoints_with_ids[index]

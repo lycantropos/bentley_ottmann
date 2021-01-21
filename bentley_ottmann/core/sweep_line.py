@@ -3,8 +3,8 @@ from typing import (Callable,
                     Optional)
 
 from dendroid import red_black
-from ground.base import (Orientation,
-                         get_context)
+from ground.base import (Context,
+                         Orientation)
 from ground.hints import Point
 from reprit.base import generate_repr
 
@@ -15,9 +15,9 @@ from .utils import merge_ids
 class SweepLine:
     __slots__ = '_tree',
 
-    def __init__(self) -> None:
+    def __init__(self, context: Context) -> None:
         self._tree = red_black.set_(
-                key=partial(SweepLineKey, get_context().angle_orientation))
+                key=partial(SweepLineKey, context.angle_orientation))
 
     __repr__ = generate_repr(__init__)
 
@@ -47,10 +47,9 @@ class SweepLineKey:
     __slots__ = 'orientation', 'event'
 
     def __init__(self,
-                 orientation: Callable[[Point, Point, Point], Orientation],
+                 orienteer: Callable[[Point, Point, Point], Orientation],
                  event: Event) -> None:
-        self.orientation = orientation
-        self.event = event
+        self.orientation, self.event = orienteer, event
 
     __repr__ = generate_repr(__init__)
 

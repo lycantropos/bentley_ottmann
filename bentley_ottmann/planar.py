@@ -57,7 +57,8 @@ def edges_intersect(contour: Contour) -> bool:
                          .format(contour=contour))
     if not _all_unique(vertices):
         return True
-    segment_cls = _get_context().segment_cls
+    context = _get_context()
+    segment_cls = context.segment_cls
     edges = [segment_cls(vertices[index - 1], vertices[index])
              for index in range(len(vertices))]
 
@@ -74,7 +75,8 @@ def edges_intersect(contour: Contour) -> bool:
                 or second_event.relation not in non_overlap_relations
                 or non_neighbours_intersect(_to_pairs_combinations(_merge_ids(
                     first_event.segments_ids, second_event.segments_ids))))
-               for first_event, second_event in _sweep(edges))
+               for first_event, second_event in _sweep(edges,
+                                                       context=context))
 
 
 def _all_unique(values: Iterable[Hashable]) -> bool:
@@ -121,7 +123,8 @@ def segments_intersect(segments: Sequence[Segment]) -> bool:
     ...                     Segment(Point(2, 0), Point(0, 2))])
     True
     """
-    return any(_sweep(segments))
+    return any(_sweep(segments,
+                      context=_get_context()))
 
 
 def segments_cross_or_overlap(segments: Sequence[Segment]) -> bool:
@@ -160,7 +163,8 @@ def segments_cross_or_overlap(segments: Sequence[Segment]) -> bool:
     rest_relations = _Relation.DISJOINT, _Relation.TOUCH
     return any(first_event.relation not in rest_relations
                or second_event.relation not in rest_relations
-               for first_event, second_event in _sweep(segments))
+               for first_event, second_event in _sweep(segments,
+                                                       context=_get_context()))
 
 
 def segments_intersections(segments: Sequence[Segment]
@@ -222,7 +226,8 @@ def segments_intersections(segments: Sequence[Segment]
                     [first_start, first_end, second_start, second_end])
             return first_point, second_point
 
-    for first_event, second_event in _sweep(segments):
+    for first_event, second_event in _sweep(segments,
+                                            context=context):
         for segment_id, next_segment_id in _to_pairs_combinations(_merge_ids(
                 first_event.segments_ids, second_event.segments_ids)):
             segment, next_segment = (segments[segment_id],
