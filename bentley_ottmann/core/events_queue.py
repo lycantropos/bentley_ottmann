@@ -1,6 +1,3 @@
-from typing import (Optional,
-                    Sequence)
-
 from ground.base import (Context,
                          Relation)
 from ground.hints import Point
@@ -87,41 +84,38 @@ class EventsQueue:
                       if (EventsQueueKey(event.complement)
                           < EventsQueueKey(below_event.complement))
                       else (below_event.complement, event.complement)))
-            segments_ids = merge_ids(below_event.segments_ids,
-                                     event.segments_ids)
             if starts_equal:
                 if ends_equal:
                     # segments are equal
-                    below_event.segments_ids = event.segments_ids = (
-                        segments_ids)
+                    below_event.segments_ids = event.segments_ids = merge_ids(
+                            below_event.segments_ids, event.segments_ids)
                     event.set_both_relations(relation)
                     below_event.set_both_relations(relation)
                 else:
                     # segments share the left endpoint
                     end_min.set_both_relations(relation)
                     end_max.complement.relation = relation
-                    self._divide_segment(end_max.complement, end_min.start,
-                                         segments_ids)
+                    self._divide_segment(end_max.complement, end_min.start)
             elif ends_equal:
                 # segments share the right endpoint
                 start_max.set_both_relations(relation)
                 start_min.complement.relation = relation
-                self._divide_segment(start_min, start_max.start, segments_ids)
+                self._divide_segment(start_min, start_max.start)
             elif start_min is end_max.complement:
                 # one line segment includes the other one
                 start_max.set_both_relations(relation)
                 start_min_original_relationship = start_min.relation
                 start_min.relation = relation
-                self._divide_segment(start_min, end_min.start, segments_ids)
+                self._divide_segment(start_min, end_min.start)
                 start_min.relation = start_min_original_relationship
                 start_min.complement.relation = relation
-                self._divide_segment(start_min, start_max.start, segments_ids)
+                self._divide_segment(start_min, start_max.start)
             else:
                 # no line segment includes the other one
                 start_max.relation = relation
-                self._divide_segment(start_max, end_min.start, segments_ids)
+                self._divide_segment(start_max, end_min.start)
                 start_min.complement.relation = relation
-                self._divide_segment(start_min, start_max.start, segments_ids)
+                self._divide_segment(start_min, start_max.start)
 
     def peek(self) -> Event:
         return self._queue.peek()
@@ -136,24 +130,18 @@ class EventsQueue:
                              .format(event.start))
         self._queue.push(event)
 
-    def _divide_segment(self,
-                        event: Event,
-                        break_point: Point,
-                        segments_ids: Optional[Sequence[int]] = None) -> None:
-        if segments_ids is None:
-            segments_ids = event.segments_ids
-        else:
-            event.segments_ids = segments_ids
+    def _divide_segment(self, event: Event, break_point: Point) -> None:
         left_event = event.complement.complement = Event(
-                is_left_endpoint=True,
-                relation=event.complement.relation,
                 start=break_point,
                 complement=event.complement,
-                segments_ids=segments_ids)
-        right_event = event.complement = Event(is_left_endpoint=False,
-                                               relation=event.relation,
-                                               start=break_point,
-                                               complement=event,
-                                               segments_ids=segments_ids)
+                is_left_endpoint=True,
+                relation=event.complement.relation,
+                segments_ids=event.segments_ids)
+        right_event = event.complement = Event(
+                start=break_point,
+                complement=event,
+                is_left_endpoint=False,
+                relation=event.relation,
+                segments_ids=event.complement.segments_ids)
         self.push(left_event)
         self.push(right_event)
