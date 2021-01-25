@@ -5,7 +5,6 @@ from prioq.base import PriorityQueue
 from reprit.base import generate_repr
 
 from .event import Event
-from .utils import merge_ids
 
 
 class EventsQueueKey:
@@ -87,8 +86,6 @@ class EventsQueue:
             if starts_equal:
                 if ends_equal:
                     # segments are equal
-                    below_event.segments_ids = event.segments_ids = merge_ids(
-                            below_event.segments_ids, event.segments_ids)
                     event.set_both_relations(relation)
                     below_event.set_both_relations(relation)
                 else:
