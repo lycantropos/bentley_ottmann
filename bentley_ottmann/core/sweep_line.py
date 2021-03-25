@@ -13,9 +13,10 @@ from .utils import merge_ids
 
 
 class SweepLine:
-    __slots__ = '_tree',
+    __slots__ = 'context', '_tree'
 
     def __init__(self, context: Context) -> None:
+        self.context = context
         self._tree = red_black.set_(
                 key=partial(SweepLineKey, context.angle_orientation))
 
