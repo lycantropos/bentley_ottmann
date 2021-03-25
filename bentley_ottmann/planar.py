@@ -238,6 +238,10 @@ def segments_intersections(segments: Sequence[Segment]
                                         context=context):
         segment_start, segment_end = event.original_start, event.original_end
         segments_ids = event.segments_ids
+        if len(segments_ids) > 1:
+            ids_pairs = set(_pairwise(segments_ids))
+            result.setdefault(segment_start, set()).update(ids_pairs)
+            result.setdefault(segment_end, set()).update(ids_pairs)
         for relation, other_segments_ids in event.relations.items():
             for other_segment_ids in other_segments_ids:
                 ids_pairs = {_to_sorted_pair(segment_id, other_segment_id)
@@ -248,7 +252,4 @@ def segments_intersections(segments: Sequence[Segment]
                                               other_segment.start,
                                               other_segment.end, relation):
                     result.setdefault(point, set()).update(ids_pairs)
-        for ids_pair in _pairwise(segments_ids):
-            result.setdefault(segment_start, set()).add(ids_pair)
-            result.setdefault(segment_end, set()).add(ids_pair)
     return result
