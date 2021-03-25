@@ -45,12 +45,12 @@ class SweepLine:
 
 
 class SweepLineKey:
-    __slots__ = 'orienteer', 'event'
+    __slots__ = 'event', 'orienteer'
 
     def __init__(self,
                  orienteer: Callable[[Point, Point, Point], Orientation],
                  event: Event) -> None:
-        self.orienteer, self.event = orienteer, event
+        self.event, self.orienteer = event, orienteer
 
     __repr__ = generate_repr(__init__)
 
