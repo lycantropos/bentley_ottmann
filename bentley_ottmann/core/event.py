@@ -1,26 +1,30 @@
 from reprlib import recursive_repr
-from typing import (Optional,
-                    Sequence)
+from typing import (Dict,
+                    List,
+                    Optional)
 
 from ground.base import Relation
 from ground.hints import Point
 from reprit.base import generate_repr
 
+from .hints import Ids
+
 
 class Event:
-    __slots__ = ('complement', 'is_left_endpoint', 'relation', 'segments_ids',
-                 'start')
+    __slots__ = ('complement', 'is_left_endpoint', 'original_start',
+                 'relations', 'segments_ids', 'start')
 
     def __init__(self,
                  start: Point,
                  complement: Optional['Event'],
                  is_left_endpoint: bool,
-                 relation: Relation,
-                 segments_ids: Sequence[int]) -> None:
-        self.start, self.complement = start, complement
+                 original_start: Point,
+                 segments_ids: Ids,
+                 relations: Dict[Relation, List[Ids]]) -> None:
+        self.complement, self.original_start, self.start = (
+            complement, original_start, start)
         self.is_left_endpoint = is_left_endpoint
-        self.relation = relation
-        self.segments_ids = segments_ids
+        self.relations, self.segments_ids = relations, segments_ids
 
     __repr__ = recursive_repr()(generate_repr(__init__))
 
@@ -28,5 +32,6 @@ class Event:
     def end(self) -> Point:
         return self.complement.start
 
-    def set_both_relations(self, relation: Relation) -> None:
-        self.relation = self.complement.relation = relation
+    @property
+    def original_end(self) -> Point:
+        return self.complement.original_start

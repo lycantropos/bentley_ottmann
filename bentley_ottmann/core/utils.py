@@ -1,14 +1,24 @@
-from functools import partial
-from heapq import merge
-from itertools import (combinations,
-                       groupby)
-from typing import Sequence
+from typing import (Iterable,
+                    Sequence,
+                    Tuple,
+                    TypeVar)
+
+from .hints import Ids
+
+_T = TypeVar('_T')
 
 
-def merge_ids(left_ids: Sequence[int],
-              right_ids: Sequence[int]) -> Sequence[int]:
-    return [key for key, _ in groupby(merge(left_ids, right_ids))]
+def pairwise(ids: Iterable[_T]) -> Iterable[Tuple[_T, _T]]:
+    iterator = iter(ids)
+    value = next(iterator)
+    for next_value in iterator:
+        yield value, next_value
+        value = next_value
 
 
-to_pairs_combinations = partial(combinations,
-                                r=2)
+def to_ids_pairs(id_: int, other_ids: Ids) -> Sequence[Tuple[int, int]]:
+    return [to_sorted_pair(id_, other_id) for other_id in other_ids]
+
+
+def to_sorted_pair(first: _T, second: _T) -> Tuple[_T, _T]:
+    return (first, second) if first < second else (second, first)

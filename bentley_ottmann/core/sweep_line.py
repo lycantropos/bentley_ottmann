@@ -9,7 +9,6 @@ from ground.hints import Point
 from reprit.base import generate_repr
 
 from .event import Event
-from .utils import merge_ids
 
 
 class SweepLine:
@@ -82,14 +81,8 @@ class SweepLineKey:
                 # segments have same start
                 elif end_y != other_end_y:
                     return end_y < other_end_y
-                elif end_x != other_end_x:
-                    # segments are horizontal
-                    return end_x < other_end_x
                 else:
-                    # segments are equal
-                    event.segments_ids = other_event.segments_ids = merge_ids(
-                            event.segments_ids, other_event.segments_ids)
-                    return False
+                    return end_x < other_end_x
             elif start_y != other_start_y:
                 return start_y < other_start_y
             else:

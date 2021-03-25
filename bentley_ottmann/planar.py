@@ -1,4 +1,6 @@
-from typing import (Dict,
+from itertools import chain
+from typing import (Callable,
+                    Dict,
                     Hashable,
                     Iterable,
                     Sequence,
@@ -11,19 +13,20 @@ from ground.hints import (Contour,
                           Point,
                           Segment)
 
-from .core.base import sweep as _sweep
-from .core.utils import (merge_ids as _merge_ids,
-                         to_pairs_combinations as _to_pairs_combinations)
+from .core import (bentley_ottmann as _bentley_ottmann,
+                   shamos_hoey as _shamos_hoey)
+from .core.utils import (pairwise as _pairwise,
+                         to_ids_pairs as _to_ids_pairs)
 
 
 def edges_intersect(contour: Contour) -> bool:
     """
     Checks if polygonal contour has self-intersection.
 
-    Based on Shamos-Hoey algorithm.
+    Based on Bentley-Ottmann algorithm.
 
     Time complexity:
-        ``O(len(contour) * log len(contour))``
+        ``O((len(segments) + len(intersections)) * log len(segments))``
     Memory complexity:
         ``O(len(contour))``
     Reference:
@@ -62,21 +65,26 @@ def edges_intersect(contour: Contour) -> bool:
     edges = [segment_cls(vertices[index - 1], vertices[index])
              for index in range(len(vertices))]
 
-    def non_neighbours_intersect(edges_ids: Iterable[Tuple[int, int]],
+    def non_neighbours_intersect(edge_id: int,
+                                 other_edge_id: int,
                                  last_edge_index: int = len(edges) - 1
                                  ) -> bool:
-        return any(next_segment_id - segment_id > 1
-                   and (segment_id != 0 or next_segment_id != last_edge_index)
-                   for segment_id, next_segment_id in edges_ids)
+        return (other_edge_id - edge_id > 1
+                and (edge_id != 0 or other_edge_id != last_edge_index))
 
     non_overlap_relations = (_Relation.CROSS, _Relation.DISJOINT,
                              _Relation.TOUCH)
-    return any((first_event.relation not in non_overlap_relations
-                or second_event.relation not in non_overlap_relations
-                or non_neighbours_intersect(_to_pairs_combinations(_merge_ids(
-                    first_event.segments_ids, second_event.segments_ids))))
-               for first_event, second_event in _sweep(edges,
-                                                       context=context))
+    flatten = chain.from_iterable
+    return any(
+            len(event.segments_ids) > 1
+            or any(relation not in non_overlap_relations
+                   or any(non_neighbours_intersect(segment_id,
+                                                   other_segment_id)
+                          for segment_id in event.segments_ids
+                          for other_segment_id in flatten(other_segments_ids))
+                   for relation, other_segments_ids in event.relations.items())
+            for event in _bentley_ottmann.sweep(edges,
+                                                context=context))
 
 
 def _all_unique(values: Iterable[Hashable]) -> bool:
@@ -123,15 +131,15 @@ def segments_intersect(segments: Sequence[Segment]) -> bool:
     ...                     Segment(Point(2, 0), Point(0, 2))])
     True
     """
-    return any(_sweep(segments,
-                      context=_get_context()))
+    return _shamos_hoey.sweep(segments,
+                              context=_get_context())
 
 
 def segments_cross_or_overlap(segments: Sequence[Segment]) -> bool:
     """
     Checks if at least one pair of segments crosses or overlaps.
 
-    Based on Shamos-Hoey algorithm.
+    Based on Bentley-Ottmann algorithm.
 
     Time complexity:
         ``O((len(segments) + len(intersections)) * log len(segments))``
@@ -160,11 +168,12 @@ def segments_cross_or_overlap(segments: Sequence[Segment]) -> bool:
     ...                            Segment(Point(2, 0), Point(0, 2))])
     True
     """
-    rest_relations = _Relation.DISJOINT, _Relation.TOUCH
-    return any(first_event.relation not in rest_relations
-               or second_event.relation not in rest_relations
-               for first_event, second_event in _sweep(segments,
-                                                       context=_get_context()))
+    return any(len(event.segments_ids) > 1
+               or any(relation is not _Relation.DISJOINT
+                      and relation is not _Relation.TOUCH
+                      for relation in event.relations)
+               for event in _bentley_ottmann.sweep(segments,
+                                                   context=_get_context()))
 
 
 def segments_intersections(segments: Sequence[Segment]
@@ -212,12 +221,11 @@ def segments_intersections(segments: Sequence[Segment]
                              first_end: Point,
                              second_start: Point,
                              second_end: Point,
-                             relater=context.segments_relation,
-                             intersector=context.segments_intersection
+                             relation: _Relation,
+                             intersector
+                             : Callable[[Point, Point, Point, Point], Point]
+                             = context.segments_intersection
                              ) -> Tuple[Point, ...]:
-        relation = relater(first_start, first_end, second_start, second_end)
-        if relation is _Relation.DISJOINT:
-            return ()
         if relation is _Relation.TOUCH or relation is _Relation.CROSS:
             return intersector(first_start, first_end, second_start,
                                second_end),
@@ -226,15 +234,20 @@ def segments_intersections(segments: Sequence[Segment]
                     [first_start, first_end, second_start, second_end])
             return first_point, second_point
 
-    for first_event, second_event in _sweep(segments,
-                                            context=context):
-        for segment_id, next_segment_id in _to_pairs_combinations(_merge_ids(
-                first_event.segments_ids, second_event.segments_ids)):
-            segment, next_segment = (segments[segment_id],
-                                     segments[next_segment_id])
-            for point in segments_intersector(segment.start, segment.end,
-                                              next_segment.start,
-                                              next_segment.end):
-                result.setdefault(point, set()).add((segment_id,
-                                                     next_segment_id))
+    for event in _bentley_ottmann.sweep(segments,
+                                        context=context):
+        segment_start, segment_end = event.original_start, event.original_end
+        segments_ids = event.segments_ids
+        for relation, other_segments_ids in event.relations.items():
+            for other_segment_ids in other_segments_ids:
+                other_segment_id = other_segment_ids[0]
+                ids_pairs = _to_ids_pairs(other_segment_id, segments_ids)
+                other_segment = segments[other_segment_id]
+                for point in segments_intersector(segment_start, segment_end,
+                                                  other_segment.start,
+                                                  other_segment.end, relation):
+                    result.setdefault(point, set()).update(ids_pairs)
+        for ids_pair in _pairwise(segments_ids):
+            result.setdefault(segment_start, set()).add(ids_pair)
+            result.setdefault(segment_end, set()).add(ids_pair)
     return result

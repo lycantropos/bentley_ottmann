@@ -1,10 +1,14 @@
+from typing import Sequence
+
 from ground.base import (Context,
                          Relation)
-from ground.hints import Point
+from ground.hints import (Point,
+                          Segment)
 from prioq.base import PriorityQueue
 from reprit.base import generate_repr
 
 from .event import Event
+from .utils import to_sorted_pair
 
 
 class EventsQueueKey:
@@ -42,6 +46,15 @@ class EventsQueueKey:
 
 
 class EventsQueue:
+    @classmethod
+    def from_segments(cls,
+                      segments: Sequence[Segment],
+                      *,
+                      context: Context) -> 'EventsQueue':
+        result = cls(context)
+        result._populate(segments)
+        return result
+
     __slots__ = 'context', '_queue'
 
     def __init__(self, context: Context) -> None:
@@ -64,9 +77,8 @@ class EventsQueue:
                 self._divide_segment(below_event, point)
             if point != event.start and point != event.end:
                 self._divide_segment(event, point)
-            event.set_both_relations(max(event.relation, relation))
-            below_event.set_both_relations(max(below_event.relation, relation))
-        elif relation is not Relation.DISJOINT:
+        elif (relation is not Relation.DISJOINT
+              and relation is not Relation.EQUAL):
             # segments overlap
             starts_equal = event.start == below_event.start
             start_min, start_max = (
@@ -84,34 +96,18 @@ class EventsQueue:
                           < EventsQueueKey(below_event.complement))
                       else (below_event.complement, event.complement)))
             if starts_equal:
-                if ends_equal:
-                    # segments are equal
-                    event.set_both_relations(relation)
-                    below_event.set_both_relations(relation)
-                else:
-                    # segments share the left endpoint
-                    end_min.set_both_relations(relation)
-                    end_max.complement.relation = relation
-                    self._divide_segment(end_max.complement, end_min.start)
+                # segments share the left endpoint
+                self._divide_segment(end_max.complement, end_min.start)
             elif ends_equal:
                 # segments share the right endpoint
-                start_max.set_both_relations(relation)
-                start_min.complement.relation = relation
                 self._divide_segment(start_min, start_max.start)
             elif start_min is end_max.complement:
                 # one line segment includes the other one
-                start_max.set_both_relations(relation)
-                start_min_original_relationship = start_min.relation
-                start_min.relation = relation
                 self._divide_segment(start_min, end_min.start)
-                start_min.relation = start_min_original_relationship
-                start_min.complement.relation = relation
                 self._divide_segment(start_min, start_max.start)
             else:
                 # no line segment includes the other one
-                start_max.relation = relation
                 self._divide_segment(start_max, end_min.start)
-                start_min.complement.relation = relation
                 self._divide_segment(start_min, start_max.start)
 
     def peek(self) -> Event:
@@ -129,10 +125,35 @@ class EventsQueue:
 
     def _divide_segment(self, event: Event, break_point: Point) -> None:
         left_event = event.complement.complement = Event(
-                break_point, event.complement, True, event.complement.relation,
-                event.segments_ids)
+                break_point, event.complement, True, event.original_start,
+                event.segments_ids, event.relations)
         right_event = event.complement = Event(
-                break_point, event, False, event.relation,
-                event.complement.segments_ids)
+                break_point, event, False, event.original_end,
+                event.complement.segments_ids, event.relations)
         self.push(left_event)
         self.push(right_event)
+
+    def _populate(self, segments: Sequence[Segment]) -> None:
+        endpoints_with_ids = sorted(
+                (to_sorted_pair(segment.start, segment.end),
+                 segment_id)
+                for segment_id, segment in enumerate(segments))
+        index = 0
+        while index < len(endpoints_with_ids):
+            endpoints, segment_id = endpoints_with_ids[index]
+            index += 1
+            same_segments_ids = [segment_id]
+            while (index < len(endpoints_with_ids)
+                   and endpoints_with_ids[index][0] == endpoints):
+                same_segments_ids.append(endpoints_with_ids[index][1])
+                index += 1
+            same_segments_ids = tuple(same_segments_ids)
+            start, end = endpoints
+            relations = {}
+            start_event = Event(start, None, True, start, same_segments_ids,
+                                relations)
+            end_event = Event(end, start_event, False, end, same_segments_ids,
+                              relations)
+            start_event.complement = end_event
+            self.push(start_event)
+            self.push(end_event)
