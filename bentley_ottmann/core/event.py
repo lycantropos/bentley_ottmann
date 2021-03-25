@@ -8,8 +8,8 @@ from reprit.base import generate_repr
 
 
 class Event:
-    __slots__ = ('is_left_endpoint', 'relation', 'start', 'complement',
-                 'segments_ids')
+    __slots__ = ('complement', 'is_left_endpoint', 'relation', 'segments_ids',
+                 'start')
 
     def __init__(self,
                  is_left_endpoint: bool,
