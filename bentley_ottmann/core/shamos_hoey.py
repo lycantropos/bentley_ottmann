@@ -19,7 +19,8 @@ def sweep(segments: Sequence[Segment],
     while events_queue:
         event = events_queue.pop()
         start = event.start
-        if (start == prev_start
+        if (len(event.segments_ids) > 1
+                or start == prev_start
                 or events_queue and events_queue.peek().start == start):
             return True
         if event.is_left_endpoint:
