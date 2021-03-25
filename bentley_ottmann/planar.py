@@ -1,4 +1,5 @@
-from itertools import chain
+from itertools import (chain,
+                       product)
 from typing import (Callable,
                     Dict,
                     Hashable,
@@ -16,7 +17,7 @@ from ground.hints import (Contour,
 from .core import (bentley_ottmann as _bentley_ottmann,
                    shamos_hoey as _shamos_hoey)
 from .core.utils import (pairwise as _pairwise,
-                         to_ids_pairs as _to_ids_pairs)
+                         to_sorted_pair as _to_sorted_pair)
 
 
 def edges_intersect(contour: Contour) -> bool:
@@ -217,15 +218,14 @@ def segments_intersections(segments: Sequence[Segment]
     result = {}
     context = _get_context()
 
-    def segments_intersector(first_start: Point,
-                             first_end: Point,
-                             second_start: Point,
-                             second_end: Point,
-                             relation: _Relation,
-                             intersector
-                             : Callable[[Point, Point, Point, Point], Point]
-                             = context.segments_intersection
-                             ) -> Tuple[Point, ...]:
+    def to_intersections(first_start: Point,
+                         first_end: Point,
+                         second_start: Point,
+                         second_end: Point,
+                         relation: _Relation,
+                         intersector: Callable[[Point, Point, Point, Point],
+                                               Point]
+                         = context.segments_intersection) -> Tuple[Point, ...]:
         if relation is _Relation.TOUCH or relation is _Relation.CROSS:
             return intersector(first_start, first_end, second_start,
                                second_end),
@@ -240,12 +240,13 @@ def segments_intersections(segments: Sequence[Segment]
         segments_ids = event.segments_ids
         for relation, other_segments_ids in event.relations.items():
             for other_segment_ids in other_segments_ids:
-                other_segment_id = other_segment_ids[0]
-                ids_pairs = _to_ids_pairs(other_segment_id, segments_ids)
-                other_segment = segments[other_segment_id]
-                for point in segments_intersector(segment_start, segment_end,
-                                                  other_segment.start,
-                                                  other_segment.end, relation):
+                ids_pairs = {_to_sorted_pair(segment_id, other_segment_id)
+                             for segment_id, other_segment_id
+                             in product(segments_ids, other_segment_ids)}
+                other_segment = segments[other_segment_ids[0]]
+                for point in to_intersections(segment_start, segment_end,
+                                              other_segment.start,
+                                              other_segment.end, relation):
                     result.setdefault(point, set()).update(ids_pairs)
         for ids_pair in _pairwise(segments_ids):
             result.setdefault(segment_start, set()).add(ids_pair)
