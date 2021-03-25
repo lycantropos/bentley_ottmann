@@ -40,3 +40,4 @@ def sweep(segments: Sequence[Segment],
                     events_queue.detect_intersection(below_event,
                                                      above_event)
         prev_start = start
+    return False
