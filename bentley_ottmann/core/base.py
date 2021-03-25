@@ -73,16 +73,9 @@ def to_events_queue(segments: Sequence[Segment],
         relationship = (Relation.DISJOINT
                         if len(same_segments_ids) == 1
                         else Relation.EQUAL)
-        start_event = Event(is_left_endpoint=True,
-                            relation=relationship,
-                            start=start,
-                            complement=None,
-                            segments_ids=same_segments_ids)
-        end_event = Event(is_left_endpoint=False,
-                          relation=relationship,
-                          start=end,
-                          complement=start_event,
-                          segments_ids=same_segments_ids)
+        start_event = Event(start, None, True, relationship, same_segments_ids)
+        end_event = Event(end, start_event, False, relationship,
+                          same_segments_ids)
         start_event.complement = end_event
         result.push(start_event)
         result.push(end_event)

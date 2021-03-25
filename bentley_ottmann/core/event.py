@@ -12,15 +12,14 @@ class Event:
                  'start')
 
     def __init__(self,
-                 is_left_endpoint: bool,
-                 relation: Relation,
                  start: Point,
                  complement: Optional['Event'],
+                 is_left_endpoint: bool,
+                 relation: Relation,
                  segments_ids: Sequence[int]) -> None:
+        self.start, self.complement = start, complement
         self.is_left_endpoint = is_left_endpoint
         self.relation = relation
-        self.start = start
-        self.complement = complement
         self.segments_ids = segments_ids
 
     __repr__ = recursive_repr()(generate_repr(__init__))
