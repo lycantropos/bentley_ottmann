@@ -45,12 +45,12 @@ class SweepLine:
 
 
 class SweepLineKey:
-    __slots__ = 'orientation', 'event'
+    __slots__ = 'orienteer', 'event'
 
     def __init__(self,
                  orienteer: Callable[[Point, Point, Point], Orientation],
                  event: Event) -> None:
-        self.orientation, self.event = orienteer, event
+        self.orienteer, self.event = orienteer, event
 
     __repr__ = generate_repr(__init__)
 
@@ -64,8 +64,8 @@ class SweepLineKey:
             return False
         start, other_start = event.start, other_event.start
         end, other_end = event.end, other_event.end
-        other_start_orientation = self.orientation(start, end, other_start)
-        other_end_orientation = self.orientation(start, end, other_end)
+        other_start_orientation = self.orienteer(start, end, other_start)
+        other_end_orientation = self.orienteer(start, end, other_end)
         if other_start_orientation is other_end_orientation:
             start_x, start_y = start.x, start.y
             other_start_x, other_start_y = other_start.x, other_start.y
@@ -95,8 +95,8 @@ class SweepLineKey:
             else:
                 # segments are horizontal
                 return start_x < other_start_x
-        start_orientation = self.orientation(other_start, other_end, start)
-        end_orientation = self.orientation(other_start, other_end, end)
+        start_orientation = self.orienteer(other_start, other_end, start)
+        end_orientation = self.orienteer(other_start, other_end, end)
         if start_orientation is end_orientation:
             return start_orientation is Orientation.CLOCKWISE
         elif other_start_orientation is Orientation.COLLINEAR:
