@@ -17,8 +17,8 @@ class SweepLine:
 
     def __init__(self, context: Context) -> None:
         self.context = context
-        self._tree = red_black.set_(
-                key=partial(SweepLineKey, context.angle_orientation))
+        self._tree = red_black.set_(key=partial(SweepLineKey,
+                                                context.angle_orientation))
 
     __repr__ = generate_repr(__init__)
 
