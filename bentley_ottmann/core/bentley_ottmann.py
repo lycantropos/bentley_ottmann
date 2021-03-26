@@ -1,5 +1,4 @@
-from itertools import (chain,
-                       product)
+from itertools import combinations
 from typing import (Iterable,
                     List,
                     Optional,
@@ -12,7 +11,6 @@ from ground.hints import (Point,
 from .event import Event
 from .events_queue import EventsQueue
 from .sweep_line import SweepLine
-from .utils import to_pairs_combinations
 
 
 def sweep(segments: Sequence[Segment],
@@ -27,15 +25,13 @@ def sweep(segments: Sequence[Segment],
     while events_queue:
         event = events_queue.pop()
         start = event.start
-        same_start_events = [event]
+        same_start_events = (prev_same_start_events + [event]
+                             if start == prev_start
+                             else [event])
         while events_queue and events_queue.peek().start == start:
             same_start_events.append(events_queue.pop())
-        for event, other_event in (
-                chain(to_pairs_combinations(same_start_events),
-                      product(same_start_events,
-                              prev_same_start_events))
-                if start == prev_start
-                else to_pairs_combinations(same_start_events)):
+        for event, other_event in combinations(same_start_events,
+                                               r=2):
             if event.segments_ids is not other_event.segments_ids:
                 relation = segments_relater(
                         event.original_start, event.original_end,
