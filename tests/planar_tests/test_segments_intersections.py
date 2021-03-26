@@ -65,6 +65,16 @@ def test_step(context: Context,
                                                    - result.get(point, set())))
 
 
+@given(strategies.segments_lists)
+def test_reversed_coordinates(segments: List[Segment]) -> None:
+    result = segments_intersections(segments)
+
+    reversed_result = segments_intersections(
+            reverse_segments_coordinates(segments))
+    assert result == {reverse_point_coordinates(point): intersections
+                      for point, intersections in reversed_result.items()}
+
+
 @given(strategies.degenerate_segments_lists)
 def test_degenerate_segments(segments: List[Segment]) -> None:
     with pytest.raises(ValueError):
