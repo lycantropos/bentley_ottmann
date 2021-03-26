@@ -8,9 +8,9 @@ from typing import (Callable,
 
 from ground.base import (Relation as _Relation,
                          get_context as _get_context)
-from ground.hints import (Contour,
-                          Point,
-                          Segment)
+from ground.hints import (Contour as _Contour,
+                          Point as _Point,
+                          Segment as _Segment)
 
 from .core import (bentley_ottmann as _bentley_ottmann,
                    shamos_hoey as _shamos_hoey)
@@ -19,7 +19,7 @@ from .core.utils import (all_unique as _all_unique,
                          to_sorted_pair as _to_sorted_pair)
 
 
-def edges_intersect(contour: Contour) -> bool:
+def edges_intersect(contour: _Contour) -> bool:
     """
     Checks if polygonal contour has self-intersection.
 
@@ -87,7 +87,7 @@ def edges_intersect(contour: Contour) -> bool:
                                                 context=context))
 
 
-def segments_intersect(segments: Sequence[Segment]) -> bool:
+def segments_intersect(segments: Sequence[_Segment]) -> bool:
     """
     Checks if segments have at least one intersection.
 
@@ -124,7 +124,7 @@ def segments_intersect(segments: Sequence[Segment]) -> bool:
                               context=_get_context())
 
 
-def segments_cross_or_overlap(segments: Sequence[Segment]) -> bool:
+def segments_cross_or_overlap(segments: Sequence[_Segment]) -> bool:
     """
     Checks if at least one pair of segments crosses or overlaps.
 
@@ -165,8 +165,8 @@ def segments_cross_or_overlap(segments: Sequence[Segment]) -> bool:
                                                    context=_get_context()))
 
 
-def segments_intersections(segments: Sequence[Segment]
-                           ) -> Dict[Point, Set[Tuple[int, int]]]:
+def segments_intersections(segments: Sequence[_Segment]
+                           ) -> Dict[_Point, Set[Tuple[int, int]]]:
     """
     Returns mapping between intersection points
     and corresponding segments indices.
@@ -206,14 +206,15 @@ def segments_intersections(segments: Sequence[Segment]
     result = {}
     context = _get_context()
 
-    def to_intersections(first_start: Point,
-                         first_end: Point,
-                         second_start: Point,
-                         second_end: Point,
+    def to_intersections(first_start: _Point,
+                         first_end: _Point,
+                         second_start: _Point,
+                         second_end: _Point,
                          relation: _Relation,
-                         intersector: Callable[[Point, Point, Point, Point],
-                                               Point]
-                         = context.segments_intersection) -> Tuple[Point, ...]:
+                         intersector
+                         : Callable[[_Point, _Point, _Point, _Point], _Point]
+                         = context.segments_intersection
+                         ) -> Tuple[_Point, ...]:
         if relation is _Relation.TOUCH or relation is _Relation.CROSS:
             return intersector(first_start, first_end, second_start,
                                second_end),
