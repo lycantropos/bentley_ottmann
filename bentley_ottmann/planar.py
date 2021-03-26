@@ -2,8 +2,6 @@ from itertools import (chain,
                        product)
 from typing import (Callable,
                     Dict,
-                    Hashable,
-                    Iterable,
                     Sequence,
                     Set,
                     Tuple)
@@ -16,7 +14,8 @@ from ground.hints import (Contour,
 
 from .core import (bentley_ottmann as _bentley_ottmann,
                    shamos_hoey as _shamos_hoey)
-from .core.utils import (pairwise as _pairwise,
+from .core.utils import (all_unique as _all_unique,
+                         pairwise as _pairwise,
                          to_sorted_pair as _to_sorted_pair)
 
 
@@ -86,17 +85,6 @@ def edges_intersect(contour: Contour) -> bool:
                    for relation, other_segments_ids in event.relations.items())
             for event in _bentley_ottmann.sweep(edges,
                                                 context=context))
-
-
-def _all_unique(values: Iterable[Hashable]) -> bool:
-    seen = set()
-    seen_add = seen.add
-    for value in values:
-        if value in seen:
-            return False
-        else:
-            seen_add(value)
-    return True
 
 
 def segments_intersect(segments: Sequence[Segment]) -> bool:
