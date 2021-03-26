@@ -1,3 +1,5 @@
+from functools import partial
+from itertools import combinations
 from typing import (Hashable,
                     Iterable,
                     Tuple,
@@ -23,6 +25,10 @@ def pairwise(ids: Iterable[_T]) -> Iterable[Tuple[_T, _T]]:
     for next_value in iterator:
         yield value, next_value
         value = next_value
+
+
+to_pairs_combinations = partial(combinations,
+                                r=2)
 
 
 def to_sorted_pair(first: _T, second: _T) -> Tuple[_T, _T]:
