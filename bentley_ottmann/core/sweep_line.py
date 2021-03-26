@@ -81,8 +81,13 @@ class SweepLineKey:
                 # segments have same start
                 elif end_y != other_end_y:
                     return end_y < other_end_y
-                else:
+                elif end_x != other_end_x:
                     return end_x < other_end_x
+                else:
+                    # segments fragments are equal
+                    return ((event.original_start.y, event.original_start.x)
+                            < (other_event.original_start.y,
+                               other_event.original_start.x))
             elif start_y != other_start_y:
                 return start_y < other_start_y
             else:

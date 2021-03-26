@@ -129,7 +129,7 @@ class EventsQueue:
                 event.segments_ids, event.relations)
         right_event = event.complement = Event(
                 break_point, event, False, event.original_end,
-                event.complement.segments_ids, event.relations)
+                event.complement.segments_ids, event.complement.relations)
         self.push(left_event)
         self.push(right_event)
 
