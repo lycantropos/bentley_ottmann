@@ -85,6 +85,11 @@ def reverse_segment_coordinates(segment: Segment) -> Segment:
                    reverse_point_coordinates(segment.end))
 
 
+def reverse_segments_coordinates(segments: Sequence[Segment]
+                                 ) -> Sequence[Segment]:
+    return [reverse_segment_coordinates(segment) for segment in segments]
+
+
 def reverse_point_coordinates(point: Point) -> Point:
     return Point(point.y, point.x)
 

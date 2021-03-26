@@ -8,6 +8,8 @@ from hypothesis import given
 
 from bentley_ottmann.planar import segments_intersections
 from tests.utils import (is_point,
+                         reverse_point_coordinates,
+                         reverse_segments_coordinates,
                          segments_pair_intersections)
 from . import strategies
 
