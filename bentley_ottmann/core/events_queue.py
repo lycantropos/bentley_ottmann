@@ -5,6 +5,7 @@ from prioq.base import PriorityQueue
 from reprit.base import generate_repr
 
 from .event import Event
+from .utils import merge_ids
 
 
 class EventsQueueKey:
@@ -56,7 +57,9 @@ class EventsQueue:
     def detect_intersection(self, below_event: Event, event: Event) -> None:
         relation = self.context.segments_relation(
                 below_event.start, below_event.end, event.start, event.end)
-        if relation is Relation.TOUCH or relation is Relation.CROSS:
+        if relation is Relation.DISJOINT:
+            return
+        elif relation is Relation.TOUCH or relation is Relation.CROSS:
             # segments touch or cross
             point = self.context.segments_intersection(
                     below_event.start, below_event.end, event.start, event.end)
@@ -66,7 +69,7 @@ class EventsQueue:
                 self._divide_segment(event, point)
             event.set_both_relations(max(event.relation, relation))
             below_event.set_both_relations(max(below_event.relation, relation))
-        elif relation is not Relation.DISJOINT:
+        else:
             # segments overlap
             starts_equal = event.start == below_event.start
             start_min, start_max = (
@@ -113,6 +116,8 @@ class EventsQueue:
                 self._divide_segment(start_max, end_min.start)
                 start_min.complement.relation = relation
                 self._divide_segment(start_min, start_max.start)
+        event.segments_ids = below_event.segments_ids = merge_ids(
+                event.segments_ids, below_event.segments_ids)
 
     def peek(self) -> Event:
         return self._queue.peek()
