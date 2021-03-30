@@ -45,8 +45,7 @@ def points_to_nets(points: Strategy[Point]) -> Strategy[List[Segment]]:
 
 
 nets = points_strategies.flatmap(points_to_nets)
-segments_lists = (segments_strategies.flatmap(strategies.lists)
-                  | nets)
+segments_lists = segments_strategies.flatmap(strategies.lists) | nets
 
 
 def to_overlapped_segments(segments: List[Segment],
