@@ -36,16 +36,12 @@ class Event:
         other._assimilate(self)
 
     def _assimilate(self, other: 'Event') -> None:
-        points_ids = self.points_ids
-        non_overlapping_ids = (
-            other.points_ids[other.start][other.end].isdisjoint(
-                    points_ids[self.start][self.end]))
-        for start, other_ends_ids in other.points_ids.items():
-            if start < self.start:
+        end, points_ids, start = self.end, self.points_ids, self.start
+        for other_start, other_ends_ids in other.points_ids.items():
+            if other_start < start:
                 continue
-            for end, other_ids in other_ends_ids.items():
-                if self.end < end:
+            for other_end, other_ids in other_ends_ids.items():
+                if end < other_end:
                     continue
-                elif start != end or non_overlapping_ids:
-                    (points_ids.setdefault(start, {})
-                     .setdefault(end, set())).update(other_ids)
+                (points_ids.setdefault(other_start, {})
+                 .setdefault(other_end, set())).update(other_ids)
