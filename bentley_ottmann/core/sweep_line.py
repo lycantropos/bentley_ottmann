@@ -9,37 +9,47 @@ from ground.hints import Point
 from reprit.base import generate_repr
 
 from .event import Event
-from .utils import merge_ids
 
 
 class SweepLine:
-    __slots__ = 'context', '_tree'
+    __slots__ = 'context', '_set'
 
     def __init__(self, context: Context) -> None:
         self.context = context
-        self._tree = red_black.set_(key=partial(SweepLineKey,
-                                                context.angle_orientation))
+        self._set = red_black.set_(key=partial(SweepLineKey,
+                                               context.angle_orientation))
 
     __repr__ = generate_repr(__init__)
 
     def __contains__(self, event: Event) -> bool:
-        return event in self._tree
+        return event in self._set
 
     def add(self, event: Event) -> None:
-        self._tree.add(event)
+        self._set.add(event)
+
+    def find_equivalent(self, event: Event):
+        try:
+            candidate = self._set.floor(event)
+        except ValueError:
+            return None
+        else:
+            return (candidate
+                    if (candidate.start == event.start
+                        and candidate.end == event.end)
+                    else None)
 
     def remove(self, event: Event) -> None:
-        self._tree.remove(event)
+        self._set.remove(event)
 
     def above(self, event: Event) -> Optional[Event]:
         try:
-            return self._tree.next(event)
+            return self._set.next(event)
         except ValueError:
             return None
 
     def below(self, event: Event) -> Optional[Event]:
         try:
-            return self._tree.prev(event)
+            return self._set.prev(event)
         except ValueError:
             return None
 
@@ -82,14 +92,11 @@ class SweepLineKey:
                 # segments have same start
                 elif end_y != other_end_y:
                     return end_y < other_end_y
-                elif end_x != other_end_x:
-                    # segments are horizontal
-                    return end_x < other_end_x
                 else:
-                    # segments are equal
-                    event.segments_ids = other_event.segments_ids = merge_ids(
-                            event.segments_ids, other_event.segments_ids)
-                    return False
+                    # we can add handling of equal segments' fragments here
+                    # to reduce number of searches,
+                    # but it will make this implicit and complex
+                    return end_x < other_end_x
             elif start_y != other_start_y:
                 return start_y < other_start_y
             else:

@@ -1,5 +1,4 @@
 from typing import (Iterable,
-                    List,
                     Sequence,
                     Tuple)
 
@@ -11,72 +10,65 @@ from ground.hints import (Point,
 from .event import Event
 from .events_queue import EventsQueue
 from .sweep_line import SweepLine
-from .utils import to_pairs_combinations
 
 
 def sweep(segments: Sequence[Segment],
           *,
-          context: Context) -> Iterable[Tuple[Event, Event]]:
-    events_queue = to_events_queue(segments, context=context)
+          context: Context) -> Iterable[Event]:
+    events_queue = to_events_queue(segments,
+                                   context=context)
     sweep_line = SweepLine(context)
-    prev_start = None
-    prev_same_start_events = []  # type: List[Event]
     while events_queue:
         event = events_queue.pop()
-        start = event.start
-        same_start_events = (prev_same_start_events + [event]
-                             if start == prev_start
-                             else [event])
-        while events_queue and events_queue.peek().start == start:
-            same_start_events.append(events_queue.pop())
-        for event, other_event in to_pairs_combinations(same_start_events):
-            yield event, other_event
-        for event in same_start_events:
-            if event.is_left_endpoint:
+        if event.is_left_endpoint:
+            equal_segment_event = sweep_line.find_equivalent(event)
+            if equal_segment_event is None:
+                assert event not in sweep_line
                 sweep_line.add(event)
-                above_event, below_event = (sweep_line.above(event),
-                                            sweep_line.below(event))
+                below_event = sweep_line.below(event)
                 if below_event is not None:
-                    events_queue.detect_intersection(below_event, event)
+                    events_queue.detect_intersection(below_event, event,
+                                                     sweep_line)
+                above_event = sweep_line.above(event)
                 if above_event is not None:
-                    events_queue.detect_intersection(event, above_event)
+                    events_queue.detect_intersection(event, above_event,
+                                                     sweep_line)
             else:
-                event = event.complement
-                if event in sweep_line:
-                    above_event, below_event = (sweep_line.above(event),
-                                                sweep_line.below(event))
-                    sweep_line.remove(event)
-                    if below_event is not None and above_event is not None:
-                        events_queue.detect_intersection(below_event,
-                                                         above_event)
-                if len(event.segments_ids) > 1:
-                    yield event, event
-        prev_start, prev_same_start_events = start, same_start_events
+                # found equal segments' fragments
+                equal_segment_event.merge_with(event)
+        else:
+            event = event.opposite
+            equal_segment_event = sweep_line.find_equivalent(event)
+            if equal_segment_event is not None:
+                above_event, below_event = (
+                    sweep_line.above(equal_segment_event),
+                    sweep_line.below(equal_segment_event))
+                sweep_line.remove(equal_segment_event)
+                if below_event is not None and above_event is not None:
+                    assert not events_queue.detect_intersection(below_event,
+                                                                above_event,
+                                                                sweep_line)
+                if event is not equal_segment_event:
+                    event.merge_with(equal_segment_event)
+            yield event
+        for e in sweep_line._set:
+            above = sweep_line.above(e)
+            assert above is None or e.start != above.start or e.end != above.end
+            below = sweep_line.below(e)
+            assert below is None or e.start != below.start or e.end != below.end
 
 
 def to_events_queue(segments: Sequence[Segment],
                     *,
                     context: Context) -> EventsQueue:
-    endpoints_with_ids = sorted((sort_endpoints(segment), segment_id)
-                                for segment_id, segment in enumerate(segments))
     result = EventsQueue(context)
-    index = 0
-    while index < len(endpoints_with_ids):
-        endpoints, segment_id = endpoints_with_ids[index]
-        index += 1
-        same_segments_ids = [segment_id]
-        while (index < len(endpoints_with_ids)
-               and endpoints_with_ids[index][0] == endpoints):
-            same_segments_ids.append(endpoints_with_ids[index][1])
-            index += 1
-        start, end = endpoints
-        relationship = (Relation.DISJOINT
-                        if len(same_segments_ids) == 1
-                        else Relation.EQUAL)
-        start_event = Event(start, None, True, relationship, same_segments_ids)
-        end_event = Event(end, start_event, False, relationship,
-                          same_segments_ids)
-        start_event.complement = end_event
+    for index, segment in enumerate(segments):
+        start, end = sort_endpoints(segment)
+        relation = Relation.DISJOINT
+        points_ids = {start: {end: {index}}}
+        start_event = Event(start, None, True, relation, points_ids)
+        end_event = Event(end, start_event, False, relation, points_ids)
+        start_event.opposite = end_event
         result.push(start_event)
         result.push(end_event)
     return result

@@ -5,7 +5,7 @@ from prioq.base import PriorityQueue
 from reprit.base import generate_repr
 
 from .event import Event
-from .utils import merge_ids
+from .sweep_line import SweepLine
 
 
 class EventsQueueKey:
@@ -54,22 +54,31 @@ class EventsQueue:
     def __bool__(self) -> bool:
         return bool(self._queue)
 
-    def detect_intersection(self, below_event: Event, event: Event) -> None:
+    def detect_intersection(self, below_event: Event, event: Event,
+                            sweep_line: SweepLine) -> bool:
         relation = self.context.segments_relation(
                 below_event.start, below_event.end, event.start, event.end)
-        if relation is Relation.DISJOINT:
-            return
-        elif relation is Relation.TOUCH or relation is Relation.CROSS:
+        if relation is Relation.TOUCH or relation is Relation.CROSS:
             # segments touch or cross
             point = self.context.segments_intersection(
                     below_event.start, below_event.end, event.start, event.end)
             if point != below_event.start and point != below_event.end:
+                below_below = sweep_line.below(below_event)
+                assert (below_below is None
+                        or below_below.start != below_event.start
+                        or below_below.end != point)
                 self._divide_segment(below_event, point)
             if point != event.start and point != event.end:
+                above_event = sweep_line.above(event)
+                if (above_event is not None
+                        and above_event.start == event.start
+                        and above_event.end == point):
+                    sweep_line.remove(above_event)
+                    event.merge_with(above_event)
                 self._divide_segment(event, point)
             event.set_both_relations(max(event.relation, relation))
             below_event.set_both_relations(max(below_event.relation, relation))
-        else:
+        elif relation is not Relation.DISJOINT:
             # segments overlap
             starts_equal = event.start == below_event.start
             start_min, start_max = (
@@ -82,42 +91,39 @@ class EventsQueue:
             end_min, end_max = (
                 (None, None)
                 if ends_equal
-                else ((event.complement, below_event.complement)
-                      if (EventsQueueKey(event.complement)
-                          < EventsQueueKey(below_event.complement))
-                      else (below_event.complement, event.complement)))
+                else ((event.opposite, below_event.opposite)
+                      if (EventsQueueKey(event.opposite)
+                          < EventsQueueKey(below_event.opposite))
+                      else (below_event.opposite, event.opposite)))
             if starts_equal:
-                if ends_equal:
-                    # segments are equal
-                    event.set_both_relations(relation)
-                    below_event.set_both_relations(relation)
-                else:
-                    # segments share the left endpoint
-                    end_min.set_both_relations(relation)
-                    end_max.complement.relation = relation
-                    self._divide_segment(end_max.complement, end_min.start)
+                assert not ends_equal
+                # segments share the left endpoint
+                end_min.set_both_relations(relation)
+                end_max.opposite.relation = relation
+                sweep_line.remove(end_max.opposite)
+                self._divide_segment(end_max.opposite, end_min.start)
+                event.merge_with(below_event)
             elif ends_equal:
                 # segments share the right endpoint
                 start_max.set_both_relations(relation)
-                start_min.complement.relation = relation
+                start_min.opposite.relation = relation
                 self._divide_segment(start_min, start_max.start)
-            elif start_min is end_max.complement:
+            elif start_min is end_max.opposite:
                 # one line segment includes the other one
                 start_max.set_both_relations(relation)
                 start_min_original_relationship = start_min.relation
                 start_min.relation = relation
                 self._divide_segment(start_min, end_min.start)
                 start_min.relation = start_min_original_relationship
-                start_min.complement.relation = relation
+                start_min.opposite.relation = relation
                 self._divide_segment(start_min, start_max.start)
             else:
                 # no line segment includes the other one
                 start_max.relation = relation
                 self._divide_segment(start_max, end_min.start)
-                start_min.complement.relation = relation
+                start_min.opposite.relation = relation
                 self._divide_segment(start_min, start_max.start)
-        event.segments_ids = below_event.segments_ids = merge_ids(
-                event.segments_ids, below_event.segments_ids)
+        return False
 
     def peek(self) -> Event:
         return self._queue.peek()
@@ -133,11 +139,16 @@ class EventsQueue:
         self._queue.push(event)
 
     def _divide_segment(self, event: Event, break_point: Point) -> None:
-        left_event = event.complement.complement = Event(
-                break_point, event.complement, True, event.complement.relation,
-                event.segments_ids)
-        right_event = event.complement = Event(
-                break_point, event, False, event.relation,
-                event.complement.segments_ids)
+        points_ids = event.points_ids[event.start][event.end]
+        left_event = event.opposite.opposite = Event(
+                break_point, event.opposite, True, event.opposite.relation,
+                event.points_ids)
+        right_event = event.opposite = Event(break_point, event, False,
+                                             event.relation,
+                                             event.opposite.points_ids)
+        (left_event.points_ids.setdefault(break_point, {})
+         .setdefault(left_event.end, set()).update(points_ids))
+        (right_event.points_ids[right_event.end].setdefault(break_point, set())
+         .update(points_ids))
         self.push(left_event)
         self.push(right_event)

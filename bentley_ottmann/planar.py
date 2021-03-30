@@ -1,8 +1,8 @@
+from itertools import product
 from typing import (Dict,
                     Hashable,
                     Iterable,
                     Sequence,
-                    Set,
                     Tuple)
 
 from ground.base import (Relation as _Relation,
@@ -12,8 +12,7 @@ from ground.hints import (Contour,
                           Segment)
 
 from .core.base import sweep as _sweep
-from .core.utils import (merge_ids as _merge_ids,
-                         to_pairs_combinations as _to_pairs_combinations)
+from .core.utils import to_pairs_combinations as _to_pairs_combinations
 
 
 def edges_intersect(contour: Contour) -> bool:
@@ -71,12 +70,17 @@ def edges_intersect(contour: Contour) -> bool:
 
     non_overlap_relations = (_Relation.CROSS, _Relation.DISJOINT,
                              _Relation.TOUCH)
-    return any((first_event.relation not in non_overlap_relations
-                or second_event.relation not in non_overlap_relations
-                or non_neighbours_intersect(_to_pairs_combinations(_merge_ids(
-                    first_event.segments_ids, second_event.segments_ids))))
-               for first_event, second_event in _sweep(edges,
-                                                       context=context))
+    return any((event.relation not in non_overlap_relations
+                or non_neighbours_intersect(
+                    _to_pairs_combinations(sorted(ids))
+                    if start == end
+                    else map(sorted,
+                             product(event.points_ids[event.start][event.end],
+                                     ids))))
+               for event in _sweep(edges,
+                                   context=context)
+               for start, end_ids in event.points_ids.items()
+               for end, ids in end_ids.items())
 
 
 def _all_unique(values: Iterable[Hashable]) -> bool:
@@ -168,7 +172,7 @@ def segments_cross_or_overlap(segments: Sequence[Segment]) -> bool:
 
 
 def segments_intersections(segments: Sequence[Segment]
-                           ) -> Dict[Point, Set[Tuple[int, int]]]:
+                           ) -> Dict[Tuple[int, int], Tuple[Point, Point]]:
     """
     Returns mapping between intersection points
     and corresponding segments indices.
@@ -206,35 +210,16 @@ def segments_intersections(segments: Sequence[Segment]
         mapping between intersection points and corresponding segments indices.
     """
     result = {}
-    context = _get_context()
-
-    def segments_intersector(first_start: Point,
-                             first_end: Point,
-                             second_start: Point,
-                             second_end: Point,
-                             relater=context.segments_relation,
-                             intersector=context.segments_intersection
-                             ) -> Tuple[Point, ...]:
-        relation = relater(first_start, first_end, second_start, second_end)
-        if relation is _Relation.DISJOINT:
-            return ()
-        if relation is _Relation.TOUCH or relation is _Relation.CROSS:
-            return intersector(first_start, first_end, second_start,
-                               second_end),
-        else:
-            _, first_point, second_point, _ = sorted(
-                    [first_start, first_end, second_start, second_end])
-            return first_point, second_point
-
-    for first_event, second_event in _sweep(segments,
-                                            context=context):
-        for segment_id, next_segment_id in _to_pairs_combinations(_merge_ids(
-                first_event.segments_ids, second_event.segments_ids)):
-            segment, next_segment = (segments[segment_id],
-                                     segments[next_segment_id])
-            for point in segments_intersector(segment.start, segment.end,
-                                              next_segment.start,
-                                              next_segment.end):
-                result.setdefault(point, set()).add((segment_id,
-                                                     next_segment_id))
+    for event in _sweep(segments,
+                        context=_get_context()):
+        for start, end_ids in event.points_ids.items():
+            for end, ids in end_ids.items():
+                for ids_pair in _to_pairs_combinations(sorted(ids)):
+                    if ids_pair in result:
+                        prev_start, prev_end = result[ids_pair]
+                        endpoints = (min(prev_start, start),
+                                     max(prev_end, end))
+                        result[ids_pair] = endpoints
+                    else:
+                        result[ids_pair] = (start, end)
     return result
