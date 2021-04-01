@@ -8,7 +8,8 @@ from ground.base import (Context,
 from ground.hints import (Point,
                           Segment)
 
-from .event import Event
+from .event import (Event,
+                    LeftEvent)
 from .events_queue import EventsQueue
 from .sweep_line import SweepLine
 from .utils import to_pairs_combinations
@@ -16,7 +17,7 @@ from .utils import to_pairs_combinations
 
 def sweep(segments: Sequence[Segment],
           *,
-          context: Context) -> Iterable[Event]:
+          context: Context) -> Iterable[LeftEvent]:
     events_queue = EventsQueue.from_segments(segments,
                                              context=context)
     sweep_line = SweepLine(context)
@@ -32,10 +33,9 @@ def sweep(segments: Sequence[Segment],
             complete_touching_same_start_events(same_start_events)
             yield from to_processed_events(same_start_events)
             same_start_events, start = [event], event.start
-        if event.is_left_endpoint:
+        if event.is_left:
             equal_segment_event = sweep_line.find_equal(event)
             if equal_segment_event is None:
-                assert event not in sweep_line
                 sweep_line.add(event)
                 below_event = sweep_line.below(event)
                 if below_event is not None:
@@ -49,7 +49,7 @@ def sweep(segments: Sequence[Segment],
                 # found equal segments' fragments
                 equal_segment_event.merge_with(event)
         else:
-            event = event.opposite
+            event = event.left
             equal_segment_event = sweep_line.find_equal(event)
             if equal_segment_event is not None:
                 above_event, below_event = (
@@ -67,7 +67,10 @@ def sweep(segments: Sequence[Segment],
 
 def complete_touching_same_start_events(events: Sequence[Event]) -> None:
     for first, second in to_pairs_combinations(events):
-        non_overlapping_parts = first.ids.isdisjoint(second.ids)
+        first_left, second_left = (first if first.is_left else first.left,
+                                   second if second.is_left else second.left)
+        non_overlapping_parts = (first_left.segments_ids
+                                 .isdisjoint(second_left.segments_ids))
         if non_overlapping_parts:
             endpoint = first.start
             full_relation = (Relation.TOUCH
@@ -76,17 +79,11 @@ def complete_touching_same_start_events(events: Sequence[Event]) -> None:
                                  or endpoint == second.original_start
                                  or endpoint == second.original_end)
                              else Relation.CROSS)
-            (first
-             if first.is_left_endpoint
-             else first.opposite).add_relation(full_relation)
-            (second
-             if second.is_left_endpoint
-             else second.opposite).add_relation(full_relation.complement)
+            first_left.add_relation(full_relation)
+            second_left.add_relation(full_relation.complement)
             first.register_tangent(second)
             second.register_tangent(first)
 
 
-def to_processed_events(events: Iterable[Event]) -> Iterable[Event]:
-    return [candidate.opposite
-            for candidate in events
-            if not candidate.is_left_endpoint]
+def to_processed_events(events: Iterable[Event]) -> List[LeftEvent]:
+    return [candidate.left for candidate in events if not candidate.is_left]

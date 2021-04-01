@@ -8,7 +8,7 @@ from ground.base import (Context,
 from ground.hints import Point
 from reprit.base import generate_repr
 
-from .event import Event
+from .event import LeftEvent
 
 
 class SweepLine:
@@ -21,13 +21,13 @@ class SweepLine:
 
     __repr__ = generate_repr(__init__)
 
-    def __contains__(self, event: Event) -> bool:
+    def __contains__(self, event: LeftEvent) -> bool:
         return event in self._set
 
-    def add(self, event: Event) -> None:
+    def add(self, event: LeftEvent) -> None:
         self._set.add(event)
 
-    def find_equal(self, event: Event):
+    def find_equal(self, event: LeftEvent) -> Optional[LeftEvent]:
         try:
             candidate = self._set.floor(event)
         except ValueError:
@@ -38,16 +38,16 @@ class SweepLine:
                         and candidate.end == event.end)
                     else None)
 
-    def remove(self, event: Event) -> None:
+    def remove(self, event: LeftEvent) -> None:
         self._set.remove(event)
 
-    def above(self, event: Event) -> Optional[Event]:
+    def above(self, event: LeftEvent) -> Optional[LeftEvent]:
         try:
             return self._set.next(event)
         except ValueError:
             return None
 
-    def below(self, event: Event) -> Optional[Event]:
+    def below(self, event: LeftEvent) -> Optional[LeftEvent]:
         try:
             return self._set.prev(event)
         except ValueError:
@@ -59,7 +59,7 @@ class SweepLineKey:
 
     def __init__(self,
                  orienteer: Callable[[Point, Point, Point], Orientation],
-                 event: Event) -> None:
+                 event: LeftEvent) -> None:
         self.event, self.orienteer = event, orienteer
 
     __repr__ = generate_repr(__init__)

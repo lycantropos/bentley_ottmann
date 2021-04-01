@@ -7,7 +7,9 @@ from ground.hints import (Point,
 from prioq.base import PriorityQueue
 from reprit.base import generate_repr
 
-from .event import Event
+from .event import (Event,
+                    LeftEvent,
+                    RightEvent)
 from .sweep_line import SweepLine
 from .utils import classify_overlap
 
@@ -35,11 +37,11 @@ class EventsQueueKey:
             # different starts, but same x-coordinate,
             # the event with lower y-coordinate is processed first
             return start_y < other_start_y
-        elif event.is_left_endpoint is not other_event.is_left_endpoint:
+        elif event.is_left is not other_event.is_left:
             # same start, but one is a left endpoint
             # and the other is a right endpoint,
             # the right endpoint is processed first
-            return not event.is_left_endpoint
+            return not event.is_left
         else:
             # same start,
             # both events are left endpoints or both are right endpoints
@@ -54,9 +56,9 @@ class EventsQueue:
                       context: Context) -> 'EventsQueue':
         result = cls(context)
         for index, segment in enumerate(segments):
-            event = Event.from_segment(segment, index)
+            event = LeftEvent.from_segment(segment, index)
             result.push(event)
-            result.push(event.opposite)
+            result.push(event.right)
         return result
 
     __slots__ = 'context', '_queue'
@@ -71,8 +73,8 @@ class EventsQueue:
         return bool(self._queue)
 
     def detect_intersection(self,
-                            below_event: Event,
-                            event: Event,
+                            below_event: LeftEvent,
+                            event: LeftEvent,
                             sweep_line: SweepLine) -> None:
         relation = self.context.segments_relation(
                 below_event.start, below_event.end, event.start, event.end)
@@ -82,7 +84,7 @@ class EventsQueue:
             # segments touch or cross
             point = self.context.segments_intersection(
                     below_event.start, below_event.end, event.start, event.end)
-            assert event.ids.isdisjoint(below_event.ids)
+            assert event.segments_ids.isdisjoint(below_event.segments_ids)
             if point != below_event.start and point != below_event.end:
                 below_below = sweep_line.below(below_event)
                 assert (below_below is None
@@ -99,10 +101,10 @@ class EventsQueue:
                 self._divide_segment(event, point)
             touching_event = (event
                               if point == event.start
-                              else event.opposite)
+                              else event.right)
             touching_below_event = (below_event
                                     if point == below_event.start
-                                    else below_event.opposite)
+                                    else below_event.right)
             touching_event.register_tangent(touching_below_event)
             touching_below_event.register_tangent(touching_event)
             full_relation = (relation
@@ -122,20 +124,20 @@ class EventsQueue:
                 else (below_event, event))
             ends_equal = event.end == below_event.end
             end_min, end_max = (
-                (event.opposite, below_event.opposite)
-                if ends_equal or (EventsQueueKey(event.opposite)
-                                  < EventsQueueKey(below_event.opposite))
-                else (below_event.opposite, event.opposite))
+                (event.right, below_event.right)
+                if ends_equal or (EventsQueueKey(event.right)
+                                  < EventsQueueKey(below_event.right))
+                else (below_event.right, event.right))
             if starts_equal:
                 assert not ends_equal
                 # segments share the left endpoint
-                sweep_line.remove(end_max.opposite)
-                self._divide_segment(end_max.opposite, end_min.start)
+                sweep_line.remove(end_max.left)
+                self._divide_segment(end_max.left, end_min.start)
                 event.merge_with(below_event)
             elif ends_equal:
                 # segments share the right endpoint
                 self._divide_segment(start_min, start_max.start)
-            elif start_min is end_max.opposite:
+            elif start_min is end_max.left:
                 # one line segment includes the other one
                 self._divide_segment(start_min, end_min.start)
                 self._divide_segment(start_min, start_max.start)
@@ -163,17 +165,16 @@ class EventsQueue:
                              .format(event.start))
         self._queue.push(event)
 
-    def _divide_segment(self, event: Event, break_point: Point) -> None:
-        ids = event.ids
-        left_event = event.opposite.opposite = Event(
-                break_point, event.opposite, True, event.original_start,
+    def _divide_segment(self, event: LeftEvent, break_point: Point) -> None:
+        segments_ids = event.segments_ids
+        (event.parts_ids.setdefault(event.start, {})
+         .setdefault(break_point, set()).update(segments_ids))
+        (event.parts_ids.setdefault(break_point, {})
+         .setdefault(event.end, set()).update(segments_ids))
+        left_event = event.right.left = LeftEvent(
+                break_point, event.right, event.original_start,
                 event.parts_ids)
-        right_event = event.opposite = Event(break_point, event, False,
-                                             event.original_end,
-                                             event.opposite.parts_ids)
-        (left_event.parts_ids.setdefault(break_point, {})
-         .setdefault(left_event.end, set()).update(ids))
-        (right_event.parts_ids[right_event.end].setdefault(break_point, set())
-         .update(ids))
+        right_event = event.right = RightEvent(break_point, event,
+                                               event.original_end)
         self.push(left_event)
         self.push(right_event)
