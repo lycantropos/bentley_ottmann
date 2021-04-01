@@ -90,15 +90,20 @@ class EventsQueue:
                 assert (below_below is None
                         or below_below.start != below_event.start
                         or below_below.end != point)
-                self._divide_segment(below_event, point)
+                self.push(below_event.divide(point))
+                self.push(below_event.right)
             if point != event.start and point != event.end:
                 above_event = sweep_line.above(event)
                 if (above_event is not None
                         and above_event.start == event.start
                         and above_event.end == point):
                     sweep_line.remove(above_event)
+                    self.push(event.divide(point))
+                    self.push(event.right)
                     event.merge_with(above_event)
-                self._divide_segment(event, point)
+                else:
+                    self.push(event.divide(point))
+                    self.push(event.right)
             touching_event = (event
                               if point == event.start
                               else event.right)
@@ -132,23 +137,29 @@ class EventsQueue:
                 assert not ends_equal
                 # segments share the left endpoint
                 sweep_line.remove(end_max.left)
-                self._divide_segment(end_max.left, end_min.start)
+                self.push(end_max.left.divide(end_min.start))
                 event.merge_with(below_event)
             elif ends_equal:
                 # segments share the right endpoint
-                self._divide_segment(start_min, start_max.start)
+                start_max.merge_with(start_min.divide(start_max.start))
+                self.push(start_min.right)
             elif start_min is end_max.left:
                 # one line segment includes the other one
-                self._divide_segment(start_min, end_min.start)
-                self._divide_segment(start_min, start_max.start)
+                self.push(start_min.divide(end_min.start))
+                self.push(start_min.right)
+                start_max.merge_with(start_min.divide(start_max.start))
             else:
                 # no line segment includes the other one
-                self._divide_segment(start_max, end_min.start)
-                self._divide_segment(start_min, start_max.start)
-            full_relation = classify_overlap(below_event.original_start,
-                                             below_event.original_end,
-                                             event.original_start,
-                                             event.original_end)
+                self.push(start_max.divide(end_min.start))
+                start_max.merge_with(start_min.divide(start_max.start))
+                self.push(start_max.right)
+                self.push(start_min.right)
+            full_relation = (relation
+                             if relation is Relation.OVERLAP
+                             else classify_overlap(below_event.original_start,
+                                                   below_event.original_end,
+                                                   event.original_start,
+                                                   event.original_end))
         event.add_relation(full_relation)
         below_event.add_relation(full_relation.complement)
 
@@ -164,17 +175,3 @@ class EventsQueue:
                              'with both endpoints being: {}.'
                              .format(event.start))
         self._queue.push(event)
-
-    def _divide_segment(self, event: LeftEvent, break_point: Point) -> None:
-        segments_ids = event.segments_ids
-        (event.parts_ids.setdefault(event.start, {})
-         .setdefault(break_point, set()).update(segments_ids))
-        (event.parts_ids.setdefault(break_point, {})
-         .setdefault(event.end, set()).update(segments_ids))
-        left_event = event.right.left = LeftEvent(
-                break_point, event.right, event.original_start,
-                event.parts_ids)
-        right_event = event.right = RightEvent(break_point, event,
-                                               event.original_end)
-        self.push(left_event)
-        self.push(right_event)

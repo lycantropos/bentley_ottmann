@@ -110,6 +110,18 @@ class LeftEvent(Event):
     def add_relation(self, relation: Relation) -> None:
         self._relations_mask |= 1 << relation
 
+    def divide(self, break_point: Point) -> 'LeftEvent':
+        segments_ids = self.segments_ids
+        (self.parts_ids.setdefault(self.start, {})
+         .setdefault(break_point, set()).update(segments_ids))
+        (self.parts_ids.setdefault(break_point, {})
+         .setdefault(self.end, set()).update(segments_ids))
+        result = self.right.left = LeftEvent(
+                break_point, self.right, self.original_start,
+                self.parts_ids)
+        self.right = RightEvent(break_point, self, self.original_end)
+        return result
+
     def has_only_relations(self, *relations: Relation) -> bool:
         mask = self._relations_mask
         for relation in relations:
