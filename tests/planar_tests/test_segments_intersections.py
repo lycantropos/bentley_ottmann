@@ -96,9 +96,9 @@ def test_reversed_coordinates(segments: List[Segment]) -> None:
     reversed_result = segments_intersections(reverse_segments_coordinates(
             segments))
     assert result == {
-        ids_pair: to_sorted_pair(reverse_point_coordinates(start),
-                                 reverse_point_coordinates(end))
-        for ids_pair, (start, end) in reversed_result.items()}
+        ids_pair: tuple(sorted(reverse_point_coordinates(endpoint)
+                               for endpoint in endpoints))
+        for ids_pair, endpoints in reversed_result.items()}
 
 
 @given(strategies.degenerate_segments_lists)
