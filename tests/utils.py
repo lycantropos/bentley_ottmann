@@ -7,8 +7,7 @@ from typing import (Callable,
                     Tuple,
                     TypeVar)
 
-from ground.base import (Relation,
-                         get_context)
+from ground.base import get_context
 from ground.hints import Coordinate
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
@@ -96,20 +95,3 @@ def scale_segment(segment: Segment,
     end_x, end_y = end.x, end.y
     return Segment(start, Point(start_x + scale * (end_x - start_x),
                                 start_y + scale * (end_y - start_y)))
-
-
-def segments_pair_intersections(first_start: Point,
-                                first_end: Point,
-                                second_start: Point,
-                                second_end: Point) -> Tuple[Point, ...]:
-    relation = context.segments_relation(first_start, first_end, second_start,
-                                         second_end)
-    if relation is Relation.DISJOINT:
-        return ()
-    elif relation is Relation.TOUCH or relation is Relation.CROSS:
-        return context.segments_intersection(first_start, first_end,
-                                             second_start, second_end),
-    else:
-        _, first_point, second_point, _ = sorted([first_start, first_end,
-                                                  second_start, second_end])
-        return first_point, second_point
