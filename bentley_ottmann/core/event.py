@@ -59,7 +59,7 @@ class Event:
         assert self.is_left_endpoint
         self._relations_mask |= 1 << relation
 
-    def has_only_relations(self, relations: Sequence[Relation]) -> bool:
+    def has_only_relations(self, *relations: Relation) -> bool:
         assert self.is_left_endpoint
         mask = self._relations_mask
         for relation in relations:

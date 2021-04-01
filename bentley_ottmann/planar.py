@@ -1,5 +1,4 @@
-from itertools import (chain,
-                       product,
+from itertools import (product,
                        repeat)
 from typing import (Dict,
                     Hashable,
@@ -69,16 +68,14 @@ def edges_intersect(contour: _hints.Contour) -> bool:
         return (next_segment_id - segment_id > 1
                 and (segment_id != 0 or next_segment_id != last_edge_index))
 
-    return any(len(ids) > 1
+    return any(not event.has_only_relations(_Relation.DISJOINT,
+                                            _Relation.TOUCH)
                or any(non_neighbours_intersect(*to_sorted_pair(id_,
                                                                tangent_id))
-                      for tangent in chain(event.tangents,
-                                           event.opposite.tangents)
+                      for tangent in event.tangents + event.opposite.tangents
                       for id_, tangent_id in product(event.ids, tangent.ids))
                for event in _sweep(edges,
-                                   context=context)
-               for start, end_ids in event.parts_ids.items()
-               for end, ids in end_ids.items())
+                                   context=context))
 
 
 def _all_unique(values: Iterable[Hashable]) -> bool:
@@ -125,13 +122,9 @@ def segments_intersect(segments: Sequence[_hints.Segment]) -> bool:
     ...                     Segment(Point(2, 0), Point(0, 2))])
     True
     """
-    return any(len(ids) > 1
-               or len(event.tangents) > 1
-               or len(event.opposite.tangents) > 1
-               for event in _sweep(segments,
-                                   context=_get_context())
-               for start, end_ids in event.parts_ids.items()
-               for end, ids in end_ids.items())
+    return not all(event.has_only_relations(_Relation.DISJOINT)
+                   for event in _sweep(segments,
+                                       context=_get_context()))
 
 
 def segments_cross_or_overlap(segments: Sequence[_hints.Segment]) -> bool:
@@ -167,8 +160,8 @@ def segments_cross_or_overlap(segments: Sequence[_hints.Segment]) -> bool:
     ...                            Segment(Point(0, 2), Point(2, 0))])
     True
     """
-    rest_relations = _Relation.DISJOINT, _Relation.TOUCH
-    return not all(event.has_only_relations(rest_relations)
+    return not all(event.has_only_relations(_Relation.DISJOINT,
+                                            _Relation.TOUCH)
                    for event in _sweep(segments,
                                        context=_get_context()))
 
