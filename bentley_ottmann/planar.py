@@ -208,41 +208,64 @@ def segments_intersections(segments: Sequence[_hints.Segment]
     :returns:
         mapping between intersection points and corresponding segments indices.
     """
-    result = {}
-    all_parts_ids = {}
-    tangents = {}
+    left_parts_ids, right_parts_ids = {}, {}
+    left_tangents, right_tangents = {}, {}
     for event in _sweep(segments,
                         context=_get_context()):
-        event_tangents = [*event.tangents, *event.right.tangents]
-        if event_tangents:
-            (tangents.setdefault(event.start, {}).setdefault(event.end, [])
-             .extend(event_tangents))
+        if event.tangents:
+            (left_tangents.setdefault(event.start, {})
+             .setdefault(event.end, set())
+             .update(tangent.end for tangent in event.tangents))
+        if event.right.tangents:
+            (right_tangents.setdefault(event.end, {})
+             .setdefault(event.start, set())
+             .update(tangent.end for tangent in event.right.tangents))
         for start, ends_ids in event.parts_ids.items():
             for end, ids in ends_ids.items():
-                all_end_ids = all_parts_ids.setdefault(start, {})
-                if end in all_end_ids:
-                    all_end_ids[end].update(ids)
-                else:
-                    all_end_ids[end] = ids
-                for ids_pair in _to_pairs_combinations(sorted(ids)):
-                    if ids_pair in result:
-                        prev_start, prev_end = result[ids_pair]
-                        endpoints = min(prev_start, start), max(prev_end, end)
-                    else:
-                        endpoints = (start, end)
-                    result[ids_pair] = endpoints
-    for start, ends_tangents in tangents.items():
-        for end, end_tangents in ends_tangents.items():
-            for tangent in end_tangents:
-                endpoint = tangent.start
-                ids, tangent_ids = (all_parts_ids[start][end],
-                                    all_parts_ids[endpoint][tangent.end]
-                                    if tangent.is_left
-                                    else all_parts_ids[tangent.end][endpoint])
+                (left_parts_ids.setdefault(start, {}).setdefault(end, set())
+                 .update(ids))
+                (right_parts_ids.setdefault(end, {}).setdefault(start, set())
+                 .update(ids))
+    result = {}
+    for intersection_point, ends_tangents_ends in left_tangents.items():
+        left_intersection_point_ids, right_intersection_point_ids = (
+            left_parts_ids.get(intersection_point),
+            right_parts_ids.get(intersection_point))
+        for end, tangents_ends in ends_tangents_ends.items():
+            ids = left_intersection_point_ids[end]
+            for tangent_end in tangents_ends:
+                tangent_ids = (
+                    left_intersection_point_ids[tangent_end]
+                    if intersection_point < tangent_end
+                    else right_intersection_point_ids[tangent_end])
                 if ids.isdisjoint(tangent_ids):
                     result.update(zip(
-                            [to_sorted_pair(first_id, second_id)
-                             for first_id, second_id in product(ids,
-                                                                tangent_ids)],
-                            repeat((endpoint,))))
+                            [to_sorted_pair(id_, tangent_id)
+                             for id_, tangent_id in product(ids, tangent_ids)],
+                            repeat((intersection_point,))))
+    for intersection_point, starts_tangents_ends in right_tangents.items():
+        left_intersection_point_ids, right_intersection_point_ids = (
+            left_parts_ids.get(intersection_point),
+            right_parts_ids.get(intersection_point))
+        for start, tangents_ends in starts_tangents_ends.items():
+            ids = right_intersection_point_ids[start]
+            for tangent_end in tangents_ends:
+                tangent_ids = (
+                    left_intersection_point_ids[tangent_end]
+                    if intersection_point < tangent_end
+                    else right_intersection_point_ids[tangent_end])
+                if ids.isdisjoint(tangent_ids):
+                    result.update(zip(
+                            [to_sorted_pair(id_, tangent_id)
+                             for id_, tangent_id in product(ids, tangent_ids)],
+                            repeat((intersection_point,))))
+    for start, ends_ids in left_parts_ids.items():
+        for end, ids in ends_ids.items():
+            for ids_pair in _to_pairs_combinations(sorted(ids)):
+                if ids_pair in result:
+                    prev_start, prev_end = result[ids_pair]
+                    endpoints = min(prev_start, start), max(prev_end, end)
+                else:
+                    endpoints = (start, end)
+                result[ids_pair] = endpoints
     return result
