@@ -67,10 +67,8 @@ def sweep(segments: Sequence[Segment],
 
 def complete_touching_same_start_events(events: Sequence[Event]) -> None:
     for first, second in to_pairs_combinations(events):
-        first_left, second_left = (first if first.is_left else first.left,
-                                   second if second.is_left else second.left)
-        non_overlapping_parts = (first_left.segments_ids
-                                 .isdisjoint(second_left.segments_ids))
+        non_overlapping_parts = (first.segments_ids
+                                 .isdisjoint(second.segments_ids))
         if non_overlapping_parts:
             endpoint = first.start
             full_relation = (Relation.TOUCH
@@ -79,8 +77,12 @@ def complete_touching_same_start_events(events: Sequence[Event]) -> None:
                                  or endpoint == second.original_start
                                  or endpoint == second.original_end)
                              else Relation.CROSS)
-            first_left.add_relation(full_relation)
-            second_left.add_relation(full_relation.complement)
+            (first
+             if first.is_left
+             else first.left).add_relation(full_relation)
+            (second
+             if second.is_left
+             else second.left).add_relation(full_relation.complement)
             first.register_tangent(second)
             second.register_tangent(first)
 

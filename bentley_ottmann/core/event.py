@@ -44,6 +44,11 @@ class Event(ABC):
 
     @property
     @abstractmethod
+    def segments_ids(self) -> Set[int]:
+        """Returns segments ids of the event."""
+
+    @property
+    @abstractmethod
     def start(self) -> Point:
         """Returns start of the event."""
 
@@ -150,6 +155,10 @@ class RightEvent(Event):
     @property
     def original_start(self) -> Point:
         return self._original_start
+
+    @property
+    def segments_ids(self) -> Set[int]:
+        return self.left.segments_ids
 
     @property
     def start(self) -> Point:
