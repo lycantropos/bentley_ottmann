@@ -168,9 +168,9 @@ def segments_cross_or_overlap(segments: Sequence[_hints.Segment]) -> bool:
     True
     """
     rest_relations = _Relation.DISJOINT, _Relation.TOUCH
-    return any(event.relation not in rest_relations
-               for event in _sweep(segments,
-                                   context=_get_context()))
+    return not all(event.has_only_relations(rest_relations)
+                   for event in _sweep(segments,
+                                       context=_get_context()))
 
 
 def segments_intersections(segments: Sequence[_hints.Segment]

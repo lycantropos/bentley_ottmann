@@ -9,6 +9,7 @@ from reprit.base import generate_repr
 
 from .event import Event
 from .sweep_line import SweepLine
+from .utils import classify_overlap
 
 
 class EventsQueueKey:
@@ -75,7 +76,9 @@ class EventsQueue:
                             sweep_line: SweepLine) -> None:
         relation = self.context.segments_relation(
                 below_event.start, below_event.end, event.start, event.end)
-        if relation is Relation.TOUCH or relation is Relation.CROSS:
+        if relation is Relation.DISJOINT:
+            return
+        elif relation is Relation.TOUCH or relation is Relation.CROSS:
             # segments touch or cross
             point = self.context.segments_intersection(
                     below_event.start, below_event.end, event.start, event.end)
@@ -102,7 +105,14 @@ class EventsQueue:
                                     else below_event.opposite)
             touching_event.tangents.append(touching_below_event)
             touching_below_event.tangents.append(touching_event)
-        elif relation is not Relation.DISJOINT:
+            full_relation = (relation
+                             if (relation is Relation.CROSS
+                                 or point == below_event.original_start
+                                 or point == below_event.original_end
+                                 or point == event.original_start
+                                 or point == event.original_end)
+                             else Relation.CROSS)
+        else:
             # segments overlap
             starts_equal = event.start == below_event.start
             start_min, start_max = (
@@ -133,6 +143,12 @@ class EventsQueue:
                 # no line segment includes the other one
                 self._divide_segment(start_max, end_min.start)
                 self._divide_segment(start_min, start_max.start)
+            full_relation = classify_overlap(below_event.original_start,
+                                             below_event.original_end,
+                                             event.original_start,
+                                             event.original_end)
+        event.add_relation(full_relation)
+        below_event.add_relation(full_relation.complement)
 
     def peek(self) -> Event:
         return self._queue.peek()
@@ -150,8 +166,10 @@ class EventsQueue:
     def _divide_segment(self, event: Event, break_point: Point) -> None:
         ids = event.ids
         left_event = event.opposite.opposite = Event(
-                break_point, event.opposite, True, event.parts_ids)
+                break_point, event.opposite, True, event.original_start,
+                event.parts_ids)
         right_event = event.opposite = Event(break_point, event, False,
+                                             event.original_end,
                                              event.opposite.parts_ids)
         (left_event.parts_ids.setdefault(break_point, {})
          .setdefault(left_event.end, set()).update(ids))
