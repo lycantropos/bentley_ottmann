@@ -41,5 +41,5 @@ def to_pairs_combinations(iterable: Iterable[_T]) -> Iterable[Tuple[_T, _T]]:
                         r=2)
 
 
-def to_sorted_pair(start: Point, end: Point) -> Tuple[Point, Point]:
+def to_sorted_pair(start: _T, end: _T) -> Tuple[_T, _T]:
     return (start, end) if start < end else (end, start)
