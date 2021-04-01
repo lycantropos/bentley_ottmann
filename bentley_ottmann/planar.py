@@ -20,7 +20,7 @@ def edges_intersect(contour: _hints.Contour) -> bool:
     """
     Checks if polygonal contour has self-intersection.
 
-    Based on Shamos-Hoey algorithm.
+    Based on Bentley-Ottmann algorithm.
 
     Time complexity:
         ``O(len(contour) * log len(contour))``
@@ -133,7 +133,7 @@ def segments_cross_or_overlap(segments: Sequence[_hints.Segment]) -> bool:
     """
     Checks if at least one pair of segments crosses or overlaps.
 
-    Based on Shamos-Hoey algorithm.
+    Based on Bentley-Ottmann algorithm.
 
     Time complexity:
         ``O((len(segments) + len(intersections)) * log len(segments))``
