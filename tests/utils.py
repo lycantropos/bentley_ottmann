@@ -1,7 +1,6 @@
 from functools import partial
 from types import MappingProxyType
-from typing import (Any,
-                    Callable,
+from typing import (Callable,
                     Dict,
                     Iterable,
                     Sequence,
@@ -42,8 +41,7 @@ def apply(function: Callable[..., Range],
     return function(*args, **kwargs)
 
 
-def is_point(object_: Any) -> bool:
-    return isinstance(object_, Point)
+is_point = Point.__instancecheck__
 
 
 def contour_to_edges(contour: Contour) -> Sequence[Segment]:
@@ -52,14 +50,10 @@ def contour_to_edges(contour: Contour) -> Sequence[Segment]:
             for index in range(len(vertices))]
 
 
-def scale_segment(segment: Segment,
-                  *,
-                  scale: Coordinate) -> Segment:
-    start, end = segment.start, segment.end
-    start_x, start_y = start.x, start.y
-    end_x, end_y = end.x, end.y
-    return Segment(start, Point(start_x + scale * (end_x - start_x),
-                                start_y + scale * (end_y - start_y)))
+def pop_left_vertex(contour: Contour) -> Tuple[Point, Contour]:
+    first_vertex, *rest_vertices = contour.vertices
+    rest_contour = Contour(rest_vertices)
+    return first_vertex, rest_contour
 
 
 def reflect_segment(segment: Segment) -> Segment:
@@ -85,8 +79,23 @@ def reverse_segment_coordinates(segment: Segment) -> Segment:
                    reverse_point_coordinates(segment.end))
 
 
+def reverse_segments_coordinates(segments: Sequence[Segment]
+                                 ) -> Sequence[Segment]:
+    return [reverse_segment_coordinates(segment) for segment in segments]
+
+
 def reverse_point_coordinates(point: Point) -> Point:
     return Point(point.y, point.x)
+
+
+def scale_segment(segment: Segment,
+                  *,
+                  scale: Coordinate) -> Segment:
+    start, end = segment.start, segment.end
+    start_x, start_y = start.x, start.y
+    end_x, end_y = end.x, end.y
+    return Segment(start, Point(start_x + scale * (end_x - start_x),
+                                start_y + scale * (end_y - start_y)))
 
 
 def segments_pair_intersections(first_start: Point,

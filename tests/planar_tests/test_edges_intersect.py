@@ -4,15 +4,14 @@ from itertools import (chain,
 import pytest
 from ground.base import (Context,
                          Relation)
+from ground.hints import Contour
 from hypothesis import given
 
 from bentley_ottmann.planar import edges_intersect
-from tests.utils import (Contour,
-                         Segment,
-                         contour_to_edges,
+from tests.utils import (contour_to_edges,
+                         pop_left_vertex,
                          reverse_contour,
-                         reverse_contour_coordinates,
-                         segments_pair_intersections)
+                         reverse_contour_coordinates)
 from . import strategies
 
 
@@ -34,53 +33,56 @@ def test_base_case(context: Context, contour: Contour) -> None:
 
 @given(strategies.non_triangular_contours)
 def test_step(context: Context, contour: Contour) -> None:
-    first_vertex, *rest_vertices = contour.vertices
-    rest_contour = Contour(rest_vertices)
+    first_vertex, rest_contour = pop_left_vertex(contour)
+    rest_vertices = rest_contour.vertices
 
     result = edges_intersect(rest_contour)
     next_result = edges_intersect(contour)
 
-    first_edge, last_edge = (Segment(first_vertex, rest_vertices[0]),
-                             Segment(rest_vertices[-1], first_vertex))
+    first_edge_start, first_edge_end = first_vertex, rest_vertices[0]
+    last_edge_start, last_edge_end = rest_vertices[-1], first_vertex
     rest_edges = contour_to_edges(rest_contour)
     overlap_relations = (Relation.COMPONENT, Relation.COMPOSITE,
                          Relation.EQUAL, Relation.OVERLAP)
     assert (next_result
             is (result
                 and len(rest_vertices) > 2
-                and (any(segments_pair_intersections(
+                and (any(context.segments_relation(
                             rest_edges[index].start, rest_edges[index].end,
                             rest_edges[other_index].start,
                             rest_edges[other_index].end)
+                         is not Relation.DISJOINT
                          for index in range(len(rest_edges) - 1)
                          for other_index
                          in chain(range(index - 1),
                                   range(index + 2, len(rest_edges) - 1)))
-                     or any(segments_pair_intersections(edge.start, edge.end,
-                                                        other_edge.start,
-                                                        other_edge.end)
+                     or any(context.segments_relation(edge.start, edge.end,
+                                                      other_edge.start,
+                                                      other_edge.end)
                             in overlap_relations
                             for edge, other_edge
                             in combinations(rest_edges[:-1], 2)))
-                or any(segments_pair_intersections(first_edge.start,
-                                                   first_edge.end, edge.start,
-                                                   edge.end)
+                or any(context.segments_relation(first_edge_start,
+                                                 first_edge_end, edge.start,
+                                                 edge.end)
+                       is not Relation.DISJOINT
                        for edge in rest_edges[1:-1])
-                or any(segments_pair_intersections(last_edge.start,
-                                                   last_edge.end, edge.start,
-                                                   edge.end)
+                or any(context.segments_relation(last_edge_start,
+                                                 last_edge_end, edge.start,
+                                                 edge.end)
+                       is not Relation.DISJOINT
                        for edge in rest_edges[:-2])
                 or len(rest_vertices) > 1
                 and (context.segments_relation(
-                            first_edge.start, first_edge.end,
+                            first_edge_start, first_edge_end,
                             rest_edges[0].start, rest_edges[0].end)
                      in overlap_relations
                      or context.segments_relation(
-                                    first_edge.start, first_edge.end,
-                                    last_edge.start, last_edge.end)
+                                    first_edge_start, first_edge_end,
+                                    last_edge_start, last_edge_end)
                      in overlap_relations
                      or context.segments_relation(
-                                    last_edge.start, last_edge.end,
+                                    last_edge_start, last_edge_end,
                                     rest_edges[0].start, rest_edges[0].end)
                      in overlap_relations)))
 
