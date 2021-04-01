@@ -62,23 +62,22 @@ def edges_intersect(contour: _hints.Contour) -> bool:
     edges = [segment_cls(vertices[index - 1], vertices[index])
              for index in range(len(vertices))]
 
-    def non_neighbours_intersect(segment_id: int,
-                                 next_segment_id: int,
-                                 last_edge_index: int = len(edges) - 1
-                                 ) -> bool:
-        return (next_segment_id - segment_id > 1
-                and (segment_id != 0 or next_segment_id != last_edge_index))
+    def non_neighbours_disjoint(edge_id: int,
+                                other_edge_id: int,
+                                last_edge_id: int = len(edges) - 1) -> bool:
+        min_edge_id, max_edge_id = to_sorted_pair(edge_id, other_edge_id)
+        return (max_edge_id - min_edge_id == 1
+                or (min_edge_id == 0 and max_edge_id == last_edge_id))
 
-    return any(not event.has_only_relations(_Relation.DISJOINT,
+    return not all(event.has_only_relations(_Relation.DISJOINT,
                                             _Relation.TOUCH)
-               or any(non_neighbours_intersect(*to_sorted_pair(id_,
-                                                               tangent_id))
-                      for tangent in [*event.tangents,
-                                      *event.right.tangents]
-                      for id_, tangent_id in product(event.segments_ids,
-                                                     tangent.segments_ids))
-               for event in _sweep(edges,
-                                   context=context))
+                   and all(non_neighbours_disjoint(id_, other_id)
+                           for tangent in [*event.tangents,
+                                           *event.right.tangents]
+                           for id_, other_id in product(event.segments_ids,
+                                                        tangent.segments_ids))
+                   for event in _sweep(edges,
+                                       context=context))
 
 
 def _all_unique(values: Iterable[Hashable]) -> bool:
