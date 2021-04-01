@@ -1,21 +1,22 @@
-from itertools import product
+from itertools import (chain,
+                       product,
+                       repeat)
 from typing import (Dict,
                     Hashable,
                     Iterable,
                     Sequence,
                     Tuple)
 
+from ground import hints as _hints
 from ground.base import (Relation as _Relation,
                          get_context as _get_context)
-from ground.hints import (Contour,
-                          Point,
-                          Segment)
 
 from .core.base import sweep as _sweep
-from .core.utils import to_pairs_combinations as _to_pairs_combinations
+from .core.utils import (to_pairs_combinations as _to_pairs_combinations,
+                         to_sorted_pair)
 
 
-def edges_intersect(contour: Contour) -> bool:
+def edges_intersect(contour: _hints.Contour) -> bool:
     """
     Checks if polygonal contour has self-intersection.
 
@@ -61,25 +62,22 @@ def edges_intersect(contour: Contour) -> bool:
     edges = [segment_cls(vertices[index - 1], vertices[index])
              for index in range(len(vertices))]
 
-    def non_neighbours_intersect(edges_ids: Iterable[Tuple[int, int]],
+    def non_neighbours_intersect(segment_id: int,
+                                 next_segment_id: int,
                                  last_edge_index: int = len(edges) - 1
                                  ) -> bool:
-        return any(next_segment_id - segment_id > 1
-                   and (segment_id != 0 or next_segment_id != last_edge_index)
-                   for segment_id, next_segment_id in edges_ids)
+        return (next_segment_id - segment_id > 1
+                and (segment_id != 0 or next_segment_id != last_edge_index))
 
-    non_overlap_relations = (_Relation.CROSS, _Relation.DISJOINT,
-                             _Relation.TOUCH)
-    return any((event.relation not in non_overlap_relations
-                or non_neighbours_intersect(
-                    _to_pairs_combinations(sorted(ids))
-                    if start == end
-                    else map(sorted,
-                             product(event.points_ids[event.start][event.end],
-                                     ids))))
+    return any(len(ids) > 1
+               or any(non_neighbours_intersect(*to_sorted_pair(id_,
+                                                               tangent_id))
+                      for tangent in chain(event.tangents,
+                                           event.opposite.tangents)
+                      for id_, tangent_id in product(event.ids, tangent.ids))
                for event in _sweep(edges,
                                    context=context)
-               for start, end_ids in event.points_ids.items()
+               for start, end_ids in event.parts_ids.items()
                for end, ids in end_ids.items())
 
 
@@ -94,7 +92,7 @@ def _all_unique(values: Iterable[Hashable]) -> bool:
     return True
 
 
-def segments_intersect(segments: Sequence[Segment]) -> bool:
+def segments_intersect(segments: Sequence[_hints.Segment]) -> bool:
     """
     Checks if segments have at least one intersection.
 
@@ -127,11 +125,16 @@ def segments_intersect(segments: Sequence[Segment]) -> bool:
     ...                     Segment(Point(2, 0), Point(0, 2))])
     True
     """
-    return any(_sweep(segments,
-                      context=_get_context()))
+    return any(len(ids) > 1
+               or len(event.tangents) > 1
+               or len(event.opposite.tangents) > 1
+               for event in _sweep(segments,
+                                   context=_get_context())
+               for start, end_ids in event.parts_ids.items()
+               for end, ids in end_ids.items())
 
 
-def segments_cross_or_overlap(segments: Sequence[Segment]) -> bool:
+def segments_cross_or_overlap(segments: Sequence[_hints.Segment]) -> bool:
     """
     Checks if at least one pair of segments crosses or overlaps.
 
@@ -161,18 +164,18 @@ def segments_cross_or_overlap(segments: Sequence[Segment]) -> bool:
     ...                            Segment(Point(0, 0), Point(2, 2))])
     True
     >>> segments_cross_or_overlap([Segment(Point(0, 0), Point(2, 2)),
-    ...                            Segment(Point(2, 0), Point(0, 2))])
+    ...                            Segment(Point(0, 2), Point(2, 0))])
     True
     """
     rest_relations = _Relation.DISJOINT, _Relation.TOUCH
-    return any(first_event.relation not in rest_relations
-               or second_event.relation not in rest_relations
-               for first_event, second_event in _sweep(segments,
-                                                       context=_get_context()))
+    return any(event.relation not in rest_relations
+               for event in _sweep(segments,
+                                   context=_get_context()))
 
 
-def segments_intersections(segments: Sequence[Segment]
-                           ) -> Dict[Tuple[int, int], Tuple[Point, Point]]:
+def segments_intersections(segments: Sequence[_hints.Segment]
+                           ) -> Dict[Tuple[int, int],
+                                     Tuple[_hints.Point, _hints.Point]]:
     """
     Returns mapping between intersection points
     and corresponding segments indices.
@@ -210,16 +213,40 @@ def segments_intersections(segments: Sequence[Segment]
         mapping between intersection points and corresponding segments indices.
     """
     result = {}
+    all_parts_ids = {}
+    tangents = {}
     for event in _sweep(segments,
                         context=_get_context()):
-        for start, end_ids in event.points_ids.items():
-            for end, ids in end_ids.items():
+        event_tangents = event.tangents + event.opposite.tangents
+        if event_tangents:
+            (tangents.setdefault(event.start, {}).setdefault(event.end, [])
+             .extend(event_tangents))
+        for start, ends_ids in event.parts_ids.items():
+            for end, ids in ends_ids.items():
+                all_end_ids = all_parts_ids.setdefault(start, {})
+                if end in all_end_ids:
+                    all_end_ids[end].update(ids)
+                else:
+                    all_end_ids[end] = ids
                 for ids_pair in _to_pairs_combinations(sorted(ids)):
                     if ids_pair in result:
                         prev_start, prev_end = result[ids_pair]
-                        endpoints = (min(prev_start, start),
-                                     max(prev_end, end))
-                        result[ids_pair] = endpoints
+                        endpoints = min(prev_start, start), max(prev_end, end)
                     else:
-                        result[ids_pair] = (start, end)
+                        endpoints = (start, end)
+                    result[ids_pair] = endpoints
+    for start, ends_tangents in tangents.items():
+        for end, end_tangents in ends_tangents.items():
+            for tangent in end_tangents:
+                endpoint = tangent.start
+                ids, tangent_ids = (all_parts_ids[start][end],
+                                    all_parts_ids[endpoint][tangent.end]
+                                    if tangent.is_left_endpoint
+                                    else all_parts_ids[tangent.end][endpoint])
+                if ids.isdisjoint(tangent_ids):
+                    result.update(zip(
+                            [to_sorted_pair(first_id, second_id)
+                             for first_id, second_id in product(ids,
+                                                                tangent_ids)],
+                            repeat((endpoint, endpoint))))
     return result

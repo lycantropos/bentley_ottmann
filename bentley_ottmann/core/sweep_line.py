@@ -27,7 +27,7 @@ class SweepLine:
     def add(self, event: Event) -> None:
         self._set.add(event)
 
-    def find_equivalent(self, event: Event):
+    def find_equal(self, event: Event):
         try:
             candidate = self._set.floor(event)
         except ValueError:
