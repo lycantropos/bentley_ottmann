@@ -137,10 +137,8 @@ class LeftEvent(Event):
             for other_end, other_ids in other_ends_ids.items():
                 if end < other_end:
                     continue
-                if other_end in parts_ids.setdefault(other_start, {}):
-                    parts_ids[other_start][other_end].update(other_ids)
-                else:
-                    parts_ids[other_start][other_end] = other_ids
+                (parts_ids.setdefault(other_start, {})
+                 .setdefault(other_end, set()).update(other_ids))
 
 
 class RightEvent(Event):
