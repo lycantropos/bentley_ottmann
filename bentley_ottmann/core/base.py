@@ -3,7 +3,8 @@ from typing import (Iterable,
                     Optional,
                     Sequence)
 
-from ground.base import Context
+from ground.base import (Context,
+                         Relation)
 from ground.hints import (Point,
                           Segment)
 
@@ -68,6 +69,19 @@ def complete_touching_same_start_events(events: Sequence[Event]) -> None:
     for first, second in to_pairs_combinations(events):
         non_overlapping_parts = first.ids.isdisjoint(second.ids)
         if non_overlapping_parts:
+            endpoint = first.start
+            full_relation = (Relation.TOUCH
+                             if (endpoint == first.original_start
+                                 or endpoint == first.original_end
+                                 or endpoint == second.original_start
+                                 or endpoint == second.original_end)
+                             else Relation.CROSS)
+            (first
+             if first.is_left_endpoint
+             else first.opposite).add_relation(full_relation)
+            (second
+             if second.is_left_endpoint
+             else second.opposite).add_relation(full_relation.complement)
             first.register_tangent(second)
             second.register_tangent(first)
 
