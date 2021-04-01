@@ -2,7 +2,6 @@ from reprlib import recursive_repr
 from typing import (Dict,
                     List,
                     Optional,
-                    Sequence,
                     Set)
 
 from ground.base import Relation
