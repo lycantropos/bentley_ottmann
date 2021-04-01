@@ -65,7 +65,8 @@ True
 we can also find in which points segments intersect
 ```python
 >>> from bentley_ottmann.planar import segments_intersections
->>> segments_intersections(unit_segments) == {Point(0, 0): {(0, 1)}}
+>>> (segments_intersections(unit_segments)
+...  == {(0, 1): (Point(0, 0), Point(0, 0))})
 True
 
 ```
