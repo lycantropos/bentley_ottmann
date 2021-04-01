@@ -4,7 +4,8 @@ from typing import (Dict,
                     Hashable,
                     Iterable,
                     Sequence,
-                    Tuple)
+                    Tuple,
+                    Union)
 
 from ground import hints as _hints
 from ground.base import (Relation as _Relation,
@@ -169,7 +170,8 @@ def segments_cross_or_overlap(segments: Sequence[_hints.Segment]) -> bool:
 
 def segments_intersections(segments: Sequence[_hints.Segment]
                            ) -> Dict[Tuple[int, int],
-                                     Tuple[_hints.Point, _hints.Point]]:
+                                     Union[Tuple[_hints.Point],
+                                           Tuple[_hints.Point, _hints.Point]]]:
     """
     Returns mapping between intersection points
     and corresponding segments indices.
@@ -199,7 +201,7 @@ def segments_intersections(segments: Sequence[_hints.Segment]
     True
     >>> (segments_intersections([Segment(Point(0, 0), Point(2, 2)),
     ...                          Segment(Point(2, 0), Point(0, 2))])
-    ...  == {(0, 1): (Point(1, 1), Point(1, 1))})
+    ...  == {(0, 1): (Point(1, 1),)})
     True
 
     :param segments: sequence of segments.
@@ -242,5 +244,5 @@ def segments_intersections(segments: Sequence[_hints.Segment]
                             [to_sorted_pair(first_id, second_id)
                              for first_id, second_id in product(ids,
                                                                 tangent_ids)],
-                            repeat((endpoint, endpoint))))
+                            repeat((endpoint,))))
     return result
