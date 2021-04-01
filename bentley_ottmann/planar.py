@@ -201,11 +201,11 @@ def segments_intersections(segments: Sequence[_hints.Segment]
     True
     >>> (segments_intersections([Segment(Point(0, 0), Point(2, 2)),
     ...                          Segment(Point(0, 0), Point(2, 2))])
-    ...  == {Point(0, 0): {(0, 1)}, Point(2, 2): {(0, 1)}})
+    ...  == {(0, 1): (Point(0, 0), Point(2, 2))})
     True
     >>> (segments_intersections([Segment(Point(0, 0), Point(2, 2)),
     ...                          Segment(Point(2, 0), Point(0, 2))])
-    ...  == {Point(1, 1): {(0, 1)}})
+    ...  == {(0, 1): (Point(1, 1), Point(1, 1))})
     True
 
     :param segments: sequence of segments.
