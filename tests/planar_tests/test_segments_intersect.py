@@ -1,14 +1,14 @@
 from typing import List
 
 import pytest
-from ground.base import Context
+from ground.base import (Context,
+                         Relation)
 from ground.hints import Segment
 from hypothesis import given
 
 from bentley_ottmann.planar import segments_intersect
 from tests.utils import (reverse_segment,
-                         reverse_segment_coordinates,
-                         segments_pair_intersections)
+                         reverse_segments_coordinates)
 from . import strategies
 
 
@@ -35,9 +35,10 @@ def test_step(context: Context, segments: List[Segment]) -> None:
 
     assert (next_result
             is (result
-                or any(segments_pair_intersections(first_segment.start,
-                                                   first_segment.end,
-                                                   segment.start, segment.end)
+                or any(context.segments_relation(first_segment.start,
+                                                 first_segment.end,
+                                                 segment.start, segment.end)
+                       is not Relation.DISJOINT
                        for segment in rest_segments)))
 
 
@@ -60,8 +61,7 @@ def test_reversed_endpoints(segments: List[Segment]) -> None:
 def test_reversed_coordinates(segments: List[Segment]) -> None:
     result = segments_intersect(segments)
 
-    assert result is segments_intersect([reverse_segment_coordinates(segment)
-                                         for segment in segments])
+    assert result is segments_intersect(reverse_segments_coordinates(segments))
 
 
 @given(strategies.degenerate_segments_lists)
