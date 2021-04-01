@@ -72,7 +72,8 @@ def edges_intersect(contour: _hints.Contour) -> bool:
                                             _Relation.TOUCH)
                or any(non_neighbours_intersect(*to_sorted_pair(id_,
                                                                tangent_id))
-                      for tangent in event.tangents + event.opposite.tangents
+                      for tangent in [*event.tangents,
+                                      *event.opposite.tangents]
                       for id_, tangent_id in product(event.ids, tangent.ids))
                for event in _sweep(edges,
                                    context=context))
@@ -210,7 +211,7 @@ def segments_intersections(segments: Sequence[_hints.Segment]
     tangents = {}
     for event in _sweep(segments,
                         context=_get_context()):
-        event_tangents = event.tangents + event.opposite.tangents
+        event_tangents = [*event.tangents, *event.opposite.tangents]
         if event_tangents:
             (tangents.setdefault(event.start, {}).setdefault(event.end, [])
              .extend(event_tangents))

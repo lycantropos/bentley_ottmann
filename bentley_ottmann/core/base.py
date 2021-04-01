@@ -68,8 +68,8 @@ def complete_touching_same_start_events(events: Sequence[Event]) -> None:
     for first, second in to_pairs_combinations(events):
         non_overlapping_parts = first.ids.isdisjoint(second.ids)
         if non_overlapping_parts:
-            first.tangents.append(second)
-            second.tangents.append(first)
+            first.register_tangent(second)
+            second.register_tangent(first)
 
 
 def to_processed_events(events: Iterable[Event]) -> Iterable[Event]:

@@ -103,8 +103,8 @@ class EventsQueue:
             touching_below_event = (below_event
                                     if point == below_event.start
                                     else below_event.opposite)
-            touching_event.tangents.append(touching_below_event)
-            touching_below_event.tangents.append(touching_event)
+            touching_event.register_tangent(touching_below_event)
+            touching_below_event.register_tangent(touching_event)
             full_relation = (relation
                              if (relation is Relation.CROSS
                                  or point == below_event.original_start

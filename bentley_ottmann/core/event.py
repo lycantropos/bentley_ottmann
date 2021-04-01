@@ -76,6 +76,10 @@ class Event:
         self._assimilate(other)
         other._assimilate(self)
 
+    def register_tangent(self, tangent: 'Event') -> None:
+        assert self.start == tangent.start
+        self.tangents.append(tangent)
+
     def _assimilate(self, other: 'Event') -> None:
         end, parts_ids, start = self.end, self.parts_ids, self.start
         for other_start, other_ends_ids in other.parts_ids.items():
