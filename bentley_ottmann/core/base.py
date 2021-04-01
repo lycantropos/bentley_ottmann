@@ -49,8 +49,8 @@ def sweep(segments: Sequence[Segment],
                 # found equal segments' fragments
                 equal_segment_event.merge_with(event)
         else:
-            left_event = event.opposite
-            equal_segment_event = sweep_line.find_equal(left_event)
+            event = event.opposite
+            equal_segment_event = sweep_line.find_equal(event)
             if equal_segment_event is not None:
                 above_event, below_event = (
                     sweep_line.above(equal_segment_event),
@@ -59,8 +59,8 @@ def sweep(segments: Sequence[Segment],
                 if below_event is not None and above_event is not None:
                     events_queue.detect_intersection(below_event, above_event,
                                                      sweep_line)
-                if left_event is not equal_segment_event:
-                    left_event.merge_with(equal_segment_event)
+                if event is not equal_segment_event:
+                    event.merge_with(equal_segment_event)
     complete_touching_same_start_events(same_start_events)
     yield from to_processed_events(same_start_events)
 
