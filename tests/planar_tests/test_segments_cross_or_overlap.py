@@ -3,12 +3,12 @@ from typing import List
 import pytest
 from ground.base import (Context,
                          Relation)
+from ground.hints import Segment
 from hypothesis import given
 
 from bentley_ottmann.planar import segments_cross_or_overlap
-from tests.utils import (Segment,
-                         reverse_segment,
-                         reverse_segment_coordinates)
+from tests.utils import (reverse_segment,
+                         reverse_segments_coordinates)
 from . import strategies
 
 
@@ -62,9 +62,8 @@ def test_reversed_endpoints(segments: List[Segment]) -> None:
 def test_reversed_coordinates(segments: List[Segment]) -> None:
     result = segments_cross_or_overlap(segments)
 
-    assert (result
-            is segments_cross_or_overlap([reverse_segment_coordinates(segment)
-                                          for segment in segments]))
+    assert result is segments_cross_or_overlap(reverse_segments_coordinates(
+            segments))
 
 
 @given(strategies.degenerate_segments_lists)

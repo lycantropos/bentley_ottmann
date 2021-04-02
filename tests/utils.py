@@ -1,15 +1,13 @@
 from functools import partial
 from types import MappingProxyType
-from typing import (Any,
-                    Callable,
+from typing import (Callable,
                     Dict,
                     Iterable,
                     Sequence,
                     Tuple,
                     TypeVar)
 
-from ground.base import (Relation,
-                         get_context)
+from ground.base import get_context
 from ground.hints import Coordinate
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
@@ -42,8 +40,7 @@ def apply(function: Callable[..., Range],
     return function(*args, **kwargs)
 
 
-def is_point(object_: Any) -> bool:
-    return isinstance(object_, Point)
+is_point = Point.__instancecheck__
 
 
 def contour_to_edges(contour: Contour) -> Sequence[Segment]:
@@ -52,14 +49,10 @@ def contour_to_edges(contour: Contour) -> Sequence[Segment]:
             for index in range(len(vertices))]
 
 
-def scale_segment(segment: Segment,
-                  *,
-                  scale: Coordinate) -> Segment:
-    start, end = segment.start, segment.end
-    start_x, start_y = start.x, start.y
-    end_x, end_y = end.x, end.y
-    return Segment(start, Point(start_x + scale * (end_x - start_x),
-                                start_y + scale * (end_y - start_y)))
+def pop_left_vertex(contour: Contour) -> Tuple[Point, Contour]:
+    first_vertex, *rest_vertices = contour.vertices
+    rest_contour = Contour(rest_vertices)
+    return first_vertex, rest_contour
 
 
 def reflect_segment(segment: Segment) -> Segment:
@@ -94,18 +87,11 @@ def reverse_point_coordinates(point: Point) -> Point:
     return Point(point.y, point.x)
 
 
-def segments_pair_intersections(first_start: Point,
-                                first_end: Point,
-                                second_start: Point,
-                                second_end: Point) -> Tuple[Point, ...]:
-    relation = context.segments_relation(first_start, first_end, second_start,
-                                         second_end)
-    if relation is Relation.DISJOINT:
-        return ()
-    elif relation is Relation.TOUCH or relation is Relation.CROSS:
-        return context.segments_intersection(first_start, first_end,
-                                             second_start, second_end),
-    else:
-        _, first_point, second_point, _ = sorted([first_start, first_end,
-                                                  second_start, second_end])
-        return first_point, second_point
+def scale_segment(segment: Segment,
+                  *,
+                  scale: Coordinate) -> Segment:
+    start, end = segment.start, segment.end
+    start_x, start_y = start.x, start.y
+    end_x, end_y = end.x, end.y
+    return Segment(start, Point(start_x + scale * (end_x - start_x),
+                                start_y + scale * (end_y - start_y)))

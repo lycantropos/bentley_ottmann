@@ -8,37 +8,45 @@ from ground.base import (Context,
 from ground.hints import Point
 from reprit.base import generate_repr
 
-from .event import Event
+from .event import LeftEvent
 
 
 class SweepLine:
-    __slots__ = 'context', '_tree'
+    __slots__ = 'context', '_set'
 
     def __init__(self, context: Context) -> None:
         self.context = context
-        self._tree = red_black.set_(key=partial(SweepLineKey,
-                                                context.angle_orientation))
+        self._set = red_black.set_(key=partial(SweepLineKey,
+                                               context.angle_orientation))
 
     __repr__ = generate_repr(__init__)
 
-    def __contains__(self, event: Event) -> bool:
-        return event in self._tree
+    def add(self, event: LeftEvent) -> None:
+        self._set.add(event)
 
-    def add(self, event: Event) -> None:
-        self._tree.add(event)
-
-    def remove(self, event: Event) -> None:
-        self._tree.remove(event)
-
-    def above(self, event: Event) -> Optional[Event]:
+    def find_equal(self, event: LeftEvent) -> Optional[LeftEvent]:
         try:
-            return self._tree.next(event)
+            candidate = self._set.floor(event)
+        except ValueError:
+            return None
+        else:
+            return (candidate
+                    if (candidate.start == event.start
+                        and candidate.end == event.end)
+                    else None)
+
+    def remove(self, event: LeftEvent) -> None:
+        self._set.remove(event)
+
+    def above(self, event: LeftEvent) -> Optional[LeftEvent]:
+        try:
+            return self._set.next(event)
         except ValueError:
             return None
 
-    def below(self, event: Event) -> Optional[Event]:
+    def below(self, event: LeftEvent) -> Optional[LeftEvent]:
         try:
-            return self._tree.prev(event)
+            return self._set.prev(event)
         except ValueError:
             return None
 
@@ -48,7 +56,7 @@ class SweepLineKey:
 
     def __init__(self,
                  orienteer: Callable[[Point, Point, Point], Orientation],
-                 event: Event) -> None:
+                 event: LeftEvent) -> None:
         self.event, self.orienteer = event, orienteer
 
     __repr__ = generate_repr(__init__)
@@ -81,13 +89,11 @@ class SweepLineKey:
                 # segments have same start
                 elif end_y != other_end_y:
                     return end_y < other_end_y
-                elif end_x != other_end_x:
-                    return end_x < other_end_x
                 else:
-                    # segments fragments are equal
-                    return ((event.original_start.y, event.original_start.x)
-                            < (other_event.original_start.y,
-                               other_event.original_start.x))
+                    # we can add handling of equal segments' fragments here
+                    # to reduce number of searches,
+                    # but it will make this implicit and complex
+                    return end_x < other_end_x
             elif start_y != other_start_y:
                 return start_y < other_start_y
             else:
