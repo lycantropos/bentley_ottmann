@@ -1,5 +1,5 @@
-from itertools import (product,
-                       repeat)
+from itertools import (product as _product,
+                       repeat as _repeat)
 from typing import (Dict,
                     Hashable,
                     Iterable,
@@ -13,7 +13,7 @@ from ground.base import (Relation as _Relation,
 
 from .core.base import sweep as _sweep
 from .core.utils import (to_pairs_combinations as _to_pairs_combinations,
-                         to_sorted_pair)
+                         to_sorted_pair as _to_sorted_pair)
 
 
 def edges_intersect(contour: _hints.Contour) -> bool:
@@ -65,7 +65,7 @@ def edges_intersect(contour: _hints.Contour) -> bool:
     def non_neighbours_disjoint(edge_id: int,
                                 other_edge_id: int,
                                 last_edge_id: int = len(edges) - 1) -> bool:
-        min_edge_id, max_edge_id = to_sorted_pair(edge_id, other_edge_id)
+        min_edge_id, max_edge_id = _to_sorted_pair(edge_id, other_edge_id)
         return (max_edge_id - min_edge_id == 1
                 or (min_edge_id == 0 and max_edge_id == last_edge_id))
 
@@ -74,8 +74,8 @@ def edges_intersect(contour: _hints.Contour) -> bool:
                    and all(non_neighbours_disjoint(id_, other_id)
                            for tangent in [*event.tangents,
                                            *event.right.tangents]
-                           for id_, other_id in product(event.segments_ids,
-                                                        tangent.segments_ids))
+                           for id_, other_id in _product(event.segments_ids,
+                                                         tangent.segments_ids))
                    for event in _sweep(edges,
                                        context=context))
 
@@ -239,10 +239,11 @@ def segments_intersections(segments: Sequence[_hints.Segment]
                     if intersection_point < tangent_end
                     else right_intersection_point_ids[tangent_end])
                 if ids.isdisjoint(tangent_ids):
-                    result.update(zip(
-                            [to_sorted_pair(id_, tangent_id)
-                             for id_, tangent_id in product(ids, tangent_ids)],
-                            repeat((intersection_point,))))
+                    result.update(
+                            zip([_to_sorted_pair(id_, tangent_id)
+                                 for id_, tangent_id in _product(ids,
+                                                                 tangent_ids)],
+                                _repeat((intersection_point,))))
     for intersection_point, starts_tangents_ends in right_tangents.items():
         left_intersection_point_ids, right_intersection_point_ids = (
             left_parts_ids.get(intersection_point),
@@ -255,10 +256,11 @@ def segments_intersections(segments: Sequence[_hints.Segment]
                     if intersection_point < tangent_end
                     else right_intersection_point_ids[tangent_end])
                 if ids.isdisjoint(tangent_ids):
-                    result.update(zip(
-                            [to_sorted_pair(id_, tangent_id)
-                             for id_, tangent_id in product(ids, tangent_ids)],
-                            repeat((intersection_point,))))
+                    result.update(
+                            zip([_to_sorted_pair(id_, tangent_id)
+                                 for id_, tangent_id in _product(ids,
+                                                                 tangent_ids)],
+                                _repeat((intersection_point,))))
     for start, ends_ids in left_parts_ids.items():
         for end, ids in ends_ids.items():
             for ids_pair in _to_pairs_combinations(sorted(ids)):
