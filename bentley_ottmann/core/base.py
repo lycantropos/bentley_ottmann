@@ -32,8 +32,7 @@ def sweep(segments: Sequence[Segment],
         if event.start == start:
             same_start_events.append(event)
         else:
-            complete_events_relations(same_start_events,
-                                      context=context)
+            complete_events_relations(same_start_events)
             yield from to_processed_events(same_start_events)
             same_start_events, start = [event], event.start
         if event.is_left:
@@ -64,29 +63,19 @@ def sweep(segments: Sequence[Segment],
                                                      sweep_line)
                 if event is not equal_segment_event:
                     event.merge_with(equal_segment_event)
-    complete_events_relations(same_start_events,
-                              context=context)
+    complete_events_relations(same_start_events)
     yield from to_processed_events(same_start_events)
 
 
-def complete_events_relations(same_start_events: Sequence[Event],
-                              *,
-                              context: Context) -> None:
+def complete_events_relations(same_start_events: Sequence[Event]) -> None:
     for first, second in to_pairs_combinations(same_start_events):
         first_left, second_left = (first if first.is_left else first.left,
                                    second if second.is_left else second.left)
-        segments_overlap = (
-                first.is_left is not second.is_left
-                and first.original_start != second.original_start
-                and (context.angle_orientation(first.start, first.end,
-                                               second.end)
-                     is Orientation.COLLINEAR))
-        if segments_overlap:
-            relation = classify_overlap(first_left.original_start,
-                                        first_left.original_end,
-                                        second_left.original_start,
-                                        second_left.original_end)
-        else:
+        first_ids, second_ids = (first_left.segments_ids,
+                                 second_left.segments_ids)
+        segments_touch = (len(first_ids - second_ids)
+                          * len(second_ids - first_ids)) >= 1
+        if segments_touch:
             intersection_point = first.start
             relation = (Relation.TOUCH
                         if (intersection_point == first.original_start
@@ -94,6 +83,11 @@ def complete_events_relations(same_start_events: Sequence[Event],
                         else Relation.CROSS)
             first.register_tangent(second)
             second.register_tangent(first)
+        else:
+            relation = classify_overlap(first_left.original_start,
+                                        first_left.original_end,
+                                        second_left.original_start,
+                                        second_left.original_end)
         first_left.register_relation(relation)
         second_left.register_relation(relation.complement)
 
