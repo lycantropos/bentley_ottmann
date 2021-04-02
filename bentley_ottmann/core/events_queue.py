@@ -102,21 +102,6 @@ class EventsQueue:
                 else:
                     self.push(event.divide(point))
                     self.push(event.right)
-            touching_event = (event
-                              if point == event.start
-                              else event.right)
-            touching_below_event = (below_event
-                                    if point == below_event.start
-                                    else below_event.right)
-            touching_event.register_tangent(touching_below_event)
-            touching_below_event.register_tangent(touching_event)
-            full_relation = (relation
-                             if (relation is Relation.CROSS
-                                 or point == below_event.original_start
-                                 or point == below_event.original_end
-                                 or point == event.original_start
-                                 or point == event.original_end)
-                             else Relation.CROSS)
         else:
             # segments overlap
             starts_equal = event.start == below_event.start
@@ -159,8 +144,8 @@ class EventsQueue:
                                                    below_event.original_end,
                                                    event.original_start,
                                                    event.original_end))
-        event.register_relation(full_relation)
-        below_event.register_relation(full_relation.complement)
+            event.register_relation(full_relation)
+            below_event.register_relation(full_relation.complement)
 
     def peek(self) -> Event:
         return self._queue.peek()
