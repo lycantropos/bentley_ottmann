@@ -107,9 +107,6 @@ class LeftEvent(Event):
 
     __repr__ = recursive_repr()(generate_repr(__init__))
 
-    def add_relation(self, relation: Relation) -> None:
-        self._relations_mask |= 1 << relation
-
     def divide(self, break_point: Point) -> 'LeftEvent':
         """Divides the event at given break point and returns tail."""
         segments_ids = self.segments_ids
@@ -133,14 +130,17 @@ class LeftEvent(Event):
         full_relation = classify_overlap(
                 other.original_start, other.original_end, self.original_start,
                 self.original_end)
-        self.add_relation(full_relation)
-        other.add_relation(full_relation.complement)
+        self.register_relation(full_relation)
+        other.register_relation(full_relation.complement)
         self._assimilate(other)
         other._assimilate(self)
 
     def register_tangent(self, tangent: Event) -> None:
         assert self.start == tangent.start
         self._tangents.append(tangent)
+
+    def register_relation(self, relation: Relation) -> None:
+        self._relations_mask |= 1 << relation
 
     def _assimilate(self, other: 'LeftEvent') -> None:
         end, parts_ids, start = self.end, self.parts_ids, self.start

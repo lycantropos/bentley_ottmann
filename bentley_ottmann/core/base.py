@@ -79,10 +79,10 @@ def complete_touching_same_start_events(events: Sequence[Event]) -> None:
                              else Relation.CROSS)
             (first
              if first.is_left
-             else first.left).add_relation(full_relation)
+             else first.left).register_relation(full_relation)
             (second
              if second.is_left
-             else second.left).add_relation(full_relation.complement)
+             else second.left).register_relation(full_relation.complement)
             first.register_tangent(second)
             second.register_tangent(first)
 

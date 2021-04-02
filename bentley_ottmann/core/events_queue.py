@@ -160,8 +160,8 @@ class EventsQueue:
                                                    below_event.original_end,
                                                    event.original_start,
                                                    event.original_end))
-        event.add_relation(full_relation)
-        below_event.add_relation(full_relation.complement)
+        event.register_relation(full_relation)
+        below_event.register_relation(full_relation.complement)
 
     def peek(self) -> Event:
         return self._queue.peek()
