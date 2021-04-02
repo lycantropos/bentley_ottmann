@@ -148,6 +148,7 @@ class EventsQueue:
                 self.push(start_min.divide(end_min.start))
                 self.push(start_min.right)
                 start_max.merge_with(start_min.divide(start_max.start))
+                self.push(start_min.right)
             else:
                 # no line segment includes the other one
                 self.push(start_max.divide(end_min.start))
