@@ -138,6 +138,7 @@ class LeftEvent(Event):
 
     def register_tangent(self, tangent: Event) -> None:
         assert self.start == tangent.start
+        assert tangent not in self._tangents
         self._tangents.append(tangent)
 
     def register_relation(self, relation: Relation) -> None:
@@ -194,4 +195,5 @@ class RightEvent(Event):
 
     def register_tangent(self, tangent: 'Event') -> None:
         assert self.start == tangent.start
+        assert tangent not in self._tangents
         self._tangents.append(tangent)

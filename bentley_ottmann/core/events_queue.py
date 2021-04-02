@@ -9,7 +9,6 @@ from reprit.base import generate_repr
 from .event import (Event,
                     LeftEvent)
 from .sweep_line import SweepLine
-from .utils import classify_overlap
 
 
 class EventsQueueKey:
@@ -138,14 +137,6 @@ class EventsQueue:
                 start_max.merge_with(start_min.divide(start_max.start))
                 self.push(start_max.right)
                 self.push(start_min.right)
-            full_relation = (relation
-                             if relation is Relation.OVERLAP
-                             else classify_overlap(below_event.original_start,
-                                                   below_event.original_end,
-                                                   event.original_start,
-                                                   event.original_end))
-            event.register_relation(full_relation)
-            below_event.register_relation(full_relation.complement)
 
     def peek(self) -> Event:
         return self._queue.peek()
