@@ -10,6 +10,7 @@ from hypothesis import (HealthCheck,
 on_azure_pipelines = bool(os.getenv('TF_BUILD', False))
 is_pypy = platform.python_implementation() == 'PyPy'
 settings.register_profile('default',
+                          deadline=None,
                           max_examples=(settings.default.max_examples
                                         // (1 + 3 * is_pypy)
                                         if on_azure_pipelines
