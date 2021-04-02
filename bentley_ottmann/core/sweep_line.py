@@ -21,9 +21,6 @@ class SweepLine:
 
     __repr__ = generate_repr(__init__)
 
-    def __contains__(self, event: LeftEvent) -> bool:
-        return event in self._set
-
     def add(self, event: LeftEvent) -> None:
         self._set.add(event)
 
