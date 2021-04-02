@@ -232,10 +232,9 @@ def segments_intersections(segments: _Sequence[_hints.Segment]
         for end, tangents_ends in ends_tangents_ends.items():
             ids = left_intersection_point_ids[end]
             for tangent_end in tangents_ends:
-                tangent_ids = (
-                    left_intersection_point_ids[tangent_end]
-                    if intersection_point < tangent_end
-                    else right_intersection_point_ids[tangent_end])
+                tangent_ids = (left_intersection_point_ids[tangent_end]
+                               if intersection_point < tangent_end
+                               else right_intersection_point_ids[tangent_end])
                 ids_pairs = [
                     _to_sorted_pair(id_, tangent_id)
                     for id_, tangent_id in _product(ids - tangent_ids,
@@ -251,10 +250,9 @@ def segments_intersections(segments: _Sequence[_hints.Segment]
         for start, tangents_ends in starts_tangents_ends.items():
             ids = right_intersection_point_ids[start]
             for tangent_end in tangents_ends:
-                tangent_ids = (
-                    left_intersection_point_ids[tangent_end]
-                    if intersection_point < tangent_end
-                    else right_intersection_point_ids[tangent_end])
+                tangent_ids = (left_intersection_point_ids[tangent_end]
+                               if intersection_point < tangent_end
+                               else right_intersection_point_ids[tangent_end])
                 ids_pairs = [
                     _to_sorted_pair(id_, tangent_id)
                     for id_, tangent_id in _product(ids - tangent_ids,
