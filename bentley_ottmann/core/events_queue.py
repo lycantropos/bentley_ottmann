@@ -2,14 +2,12 @@ from typing import Sequence
 
 from ground.base import (Context,
                          Relation)
-from ground.hints import (Point,
-                          Segment)
+from ground.hints import Segment
 from prioq.base import PriorityQueue
 from reprit.base import generate_repr
 
 from .event import (Event,
-                    LeftEvent,
-                    RightEvent)
+                    LeftEvent)
 from .sweep_line import SweepLine
 from .utils import classify_overlap
 
