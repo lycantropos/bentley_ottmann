@@ -216,6 +216,15 @@ def segments_intersections(segments: _Sequence[_hints.Segment]
                 (right_parts_ids.setdefault(end, {}).setdefault(start, set())
                  .update(ids))
     result = {}
+    for start, ends_ids in left_parts_ids.items():
+        for end, ids in ends_ids.items():
+            for ids_pair in _to_pairs_combinations(sorted(ids)):
+                if ids_pair in result:
+                    prev_start, prev_end = result[ids_pair]
+                    endpoints = min(prev_start, start), max(prev_end, end)
+                else:
+                    endpoints = (start, end)
+                result[ids_pair] = endpoints
     for intersection_point, ends_tangents_ends in left_tangents.items():
         left_intersection_point_ids, right_intersection_point_ids = (
             left_parts_ids.get(intersection_point),
@@ -230,6 +239,9 @@ def segments_intersections(segments: _Sequence[_hints.Segment]
                     _to_sorted_pair(id_, tangent_id)
                     for id_, tangent_id in _product(ids - tangent_ids,
                                                     tangent_ids - ids)]
+                ids_pairs = [ids_pair
+                             for ids_pair in ids_pairs
+                             if ids_pair not in result]
                 result.update(zip(ids_pairs, _repeat((intersection_point,))))
     for intersection_point, starts_tangents_ends in right_tangents.items():
         left_intersection_point_ids, right_intersection_point_ids = (
@@ -245,14 +257,8 @@ def segments_intersections(segments: _Sequence[_hints.Segment]
                     _to_sorted_pair(id_, tangent_id)
                     for id_, tangent_id in _product(ids - tangent_ids,
                                                     tangent_ids - ids)]
+                ids_pairs = [ids_pair
+                             for ids_pair in ids_pairs
+                             if ids_pair not in result]
                 result.update(zip(ids_pairs, _repeat((intersection_point,))))
-    for start, ends_ids in left_parts_ids.items():
-        for end, ids in ends_ids.items():
-            for ids_pair in _to_pairs_combinations(sorted(ids)):
-                if ids_pair in result:
-                    prev_start, prev_end = result[ids_pair]
-                    endpoints = min(prev_start, start), max(prev_end, end)
-                else:
-                    endpoints = (start, end)
-                result[ids_pair] = endpoints
     return result
