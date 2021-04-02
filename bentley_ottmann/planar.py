@@ -1,8 +1,6 @@
 from itertools import (product as _product,
                        repeat as _repeat)
 from typing import (Dict,
-                    Hashable,
-                    Iterable,
                     Sequence,
                     Tuple,
                     Union)
@@ -12,7 +10,8 @@ from ground.base import (Relation as _Relation,
                          get_context as _get_context)
 
 from .core.base import sweep as _sweep
-from .core.utils import (to_pairs_combinations as _to_pairs_combinations,
+from .core.utils import (all_unique as _all_unique,
+                         to_pairs_combinations as _to_pairs_combinations,
                          to_sorted_pair as _to_sorted_pair)
 
 
@@ -78,17 +77,6 @@ def edges_intersect(contour: _hints.Contour) -> bool:
                                                          tangent.segments_ids))
                    for event in _sweep(edges,
                                        context=context))
-
-
-def _all_unique(values: Iterable[Hashable]) -> bool:
-    seen = set()
-    seen_add = seen.add
-    for value in values:
-        if value in seen:
-            return False
-        else:
-            seen_add(value)
-    return True
 
 
 def segments_intersect(segments: Sequence[_hints.Segment]) -> bool:

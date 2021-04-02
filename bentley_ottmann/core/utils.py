@@ -1,5 +1,6 @@
 from itertools import combinations
-from typing import (Iterable,
+from typing import (Hashable,
+                    Iterable,
                     Tuple,
                     TypeVar)
 
@@ -7,6 +8,17 @@ from ground.base import Relation
 from ground.hints import Point
 
 _T = TypeVar('_T')
+
+
+def all_unique(values: Iterable[Hashable]) -> bool:
+    seen = set()
+    seen_add = seen.add
+    for value in values:
+        if value in seen:
+            return False
+        else:
+            seen_add(value)
+    return True
 
 
 def classify_overlap(test_start: Point,
