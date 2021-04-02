@@ -87,11 +87,10 @@ def complete_events_relations(same_start_events: Sequence[Event],
                                         second_left.original_start,
                                         second_left.original_end)
         else:
-            endpoint = first.start
+            intersection_point = first.start
             relation = (Relation.TOUCH
-                        if (endpoint == first.original_start
-                            or endpoint == second.original_start
-                            or endpoint == second.original_end)
+                        if (intersection_point == first.original_start
+                            or intersection_point == second.original_start)
                         else Relation.CROSS)
             first.register_tangent(second)
             second.register_tangent(first)
