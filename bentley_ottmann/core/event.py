@@ -133,8 +133,9 @@ class LeftEvent(Event):
                 self.original_end)
         self.register_relation(full_relation)
         other.register_relation(full_relation.complement)
-        self._assimilate(other)
-        other._assimilate(self)
+        start, end = self.start, self.end
+        self.parts_ids[start][end] = other.parts_ids[start][end] = (
+                self.parts_ids[start][end] | other.parts_ids[start][end])
 
     def register_tangent(self, tangent: Event) -> None:
         assert self.start == tangent.start
@@ -143,17 +144,6 @@ class LeftEvent(Event):
 
     def register_relation(self, relation: Relation) -> None:
         self._relations_mask |= 1 << relation
-
-    def _assimilate(self, other: 'LeftEvent') -> None:
-        end, parts_ids, start = self.end, self.parts_ids, self.start
-        for other_start, other_ends_ids in other.parts_ids.items():
-            if other_start < start:
-                continue
-            for other_end, other_ids in other_ends_ids.items():
-                if end < other_end:
-                    continue
-                (parts_ids.setdefault(other_start, {})
-                 .setdefault(other_end, set()).update(other_ids))
 
 
 class RightEvent(Event):
