@@ -127,6 +127,7 @@ class LeftEvent(Event):
         return not mask
 
     def merge_with(self, other: 'LeftEvent') -> None:
+        assert self.start == other.start and self.end == other.end
         full_relation = classify_overlap(
                 other.original_start, other.original_end, self.original_start,
                 self.original_end)
