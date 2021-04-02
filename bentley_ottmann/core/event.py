@@ -69,24 +69,24 @@ class LeftEvent(Event):
     is_left = True
 
     @property
-    def segments_ids(self) -> Set[int]:
-        return self.parts_ids[self.start][self.end]
-
-    @property
-    def start(self) -> Point:
-        return self._start
+    def end(self) -> Point:
+        return self.right.start
 
     @property
     def original_start(self) -> Point:
         return self._original_start
 
     @property
-    def end(self) -> Point:
-        return self.right.start
-
-    @property
     def original_end(self) -> Point:
         return self.right.original_start
+
+    @property
+    def segments_ids(self) -> Set[int]:
+        return self.parts_ids[self.start][self.end]
+
+    @property
+    def start(self) -> Point:
+        return self._start
 
     @property
     def tangents(self) -> Sequence[Event]:
