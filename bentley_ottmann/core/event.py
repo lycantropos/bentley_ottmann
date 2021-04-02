@@ -111,6 +111,7 @@ class LeftEvent(Event):
         self._relations_mask |= 1 << relation
 
     def divide(self, break_point: Point) -> 'LeftEvent':
+        """Divides the event at given break point and returns tail."""
         segments_ids = self.segments_ids
         (self.parts_ids.setdefault(self.start, {})
          .setdefault(break_point, set()).update(segments_ids))
