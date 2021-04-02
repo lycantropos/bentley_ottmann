@@ -1,9 +1,9 @@
 from itertools import (product as _product,
                        repeat as _repeat)
-from typing import (Dict,
-                    Sequence,
-                    Tuple,
-                    Union)
+from typing import (Dict as _Dict,
+                    Sequence as _Sequence,
+                    Tuple as _Tuple,
+                    Union as _Union)
 
 from ground import hints as _hints
 from ground.base import (Relation as _Relation,
@@ -79,7 +79,7 @@ def edges_intersect(contour: _hints.Contour) -> bool:
                                        context=context))
 
 
-def segments_intersect(segments: Sequence[_hints.Segment]) -> bool:
+def segments_intersect(segments: _Sequence[_hints.Segment]) -> bool:
     """
     Checks if segments have at least one intersection.
 
@@ -117,7 +117,7 @@ def segments_intersect(segments: Sequence[_hints.Segment]) -> bool:
                                        context=_get_context()))
 
 
-def segments_cross_or_overlap(segments: Sequence[_hints.Segment]) -> bool:
+def segments_cross_or_overlap(segments: _Sequence[_hints.Segment]) -> bool:
     """
     Checks if at least one pair of segments crosses or overlaps.
 
@@ -156,10 +156,11 @@ def segments_cross_or_overlap(segments: Sequence[_hints.Segment]) -> bool:
                                        context=_get_context()))
 
 
-def segments_intersections(segments: Sequence[_hints.Segment]
-                           ) -> Dict[Tuple[int, int],
-                                     Union[Tuple[_hints.Point],
-                                           Tuple[_hints.Point, _hints.Point]]]:
+def segments_intersections(segments: _Sequence[_hints.Segment]
+                           ) -> _Dict[_Tuple[int, int],
+                                      _Union[_Tuple[_hints.Point],
+                                             _Tuple[_hints.Point,
+                                                    _hints.Point]]]:
     """
     Returns mapping between intersection points
     and corresponding segments indices.
