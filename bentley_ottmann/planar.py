@@ -227,12 +227,11 @@ def segments_intersections(segments: _Sequence[_hints.Segment]
                     left_intersection_point_ids[tangent_end]
                     if intersection_point < tangent_end
                     else right_intersection_point_ids[tangent_end])
-                if ids.isdisjoint(tangent_ids):
-                    result.update(
-                            zip([_to_sorted_pair(id_, tangent_id)
-                                 for id_, tangent_id in _product(ids,
-                                                                 tangent_ids)],
-                                _repeat((intersection_point,))))
+                result.update(
+                        zip([_to_sorted_pair(id_, tangent_id)
+                             for id_, tangent_id in _product(
+                                    ids - tangent_ids, tangent_ids - ids)],
+                            _repeat((intersection_point,))))
     for intersection_point, starts_tangents_ends in right_tangents.items():
         left_intersection_point_ids, right_intersection_point_ids = (
             left_parts_ids.get(intersection_point),
@@ -244,12 +243,11 @@ def segments_intersections(segments: _Sequence[_hints.Segment]
                     left_intersection_point_ids[tangent_end]
                     if intersection_point < tangent_end
                     else right_intersection_point_ids[tangent_end])
-                if ids.isdisjoint(tangent_ids):
-                    result.update(
-                            zip([_to_sorted_pair(id_, tangent_id)
-                                 for id_, tangent_id in _product(ids,
-                                                                 tangent_ids)],
-                                _repeat((intersection_point,))))
+                result.update(
+                        zip([_to_sorted_pair(id_, tangent_id)
+                             for id_, tangent_id in _product(
+                                    ids - tangent_ids, tangent_ids - ids)],
+                            _repeat((intersection_point,))))
     for start, ends_ids in left_parts_ids.items():
         for end, ids in ends_ids.items():
             for ids_pair in _to_pairs_combinations(sorted(ids)):
