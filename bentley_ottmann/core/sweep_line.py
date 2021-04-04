@@ -90,9 +90,6 @@ class SweepLineKey:
                 elif end_y != other_end_y:
                     return end_y < other_end_y
                 else:
-                    # we can add handling of equal segments' fragments here
-                    # to reduce number of searches,
-                    # but it will make this implicit and complex
                     return end_x < other_end_x
             elif start_y != other_start_y:
                 return start_y < other_start_y
