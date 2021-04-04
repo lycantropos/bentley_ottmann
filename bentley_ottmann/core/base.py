@@ -59,7 +59,7 @@ def sweep(segments: Sequence[Segment],
                     events_queue.detect_intersection(below_event, above_event,
                                                      sweep_line)
                 if event is not equal_segment_event:
-                    event.merge_with(equal_segment_event)
+                    equal_segment_event.merge_with(event)
     yield from complete_events_relations(same_start_events)
 
 
