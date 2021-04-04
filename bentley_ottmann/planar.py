@@ -5,9 +5,11 @@ from typing import (Dict as _Dict,
                     Tuple as _Tuple,
                     Union as _Union)
 
-from ground import hints as _hints
 from ground.base import (Relation as _Relation,
                          get_context as _get_context)
+from ground.hints import (Contour as _Contour,
+                          Point as _Point,
+                          Segment as _Segment)
 
 from .core.base import sweep as _sweep
 from .core.utils import (all_unique as _all_unique,
@@ -15,7 +17,7 @@ from .core.utils import (all_unique as _all_unique,
                          to_sorted_pair as _to_sorted_pair)
 
 
-def edges_intersect(contour: _hints.Contour) -> bool:
+def edges_intersect(contour: _Contour) -> bool:
     """
     Checks if polygonal contour has self-intersection.
 
@@ -79,7 +81,7 @@ def edges_intersect(contour: _hints.Contour) -> bool:
                                        context=context))
 
 
-def segments_intersect(segments: _Sequence[_hints.Segment]) -> bool:
+def segments_intersect(segments: _Sequence[_Segment]) -> bool:
     """
     Checks if segments have at least one intersection.
 
@@ -117,7 +119,7 @@ def segments_intersect(segments: _Sequence[_hints.Segment]) -> bool:
                                        context=_get_context()))
 
 
-def segments_cross_or_overlap(segments: _Sequence[_hints.Segment]) -> bool:
+def segments_cross_or_overlap(segments: _Sequence[_Segment]) -> bool:
     """
     Checks if at least one pair of segments crosses or overlaps.
 
@@ -156,11 +158,11 @@ def segments_cross_or_overlap(segments: _Sequence[_hints.Segment]) -> bool:
                                        context=_get_context()))
 
 
-def segments_intersections(segments: _Sequence[_hints.Segment]
-                           ) -> _Dict[_Tuple[int, int],
-                                      _Union[_Tuple[_hints.Point],
-                                             _Tuple[_hints.Point,
-                                                    _hints.Point]]]:
+_Intersection = _Union[_Tuple[_Point], _Tuple[_Point, _Point]]
+
+
+def segments_intersections(segments: _Sequence[_Segment]
+                           ) -> _Dict[_Tuple[int, int], _Intersection]:
     """
     Returns mapping between intersection points
     and corresponding segments indices.
