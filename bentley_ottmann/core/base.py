@@ -4,7 +4,6 @@ from typing import (Iterable,
                     Sequence)
 
 from ground.base import (Context,
-                         Orientation,
                          Relation)
 from ground.hints import (Point,
                           Segment)
