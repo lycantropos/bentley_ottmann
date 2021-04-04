@@ -130,7 +130,7 @@ def segments_cross_or_overlap(segments: _Sequence[_Segment]) -> bool:
     Memory complexity:
         ``O(len(segments))``
     Reference:
-        https://en.wikipedia.org/wiki/Sweep_line_algorithm
+        https://en.wikipedia.org/wiki/Bentley%E2%80%93Ottmann_algorithm
 
     :param segments: sequence of segments.
     :returns: true if segments overlap or cross found, false otherwise.
