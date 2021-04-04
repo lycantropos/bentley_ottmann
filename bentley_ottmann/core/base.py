@@ -67,13 +67,12 @@ def complete_events_relations(same_start_events: Sequence[Event]
                               ) -> Iterable[Event]:
     for offset, first in enumerate(same_start_events,
                                    start=1):
+        first_left = first if first.is_left else first.left
+        first_ids = first_left.segments_ids
         for second_index in range(offset, len(same_start_events)):
             second = same_start_events[second_index]
-            first_left, second_left = (
-                first if first.is_left else first.left,
-                second if second.is_left else second.left)
-            first_ids, second_ids = (first_left.segments_ids,
-                                     second_left.segments_ids)
+            second_left = second if second.is_left else second.left
+            second_ids = second_left.segments_ids
             segments_touch = (len(first_ids - second_ids)
                               * len(second_ids - first_ids)) >= 1
             if segments_touch:
@@ -92,4 +91,4 @@ def complete_events_relations(same_start_events: Sequence[Event]
             first_left.register_relation(relation)
             second_left.register_relation(relation.complement)
         if not first.is_left:
-            yield first.left
+            yield first_left
