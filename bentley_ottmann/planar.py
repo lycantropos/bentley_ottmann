@@ -126,7 +126,7 @@ def segments_cross_or_overlap(segments: _Sequence[_Segment]) -> bool:
     Based on Bentley-Ottmann algorithm.
 
     Time complexity:
-        ``O((len(segments) + len(intersections)) * log len(segments))``
+        ``O(len(segments) * log len(segments))``
     Memory complexity:
         ``O(len(segments))``
     Reference:
