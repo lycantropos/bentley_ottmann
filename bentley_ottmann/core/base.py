@@ -73,22 +73,23 @@ def complete_events_relations(same_start_events: Sequence[Event]
             second = same_start_events[second_index]
             second_left = second if second.is_left else second.left
             second_ids = second_left.segments_ids
-            segments_touch = (len(first_ids - second_ids)
-                              * len(second_ids - first_ids)) >= 1
-            if segments_touch:
-                intersection_point = first.start
+            first_extra_ids_count, second_extra_ids_count = (
+                len(first_ids - second_ids), len(second_ids - first_ids))
+            if first_extra_ids_count and second_extra_ids_count:
                 relation = (Relation.TOUCH
-                            if (intersection_point == first.original_start
-                                or intersection_point == second.original_start)
+                            if (first.start == first.original_start
+                                or second.start == second.original_start)
                             else Relation.CROSS)
                 first.register_tangent(second)
                 second.register_tangent(first)
-            else:
+                first_left.register_relation(relation)
+                second_left.register_relation(relation.complement)
+            elif first_extra_ids_count or second_extra_ids_count:
                 relation = classify_overlap(first_left.original_start,
                                             first_left.original_end,
                                             second_left.original_start,
                                             second_left.original_end)
-            first_left.register_relation(relation)
-            second_left.register_relation(relation.complement)
+                first_left.register_relation(relation)
+                second_left.register_relation(relation.complement)
         if not first.is_left:
             yield first_left
