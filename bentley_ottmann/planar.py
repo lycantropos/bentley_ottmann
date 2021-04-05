@@ -170,7 +170,7 @@ def segments_intersections(segments: _Sequence[_Segment]
     Based on Bentley-Ottmann algorithm.
 
     Time complexity:
-        ``O((len(segments) + len(intersections)) * log len(segments))``
+        ``O(len(segments) * log len(segments) + len(intersections))``
     Memory complexity:
         ``O(len(segments) + len(intersections))``
     Reference:
