@@ -8,7 +8,7 @@ from typing import (Callable,
                     TypeVar)
 
 from ground.base import get_context
-from ground.hints import Coordinate
+from ground.hints import Scalar
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
 
@@ -89,7 +89,7 @@ def reverse_point_coordinates(point: Point) -> Point:
 
 def scale_segment(segment: Segment,
                   *,
-                  scale: Coordinate) -> Segment:
+                  scale: Scalar) -> Segment:
     start, end = segment.start, segment.end
     start_x, start_y = start.x, start.y
     end_x, end_y = end.x, end.y

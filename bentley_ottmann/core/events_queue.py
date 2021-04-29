@@ -39,14 +39,12 @@ class EventsQueue:
                             below_event: LeftEvent,
                             event: LeftEvent,
                             sweep_line: SweepLine) -> None:
-        relation = self.context.segments_relation(
-                below_event.start, below_event.end, event.start, event.end)
+        relation = self.context.segments_relation(below_event, event)
         if relation is Relation.DISJOINT:
             return
         elif relation is Relation.TOUCH or relation is Relation.CROSS:
             # segments touch or cross
-            point = self.context.segments_intersection(
-                    below_event.start, below_event.end, event.start, event.end)
+            point = self.context.segments_intersection(below_event, event)
             assert event.segments_ids.isdisjoint(below_event.segments_ids)
             if point != below_event.start and point != below_event.end:
                 below_below = sweep_line.below(below_event)
