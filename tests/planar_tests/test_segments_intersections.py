@@ -48,42 +48,32 @@ def test_step(context: Context,
             == (result.keys()
                 | {(index, len(segments) - 1)
                    for index, segment in enumerate(rest_segments)
-                   if context.segments_relation(segment.start, segment.end,
-                                                last_segment.start,
-                                                last_segment.end)
+                   if context.segments_relation(segment, last_segment)
                    is not Relation.DISJOINT}))
     assert result.items() <= next_result.items()
     assert all(segment_id < next_segment_id == len(segments) - 1
                for segment_id, next_segment_id in (next_result.keys()
                                                    - result.keys()))
-    assert all(context.segments_intersection(segments[segment_id].start,
-                                             segments[segment_id].end,
-                                             segments[next_segment_id].start,
-                                             segments[next_segment_id].end)
+    assert all(context.segments_intersection(segments[segment_id],
+                                             segments[next_segment_id])
                == next_result[(segment_id, next_segment_id)][0]
                if len(next_result[(segment_id, next_segment_id)]) == 1
                else
-               context.segments_intersection(segments[segment_id].start,
-                                             segments[segment_id].end,
-                                             segments[next_segment_id].start,
-                                             segments[next_segment_id].end)
+               context.segments_intersection(segments[segment_id],
+                                             segments[next_segment_id])
                not in (Relation.DISJOINT, Relation.TOUCH, Relation.CROSS)
                and (to_sorted_pair(*next_result[(segment_id, next_segment_id)])
                     == next_result[(segment_id, next_segment_id)])
-               and all(context.segment_contains_point(
-                       segments[segment_id].start, segments[segment_id].end,
-                       point)
+               and all(context.segment_contains_point(segments[segment_id],
+                                                      point)
                        for point in next_result[(segment_id, next_segment_id)])
                and all(context.segment_contains_point(
-                       segments[next_segment_id].start,
-                       segments[next_segment_id].end, point)
+                       segments[next_segment_id], point)
                        for point in next_result[(segment_id, next_segment_id)])
                for segment_id, next_segment_id in (next_result.keys()
                                                    - result.keys()))
-    assert all(context.segments_relation(segments[segment_id].start,
-                                         segments[segment_id].end,
-                                         segments[next_segment_id].start,
-                                         segments[next_segment_id].end)
+    assert all(context.segments_relation(segments[segment_id],
+                                         segments[next_segment_id])
                is not Relation.DISJOINT
                for segment_id, next_segment_id in (next_result.keys()
                                                    - result.keys()))
