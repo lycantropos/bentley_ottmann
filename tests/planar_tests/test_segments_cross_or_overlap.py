@@ -35,9 +35,7 @@ def test_step(context: Context, segments: List[Segment]) -> None:
 
     assert (next_result
             is (result
-                or any(context.segments_relation(first_segment.start,
-                                                 first_segment.end,
-                                                 segment.start, segment.end)
+                or any(context.segments_relation(first_segment, segment)
                        in (Relation.COMPONENT, Relation.COMPOSITE,
                            Relation.CROSS, Relation.EQUAL, Relation.OVERLAP)
                        for segment in rest_segments)))

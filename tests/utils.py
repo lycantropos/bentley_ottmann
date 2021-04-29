@@ -20,6 +20,8 @@ Contour = context.contour_cls
 Point = context.point_cls
 Segment = context.segment_cls
 
+MAX_SCALAR = 10 ** 20
+MIN_SCALAR = -MAX_SCALAR
 
 def to_pairs(strategy: Strategy[Domain]) -> Strategy[Tuple[Domain, Domain]]:
     return strategies.tuples(strategy, strategy)
