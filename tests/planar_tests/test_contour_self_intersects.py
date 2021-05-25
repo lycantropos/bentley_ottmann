@@ -7,7 +7,7 @@ from ground.base import (Context,
 from ground.hints import Contour
 from hypothesis import given
 
-from bentley_ottmann.planar import edges_intersect
+from bentley_ottmann.planar import contour_self_intersects
 from tests.utils import (contour_to_edges,
                          pop_left_vertex,
                          reverse_contour,
@@ -17,14 +17,14 @@ from . import strategies
 
 @given(strategies.contours)
 def test_basic(contour: Contour) -> None:
-    result = edges_intersect(contour)
+    result = contour_self_intersects(contour)
 
     assert isinstance(result, bool)
 
 
 @given(strategies.triangular_contours)
 def test_base_case(context: Context, contour: Contour) -> None:
-    result = edges_intersect(contour)
+    result = contour_self_intersects(contour)
 
     left_vertex, mid_vertex, right_vertex = sorted(contour.vertices)
     assert result is context.segment_contains_point(
@@ -36,8 +36,8 @@ def test_step(context: Context, contour: Contour) -> None:
     first_vertex, rest_contour = pop_left_vertex(contour)
     rest_vertices = rest_contour.vertices
 
-    result = edges_intersect(rest_contour)
-    next_result = edges_intersect(contour)
+    result = contour_self_intersects(rest_contour)
+    next_result = contour_self_intersects(contour)
 
     first_edge = context.segment_cls(first_vertex, rest_vertices[0])
     last_edge = context.segment_cls(rest_vertices[-1], first_vertex)
@@ -75,19 +75,19 @@ def test_step(context: Context, contour: Contour) -> None:
 
 @given(strategies.contours)
 def test_reversed(contour: Contour) -> None:
-    result = edges_intersect(contour)
+    result = contour_self_intersects(contour)
 
-    assert result is edges_intersect(reverse_contour(contour))
+    assert result is contour_self_intersects(reverse_contour(contour))
 
 
 @given(strategies.contours)
 def test_reversed_coordinates(contour: Contour) -> None:
-    result = edges_intersect(contour)
+    result = contour_self_intersects(contour)
 
-    assert result is edges_intersect(reverse_contour_coordinates(contour))
+    assert result is contour_self_intersects(reverse_contour_coordinates(contour))
 
 
 @given(strategies.degenerate_contours)
 def test_degenerate_contour(contour: Contour) -> None:
     with pytest.raises(ValueError):
-        edges_intersect(contour)
+        contour_self_intersects(contour)

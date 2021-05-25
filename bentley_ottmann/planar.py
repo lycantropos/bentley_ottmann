@@ -17,9 +17,9 @@ from .core.utils import (all_unique as _all_unique,
                          to_sorted_pair as _to_sorted_pair)
 
 
-def edges_intersect(contour: _Contour) -> bool:
+def contour_self_intersects(contour: _Contour) -> bool:
     """
-    Checks if polygonal contour has self-intersection.
+    Checks if contour has self-intersection.
 
     Based on Bentley-Ottmann algorithm.
 
@@ -47,9 +47,9 @@ def edges_intersect(contour: _Contour) -> bool:
     >>> from ground.base import get_context
     >>> context = get_context()
     >>> Contour, Point = context.contour_cls, context.point_cls
-    >>> edges_intersect(Contour([Point(0, 0), Point(2, 0), Point(2, 2)]))
+    >>> contour_self_intersects(Contour([Point(0, 0), Point(2, 0), Point(2, 2)]))
     False
-    >>> edges_intersect(Contour([Point(0, 0), Point(2, 0), Point(1, 0)]))
+    >>> contour_self_intersects(Contour([Point(0, 0), Point(2, 0), Point(1, 0)]))
     True
     """
     vertices = contour.vertices

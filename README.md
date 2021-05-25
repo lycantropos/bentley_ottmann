@@ -80,10 +80,10 @@ With contours
 ```
 we can check if they are self-intersecting or not
 ```python
->>> from bentley_ottmann.planar import edges_intersect
->>> edges_intersect(triangle)
+>>> from bentley_ottmann.planar import contour_self_intersects
+>>> contour_self_intersects(triangle)
 False
->>> edges_intersect(degenerate_triangle)
+>>> contour_self_intersects(degenerate_triangle)
 True
 
 ```
