@@ -222,9 +222,9 @@ def segments_intersections(segments: _Sequence[_Segment],
     """
     left_parts_ids, right_parts_ids = {}, {}
     left_tangents, right_tangents = {}, {}
-    for event in _sweep(segments,
-                        context=
-                        _get_context() if context is None else context):
+    for event in _sweep(
+            segments,
+            context=_get_context() if context is None else context):
         if event.tangents:
             (left_tangents.setdefault(event.start, {})
              .setdefault(event.end, set())
