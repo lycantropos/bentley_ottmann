@@ -24,9 +24,9 @@ def edges_intersect(contour: _Contour) -> bool:
     Based on Bentley-Ottmann algorithm.
 
     Time complexity:
-        ``O(len(contour) * log len(contour))``
+        ``O(len(contour.vertices) * log len(contour.vertices))``
     Memory complexity:
-        ``O(len(contour))``
+        ``O(len(contour.vertices))``
     Reference:
         https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
