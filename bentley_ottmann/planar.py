@@ -1,11 +1,13 @@
 from itertools import (product as _product,
                        repeat as _repeat)
 from typing import (Dict as _Dict,
+                    Optional as _Optional,
                     Sequence as _Sequence,
                     Tuple as _Tuple,
                     Union as _Union)
 
-from ground.base import (Relation as _Relation,
+from ground.base import (Context as _Context,
+                         Relation as _Relation,
                          get_context as _get_context)
 from ground.hints import (Contour as _Contour,
                           Point as _Point,
@@ -17,7 +19,9 @@ from .core.utils import (all_unique as _all_unique,
                          to_sorted_pair as _to_sorted_pair)
 
 
-def contour_self_intersects(contour: _Contour) -> bool:
+def contour_self_intersects(contour: _Contour,
+                            *,
+                            context: _Optional[_Context] = None) -> bool:
     """
     Checks if contour has self-intersection.
 
@@ -31,6 +35,7 @@ def contour_self_intersects(contour: _Contour) -> bool:
         https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
     :param contour: contour to check.
+    :param context: geometrical context.
     :returns: true if contour is self-intersecting, false otherwise.
 
     .. note::
@@ -47,9 +52,11 @@ def contour_self_intersects(contour: _Contour) -> bool:
     >>> from ground.base import get_context
     >>> context = get_context()
     >>> Contour, Point = context.contour_cls, context.point_cls
-    >>> contour_self_intersects(Contour([Point(0, 0), Point(2, 0), Point(2, 2)]))
+    >>> contour_self_intersects(Contour([Point(0, 0), Point(2, 0),
+    ...                                  Point(2, 2)]))
     False
-    >>> contour_self_intersects(Contour([Point(0, 0), Point(2, 0), Point(1, 0)]))
+    >>> contour_self_intersects(Contour([Point(0, 0), Point(2, 0),
+    ...                                  Point(1, 0)]))
     True
     """
     vertices = contour.vertices
@@ -58,17 +65,18 @@ def contour_self_intersects(contour: _Contour) -> bool:
                          .format(contour=contour))
     if not _all_unique(vertices):
         return True
-    context = _get_context()
-    segment_cls = context.segment_cls
-    edges = [segment_cls(vertices[index - 1], vertices[index])
-             for index in range(len(vertices))]
+    if context is None:
+        context = _get_context()
+    segments = context.contour_segments(contour)
 
-    def non_neighbours_disjoint(edge_id: int,
-                                other_edge_id: int,
-                                last_edge_id: int = len(edges) - 1) -> bool:
-        min_edge_id, max_edge_id = _to_sorted_pair(edge_id, other_edge_id)
+    def non_neighbours_disjoint(segment_id: int,
+                                other_segment_id: int,
+                                last_segment_id: int = len(segments) - 1
+                                ) -> bool:
+        min_edge_id, max_edge_id = _to_sorted_pair(segment_id,
+                                                   other_segment_id)
         return (max_edge_id - min_edge_id == 1
-                or (min_edge_id == 0 and max_edge_id == last_edge_id))
+                or (min_edge_id == 0 and max_edge_id == last_segment_id))
 
     return not all(event.has_only_relations(_Relation.DISJOINT,
                                             _Relation.TOUCH)
@@ -77,7 +85,7 @@ def contour_self_intersects(contour: _Contour) -> bool:
                                            *event.right.tangents]
                            for id_, other_id in _product(event.segments_ids,
                                                          tangent.segments_ids))
-                   for event in _sweep(edges,
+                   for event in _sweep(segments,
                                        context=context))
 
 
