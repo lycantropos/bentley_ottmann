@@ -89,7 +89,9 @@ def contour_self_intersects(contour: _Contour,
                                        context=context))
 
 
-def segments_intersect(segments: _Sequence[_Segment]) -> bool:
+def segments_intersect(segments: _Sequence[_Segment],
+                       *,
+                       context: _Optional[_Context] = None) -> bool:
     """
     Checks if segments have at least one intersection.
 
@@ -103,6 +105,7 @@ def segments_intersect(segments: _Sequence[_Segment]) -> bool:
         https://en.wikipedia.org/wiki/Sweep_line_algorithm
 
     :param segments: sequence of segments.
+    :param context: geometrical context.
     :returns: true if segments intersection found, false otherwise.
 
     >>> from ground.base import get_context
@@ -124,7 +127,9 @@ def segments_intersect(segments: _Sequence[_Segment]) -> bool:
     """
     return not all(event.has_only_relations(_Relation.DISJOINT)
                    for event in _sweep(segments,
-                                       context=_get_context()))
+                                       context=(_get_context()
+                                                if context is None
+                                                else context)))
 
 
 def segments_cross_or_overlap(segments: _Sequence[_Segment]) -> bool:
