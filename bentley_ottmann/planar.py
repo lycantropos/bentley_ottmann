@@ -179,7 +179,9 @@ def segments_cross_or_overlap(segments: _Sequence[_Segment],
 _Intersection = _Union[_Tuple[_Point], _Tuple[_Point, _Point]]
 
 
-def segments_intersections(segments: _Sequence[_Segment]
+def segments_intersections(segments: _Sequence[_Segment],
+                           *,
+                           context: _Optional[_Context] = None
                            ) -> _Dict[_Tuple[int, int], _Intersection]:
     """
     Returns mapping between intersection points
@@ -193,6 +195,11 @@ def segments_intersections(segments: _Sequence[_Segment]
         ``O(len(segments) + len(intersections))``
     Reference:
         https://en.wikipedia.org/wiki/Bentley%E2%80%93Ottmann_algorithm
+
+    :param segments: sequence of segments.
+    :param context: geometrical context.
+    :returns:
+        mapping between intersection points and corresponding segments indices.
 
     >>> from ground.base import get_context
     >>> context = get_context()
@@ -212,15 +219,12 @@ def segments_intersections(segments: _Sequence[_Segment]
     ...                          Segment(Point(2, 0), Point(0, 2))])
     ...  == {(0, 1): (Point(1, 1),)})
     True
-
-    :param segments: sequence of segments.
-    :returns:
-        mapping between intersection points and corresponding segments indices.
     """
     left_parts_ids, right_parts_ids = {}, {}
     left_tangents, right_tangents = {}, {}
     for event in _sweep(segments,
-                        context=_get_context()):
+                        context=
+                        _get_context() if context is None else context):
         if event.tangents:
             (left_tangents.setdefault(event.start, {})
              .setdefault(event.end, set())
