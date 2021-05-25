@@ -132,7 +132,9 @@ def segments_intersect(segments: _Sequence[_Segment],
                                                 else context)))
 
 
-def segments_cross_or_overlap(segments: _Sequence[_Segment]) -> bool:
+def segments_cross_or_overlap(segments: _Sequence[_Segment],
+                              *,
+                              context: _Optional[_Context] = None) -> bool:
     """
     Checks if at least one pair of segments crosses or overlaps.
 
@@ -146,6 +148,7 @@ def segments_cross_or_overlap(segments: _Sequence[_Segment]) -> bool:
         https://en.wikipedia.org/wiki/Bentley%E2%80%93Ottmann_algorithm
 
     :param segments: sequence of segments.
+    :param context: geometrical context.
     :returns: true if segments overlap or cross found, false otherwise.
 
     >>> from ground.base import get_context
@@ -168,7 +171,9 @@ def segments_cross_or_overlap(segments: _Sequence[_Segment]) -> bool:
     return not all(event.has_only_relations(_Relation.DISJOINT,
                                             _Relation.TOUCH)
                    for event in _sweep(segments,
-                                       context=_get_context()))
+                                       context=(_get_context()
+                                                if context is None
+                                                else context)))
 
 
 _Intersection = _Union[_Tuple[_Point], _Tuple[_Point, _Point]]
