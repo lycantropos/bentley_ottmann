@@ -92,8 +92,8 @@ class LeftEvent(Event):
     def tangents(self) -> Sequence[Event]:
         return self._tangents
 
-    __slots__ = ('right', 'parts_ids', '_original_start',
-                 '_start', '_tangents', '_relations_mask')
+    __slots__ = ('parts_ids', 'right', '_original_start', '_relations_mask',
+                 '_start', '_tangents')
 
     def __init__(self,
                  start: Point,
@@ -139,7 +139,6 @@ class LeftEvent(Event):
 
     def register_tangent(self, tangent: Event) -> None:
         assert self.start == tangent.start
-        assert tangent not in self._tangents
         self._tangents.append(tangent)
 
     def register_relation(self, relation: Relation) -> None:
@@ -185,5 +184,4 @@ class RightEvent(Event):
 
     def register_tangent(self, tangent: 'Event') -> None:
         assert self.start == tangent.start
-        assert tangent not in self._tangents
         self._tangents.append(tangent)
