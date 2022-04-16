@@ -114,9 +114,9 @@ class LeftEvent(Event):
          .setdefault(break_point, set()).update(segments_ids))
         (self.parts_ids.setdefault(break_point, {})
          .setdefault(self.end, set()).update(segments_ids))
-        result = self.right.left = LeftEvent(
-                break_point, self.right, self.original_start,
-                self.parts_ids)
+        result = self.right.left = LeftEvent(break_point, self.right,
+                                             self.original_start,
+                                             self.parts_ids)
         self.right = RightEvent(break_point, self, self.original_end)
         return result
 
@@ -129,13 +129,15 @@ class LeftEvent(Event):
     def merge_with(self, other: 'LeftEvent') -> None:
         assert self.start == other.start and self.end == other.end
         full_relation = classify_overlap(
-                other.original_start, other.original_end, self.original_start,
-                self.original_end)
+                other.original_start, other.original_end,
+                self.original_start, self.original_end
+        )
         self.register_relation(full_relation)
         other.register_relation(full_relation.complement)
         start, end = self.start, self.end
         self.parts_ids[start][end] = other.parts_ids[start][end] = (
-                self.parts_ids[start][end] | other.parts_ids[start][end])
+                self.parts_ids[start][end] | other.parts_ids[start][end]
+        )
 
     def register_tangent(self, tangent: Event) -> None:
         assert self.start == tangent.start
