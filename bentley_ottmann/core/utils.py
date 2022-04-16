@@ -1,4 +1,3 @@
-from itertools import combinations
 from typing import (Hashable,
                     Iterable,
                     Tuple,
@@ -46,11 +45,6 @@ def classify_overlap(test_start: Point,
         return (Relation.COMPOSITE
                 if goal_end < test_end
                 else Relation.OVERLAP)
-
-
-def to_pairs_combinations(iterable: Iterable[_T]) -> Iterable[Tuple[_T, _T]]:
-    return combinations(iterable,
-                        r=2)
 
 
 def to_sorted_pair(start: _T, end: _T) -> Tuple[_T, _T]:
