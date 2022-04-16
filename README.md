@@ -62,14 +62,6 @@ we can check if they intersect
 True
 
 ```
-we can also find in which points segments intersect
-```python
->>> from bentley_ottmann.planar import segments_intersections
->>> segments_intersections(unit_segments) == {(0, 1): (Point(0, 0),)}
-True
-
-```
-here we can see that `0`th and `1`st segments intersect at point `(0, 0)`.
 
 With contours
 ```python
