@@ -28,7 +28,8 @@ def test_base_case(context: Context, contour: Contour) -> None:
 
     left_vertex, mid_vertex, right_vertex = sorted(contour.vertices)
     assert result is context.segment_contains_point(
-            context.segment_cls(left_vertex, right_vertex), mid_vertex)
+            context.segment_cls(left_vertex, right_vertex), mid_vertex
+    )
 
 
 @given(strategies.non_triangular_contours)

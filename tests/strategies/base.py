@@ -20,7 +20,8 @@ scalars_strategies_factories = {Fraction: strategies.fractions,
                                                allow_nan=False)}
 scalars_strategies = strategies.sampled_from(
         [factory(MIN_SCALAR, MAX_SCALAR)
-         for factory in scalars_strategies_factories.values()])
+         for factory in scalars_strategies_factories.values()]
+)
 
 
 def scalars_to_segments(scalars: Strategy[Scalar]) -> Strategy[Segment]:

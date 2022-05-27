@@ -101,7 +101,8 @@ class LeftEvent(Event):
                  original_start: Point,
                  parts_ids: Dict[Point, Dict[Point, Set[int]]]) -> None:
         self.right, self.parts_ids, self._original_start, self._start = (
-            right, parts_ids, original_start, start)
+            right, parts_ids, original_start, start
+        )
         self._relations_mask = 0
         self._tangents = []  # type: List[Event]
 

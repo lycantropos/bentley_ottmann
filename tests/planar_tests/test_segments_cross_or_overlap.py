@@ -60,8 +60,9 @@ def test_reversed_endpoints(segments: List[Segment]) -> None:
 def test_reversed_coordinates(segments: List[Segment]) -> None:
     result = segments_cross_or_overlap(segments)
 
-    assert result is segments_cross_or_overlap(reverse_segments_coordinates(
-            segments))
+    assert result is segments_cross_or_overlap(
+            reverse_segments_coordinates(segments)
+    )
 
 
 @given(strategies.degenerate_segments_lists)

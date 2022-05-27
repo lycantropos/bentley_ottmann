@@ -72,13 +72,15 @@ class EventsQueue:
                 (event, below_event)
                 if (starts_equal
                     or EventsQueueKey(event) < EventsQueueKey(below_event))
-                else (below_event, event))
+                else (below_event, event)
+            )
             ends_equal = event.end == below_event.end
             end_min, end_max = (
                 (event.right, below_event.right)
                 if ends_equal or (EventsQueueKey(event.right)
                                   < EventsQueueKey(below_event.right))
-                else (below_event.right, event.right))
+                else (below_event.right, event.right)
+            )
             if starts_equal:
                 assert not ends_equal
                 # segments share the left endpoint

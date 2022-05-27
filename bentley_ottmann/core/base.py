@@ -53,7 +53,8 @@ def sweep(segments: Sequence[Segment],
             if equal_segment_event is not None:
                 above_event, below_event = (
                     sweep_line.above(equal_segment_event),
-                    sweep_line.below(equal_segment_event))
+                    sweep_line.below(equal_segment_event)
+                )
                 sweep_line.remove(equal_segment_event)
                 if below_event is not None and above_event is not None:
                     events_queue.detect_intersection(below_event, above_event,
@@ -74,7 +75,8 @@ def complete_events_relations(same_start_events: Sequence[Event]
             second_left = second if second.is_left else second.left
             second_ids = second_left.segments_ids
             first_extra_ids_count, second_extra_ids_count = (
-                len(first_ids - second_ids), len(second_ids - first_ids))
+                len(first_ids - second_ids), len(second_ids - first_ids)
+            )
             if first_extra_ids_count and second_extra_ids_count:
                 relation = (Relation.TOUCH
                             if (first.start == first.original_start
