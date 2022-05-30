@@ -47,10 +47,10 @@ class EventsQueue:
             point = self.context.segments_intersection(below_event, event)
             assert event.segments_ids.isdisjoint(below_event.segments_ids)
             if point != below_event.start and point != below_event.end:
-                below_below = sweep_line.below(below_event)
-                assert not (below_below is not None
-                            and below_below.start == below_event.start
-                            and below_below.end == point)
+                below_below_event = sweep_line.below(below_event)
+                assert not (below_below_event is not None
+                            and below_below_event.start == below_event.start
+                            and below_below_event.end == point)
                 self.push(below_event.divide(point))
                 self.push(below_event.right)
             if point != event.start and point != event.end:
