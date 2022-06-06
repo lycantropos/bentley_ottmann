@@ -129,6 +129,12 @@ class LeftEvent(Event):
 
     def merge_with(self, other: 'LeftEvent') -> None:
         assert self.start == other.start and self.end == other.end
+        full_relation = classify_overlap(
+                other.original_start, other.original_end,
+                self.original_start, self.original_end
+        )
+        self.register_relation(full_relation)
+        other.register_relation(full_relation.complement)
         start, end = self.start, self.end
         self.parts_ids[start][end] = other.parts_ids[start][end] = (
                 self.parts_ids[start][end] | other.parts_ids[start][end]
