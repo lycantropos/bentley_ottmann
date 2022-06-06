@@ -62,23 +62,9 @@ def contour_self_intersects(contour: _Contour,
     if context is None:
         context = _get_context()
     segments = context.contour_segments(contour)
-
-    def non_neighbours_disjoint(segment_id: int,
-                                other_segment_id: int,
-                                last_segment_id: int = len(segments) - 1
-                                ) -> bool:
-        min_edge_id, max_edge_id = _to_sorted_pair(segment_id,
-                                                   other_segment_id)
-        return (max_edge_id - min_edge_id == 1
-                or (min_edge_id == 0 and max_edge_id == last_segment_id))
-
     return not all(event.has_only_relations(_Relation.DISJOINT,
                                             _Relation.TOUCH)
-                   and all(non_neighbours_disjoint(id_, other_id)
-                           for tangent in [*event.tangents,
-                                           *event.right.tangents]
-                           for id_, other_id in _product(event.segments_ids,
-                                                         tangent.segments_ids))
+                   and len(event.tangents) == 1
                    for event in _sweep(segments,
                                        context=context))
 
