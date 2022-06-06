@@ -5,7 +5,8 @@ from typing import (Dict,
                     List,
                     Optional,
                     Sequence,
-                    Set)
+                    Set,
+                    Tuple)
 
 from ground.base import Relation
 from ground.hints import (Point,
@@ -108,18 +109,19 @@ class LeftEvent(Event):
 
     __repr__ = recursive_repr()(generate_repr(__init__))
 
-    def divide(self, break_point: Point) -> 'LeftEvent':
+    def divide(self, point: Point) -> Tuple['RightEvent', 'LeftEvent']:
         """Divides the event at given break point and returns tail."""
         segments_ids = self.segments_ids
         (self.parts_ids.setdefault(self.start, {})
-         .setdefault(break_point, set()).update(segments_ids))
-        (self.parts_ids.setdefault(break_point, {})
+         .setdefault(point, set()).update(segments_ids))
+        (self.parts_ids.setdefault(point, {})
          .setdefault(self.end, set()).update(segments_ids))
-        result = self.right.left = LeftEvent(break_point, self.right,
-                                             self.original_start,
-                                             self.parts_ids)
-        self.right = RightEvent(break_point, self, self.original_end)
-        return result
+        point_to_end_event = self.right.left = LeftEvent(
+                point, self.right, self.original_start, self.parts_ids
+        )
+        point_to_start_event = self.right = RightEvent(point, self,
+                                                       self.original_end)
+        return point_to_start_event, point_to_end_event
 
     def has_only_relations(self, *relations: Relation) -> bool:
         mask = self._relations_mask

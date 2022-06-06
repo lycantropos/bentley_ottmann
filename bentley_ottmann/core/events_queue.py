@@ -51,31 +51,41 @@ class EventsQueue:
                 assert not (below_below_event is not None
                             and below_below_event.start == below_event.start
                             and below_below_event.end == point)
-                self.push(below_event.divide(point))
-                self.push(below_event.right)
+                (
+                    point_to_below_event_start_event,
+                    point_to_below_event_end_event
+                ) = below_event.divide(point)
+                self.push(point_to_below_event_start_event)
+                self.push(point_to_below_event_end_event)
             if point != event.start and point != event.end:
                 above_event = sweep_line.above(event)
                 if (above_event is not None
                         and above_event.start == event.start
                         and above_event.end == point):
                     sweep_line.remove(above_event)
-                    self.push(event.divide(point))
-                    self.push(event.right)
+                    (
+                        point_to_event_start_event, point_to_event_end_event
+                    ) = event.divide(point)
+                    self.push(point_to_event_start_event)
+                    self.push(point_to_event_end_event)
                     event.merge_with(above_event)
                 else:
-                    self.push(event.divide(point))
-                    self.push(event.right)
+                    (
+                        point_to_event_start_event, point_to_event_end_event
+                    ) = event.divide(point)
+                    self.push(point_to_event_start_event)
+                    self.push(point_to_event_end_event)
         else:
             # segments overlap
             starts_equal = event.start == below_event.start
-            start_min, start_max = (
+            min_start_event, max_start_event = (
                 (event, below_event)
                 if (starts_equal
                     or EventsQueueKey(event) < EventsQueueKey(below_event))
                 else (below_event, event)
             )
             ends_equal = event.end == below_event.end
-            end_min, end_max = (
+            min_end_event, max_end_event = (
                 (event.right, below_event.right)
                 if ends_equal or (EventsQueueKey(event.right)
                                   < EventsQueueKey(below_event.right))
@@ -84,25 +94,43 @@ class EventsQueue:
             if starts_equal:
                 assert not ends_equal
                 # segments share the left endpoint
-                sweep_line.remove(end_max.left)
-                self.push(end_max.left.divide(end_min.start))
+                sweep_line.remove(max_end_event.left)
+                _, min_end_to_max_end_event = max_end_event.left.divide(
+                        min_end_event.start
+                )
+                self.push(min_end_to_max_end_event)
                 event.merge_with(below_event)
             elif ends_equal:
                 # segments share the right endpoint
-                start_max.merge_with(start_min.divide(start_max.start))
-                self.push(start_min.right)
-            elif start_min is end_max.left:
+                (
+                    max_start_to_min_start, max_start_to_end_event
+                ) = min_start_event.divide(max_start_event.start)
+                max_start_event.merge_with(max_start_to_end_event)
+                self.push(max_start_to_min_start)
+            elif min_start_event is max_end_event.left:
                 # one line segment includes the other one
-                self.push(start_min.divide(end_min.start))
-                self.push(start_min.right)
-                start_max.merge_with(start_min.divide(start_max.start))
-                self.push(start_min.right)
+                (
+                    min_end_to_min_start_event, min_end_to_max_end_event
+                ) = min_start_event.divide(min_end_event.start)
+                self.push(min_end_to_min_start_event)
+                self.push(min_end_to_max_end_event)
+                (
+                    max_start_to_min_start_event, max_start_to_min_end_event
+                ) = min_start_event.divide(max_start_event.start)
+                max_start_event.merge_with(max_start_to_min_end_event)
+                self.push(max_start_to_min_start_event)
             else:
                 # no line segment includes the other one
-                self.push(start_max.divide(end_min.start))
-                self.push(start_max.right)
-                start_max.merge_with(start_min.divide(start_max.start))
-                self.push(start_min.right)
+                (
+                    min_end_to_max_start_event, min_end_to_max_end_event
+                ) = max_start_event.divide(min_end_event.start)
+                self.push(min_end_to_max_start_event)
+                self.push(min_end_to_max_end_event)
+                (
+                    max_start_to_min_start_event, max_start_to_min_end_event
+                ) = min_start_event.divide(max_start_event.start)
+                max_start_event.merge_with(max_start_to_min_end_event)
+                self.push(max_start_to_min_start_event)
 
     def peek(self) -> Event:
         return self._queue.peek()
