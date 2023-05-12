@@ -1,6 +1,4 @@
-from itertools import product as _product
-from typing import (Optional as _Optional,
-                    Sequence as _Sequence)
+import typing as _t
 
 from ground.base import (Context as _Context,
                          Relation as _Relation,
@@ -9,13 +7,12 @@ from ground.hints import (Contour as _Contour,
                           Segment as _Segment)
 
 from .core.base import sweep as _sweep
-from .core.utils import (all_unique as _all_unique,
-                         to_sorted_pair as _to_sorted_pair)
+from .core.utils import all_unique as _all_unique
 
 
 def contour_self_intersects(contour: _Contour,
                             *,
-                            context: _Optional[_Context] = None) -> bool:
+                            context: _t.Optional[_Context] = None) -> bool:
     """
     Checks if contour has self-intersection.
 
@@ -69,9 +66,9 @@ def contour_self_intersects(contour: _Contour,
                                        context=context))
 
 
-def segments_intersect(segments: _Sequence[_Segment],
+def segments_intersect(segments: _t.Sequence[_Segment],
                        *,
-                       context: _Optional[_Context] = None) -> bool:
+                       context: _t.Optional[_Context] = None) -> bool:
     """
     Checks if segments have at least one intersection.
 
@@ -112,9 +109,9 @@ def segments_intersect(segments: _Sequence[_Segment],
                                                 else context)))
 
 
-def segments_cross_or_overlap(segments: _Sequence[_Segment],
+def segments_cross_or_overlap(segments: _t.Sequence[_Segment],
                               *,
-                              context: _Optional[_Context] = None) -> bool:
+                              context: _t.Optional[_Context] = None) -> bool:
     """
     Checks if at least one pair of segments crosses or overlaps.
 
