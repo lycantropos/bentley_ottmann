@@ -1,5 +1,5 @@
 import os
-import platform
+import sys
 import time
 from datetime import timedelta
 
@@ -9,7 +9,7 @@ from ground.base import (Context,
 from hypothesis import (HealthCheck,
                         settings)
 
-is_pypy = platform.python_implementation() == 'PyPy'
+is_pypy = sys.implementation.name == 'pypy'
 on_ci = bool(os.getenv('CI', False))
 max_examples = (-(-settings.default.max_examples // 4)
                 if is_pypy and on_ci
