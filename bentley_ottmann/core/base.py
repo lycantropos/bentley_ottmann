@@ -21,10 +21,10 @@ def sweep(segments: Sequence[Segment],
     events_queue = EventsQueue.from_segments(segments,
                                              context=context)
     sweep_line = SweepLine(context)
-    start = (events_queue.peek().start
-             if events_queue
-             else None)  # type: Optional[Point]
-    same_start_events = []  # type: List[Event]
+    start: Optional[Point] = (events_queue.peek().start
+                              if events_queue
+                              else None)
+    same_start_events: List[Event] = []
     while events_queue:
         event = events_queue.pop()
         if event.start == start:
@@ -33,6 +33,7 @@ def sweep(segments: Sequence[Segment],
             yield from complete_events_relations(same_start_events)
             same_start_events, start = [event], event.start
         if event.is_left:
+            assert isinstance(event, LeftEvent), event
             equal_segment_event = sweep_line.find_equal(event)
             if equal_segment_event is None:
                 sweep_line.add(event)
@@ -64,15 +65,18 @@ def sweep(segments: Sequence[Segment],
     yield from complete_events_relations(same_start_events)
 
 
-def complete_events_relations(same_start_events: Sequence[Event]
-                              ) -> Iterable[Event]:
+def complete_events_relations(
+        same_start_events: Sequence[Event]
+) -> Iterable[LeftEvent]:
     for offset, first in enumerate(same_start_events,
                                    start=1):
         first_left = first if first.is_left else first.left
+        assert isinstance(first_left, LeftEvent), first_left
         first_ids = first_left.segments_ids
         for second_index in range(offset, len(same_start_events)):
             second = same_start_events[second_index]
             second_left = second if second.is_left else second.left
+            assert isinstance(second_left, LeftEvent), second_left
             second_ids = second_left.segments_ids
             first_extra_ids_count, second_extra_ids_count = (
                 len(first_ids - second_ids), len(second_ids - first_ids)

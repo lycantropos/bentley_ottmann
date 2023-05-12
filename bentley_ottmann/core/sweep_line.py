@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 from functools import partial
-from typing import (Callable,
+from typing import (Any,
+                    Callable,
                     Optional)
 
 from dendroid import red_black
+from dendroid.hints import KeyedSet
 from ground.base import (Context,
                          Orientation)
 from ground.hints import Point
@@ -16,8 +20,9 @@ class SweepLine:
 
     def __init__(self, context: Context) -> None:
         self.context = context
-        self._set = red_black.set_(key=partial(SweepLineKey,
-                                               context.angle_orientation))
+        self._set: KeyedSet[SweepLineKey, LeftEvent] = red_black.set_(
+                key=partial(SweepLineKey, context.angle_orientation)
+        )
 
     __repr__ = generate_repr(__init__)
 
@@ -61,7 +66,7 @@ class SweepLineKey:
 
     __repr__ = generate_repr(__init__)
 
-    def __lt__(self, other: 'SweepLineKey') -> bool:
+    def __lt__(self, other: SweepLineKey) -> Any:
         """
         Checks if the segment (or at least the point) associated with event
         is lower than other's.

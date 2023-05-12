@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from abc import (ABC,
                  abstractmethod)
 from reprlib import recursive_repr
-from typing import (Dict,
+from typing import (ClassVar,
+                    Dict,
                     List,
                     Optional,
                     Sequence,
@@ -20,9 +23,9 @@ from .utils import (classify_overlap,
 class Event(ABC):
     __slots__ = ()
 
-    is_left = False
-    left = None  # type: Optional['LeftEvent']
-    right = None  # type: Optional['RightEvent']
+    is_left: ClassVar[bool]
+    left: LeftEvent
+    right: RightEvent
 
     @property
     @abstractmethod
@@ -61,10 +64,10 @@ class Event(ABC):
 
 class LeftEvent(Event):
     @classmethod
-    def from_segment(cls, segment: Segment, segment_id: int) -> 'LeftEvent':
+    def from_segment(cls, segment: Segment, segment_id: int) -> LeftEvent:
         start, end = to_sorted_pair(segment.start, segment.end)
         result = LeftEvent(start, None, start, {start: {end: {segment_id}}})
-        result.right = RightEvent(end, result, end)
+        result._right = RightEvent(end, result, end)
         return result
 
     is_left = True
@@ -86,6 +89,16 @@ class LeftEvent(Event):
         return self.parts_ids[self.start][self.end]
 
     @property
+    def right(self) -> RightEvent:
+        result = self._right
+        assert result is not None, self
+        return result
+
+    @right.setter
+    def right(self, value: RightEvent) -> None:
+        self._right = value
+
+    @property
     def start(self) -> Point:
         return self._start
 
@@ -93,15 +106,17 @@ class LeftEvent(Event):
     def tangents(self) -> Sequence[Event]:
         return self._tangents
 
-    __slots__ = ('parts_ids', 'right', '_original_start', '_relations_mask',
+    _right: Optional[RightEvent]
+
+    __slots__ = ('parts_ids', '_original_start', '_relations_mask', '_right',
                  '_start', '_tangents')
 
     def __init__(self,
                  start: Point,
-                 right: Optional['RightEvent'],
+                 right: Optional[RightEvent],
                  original_start: Point,
                  parts_ids: Dict[Point, Dict[Point, Set[int]]]) -> None:
-        self.right, self.parts_ids, self._original_start, self._start = (
+        self._right, self.parts_ids, self._original_start, self._start = (
             right, parts_ids, original_start, start
         )
         self._relations_mask = 0
@@ -109,7 +124,7 @@ class LeftEvent(Event):
 
     __repr__ = recursive_repr()(generate_repr(__init__))
 
-    def divide(self, point: Point) -> Tuple['RightEvent', 'LeftEvent']:
+    def divide(self, point: Point) -> Tuple[RightEvent, LeftEvent]:
         """Divides the event at given break point and returns tail."""
         segments_ids = self.segments_ids
         (self.parts_ids.setdefault(self.start, {})
@@ -119,8 +134,8 @@ class LeftEvent(Event):
         point_to_end_event = self.right.left = LeftEvent(
                 point, self.right, self.original_start, self.parts_ids
         )
-        point_to_start_event = self.right = RightEvent(point, self,
-                                                       self.original_end)
+        point_to_start_event = self._right = RightEvent(point, self,
+                                                        self.original_end)
         return point_to_start_event, point_to_end_event
 
     def has_only_relations(self, *relations: Relation) -> bool:
@@ -129,7 +144,7 @@ class LeftEvent(Event):
             mask &= ~(1 << relation)
         return not mask
 
-    def merge_with(self, other: 'LeftEvent') -> None:
+    def merge_with(self, other: LeftEvent) -> None:
         assert self.start == other.start and self.end == other.end
         full_relation = classify_overlap(
                 other.original_start, other.original_end,
@@ -151,9 +166,21 @@ class LeftEvent(Event):
 
 
 class RightEvent(Event):
+    is_left = False
+
     @property
     def end(self) -> Point:
         return self.left.start
+
+    @property
+    def left(self) -> LeftEvent:
+        result = self._left
+        assert result is not None, self
+        return result
+
+    @left.setter
+    def left(self, value: LeftEvent) -> None:
+        self._left = value
 
     @property
     def original_end(self) -> Point:
@@ -175,14 +202,16 @@ class RightEvent(Event):
     def tangents(self) -> Sequence[Event]:
         return self._tangents
 
-    __slots__ = 'left', '_original_start', '_start', '_tangents'
+    _left: Optional[LeftEvent]
+
+    __slots__ = '_left', '_original_start', '_start', '_tangents'
 
     def __init__(self,
                  start: Point,
                  left: Optional[LeftEvent],
                  original_start: Point) -> None:
-        self.left, self._original_start, self._start = (left, original_start,
-                                                        start)
+        self._left, self._original_start, self._start = (left, original_start,
+                                                         start)
         self._tangents = []  # type: List[Event]
 
     __repr__ = recursive_repr()(generate_repr(__init__))

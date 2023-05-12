@@ -1,4 +1,7 @@
-from typing import Sequence
+from __future__ import annotations
+
+from typing import (Any,
+                    Sequence)
 
 from ground.base import (Context,
                          Relation)
@@ -28,7 +31,9 @@ class EventsQueue:
 
     def __init__(self, context: Context) -> None:
         self.context = context
-        self._queue = PriorityQueue(key=EventsQueueKey)
+        self._queue: PriorityQueue[EventsQueueKey, Event] = PriorityQueue(
+                key=EventsQueueKey
+        )
 
     __repr__ = generate_repr(__init__)
 
@@ -147,6 +152,8 @@ class EventsQueue:
 
 
 class EventsQueueKey:
+    event: Event
+
     __slots__ = 'event',
 
     def __init__(self, event: Event) -> None:
@@ -154,7 +161,7 @@ class EventsQueueKey:
 
     __repr__ = generate_repr(__init__)
 
-    def __lt__(self, other: 'EventsQueueKey') -> bool:
+    def __lt__(self, other: EventsQueueKey) -> Any:
         """
         Checks if the event should be processed before the other.
         """

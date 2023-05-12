@@ -1,16 +1,15 @@
-from typing import (Hashable,
-                    Iterable,
-                    Tuple,
-                    TypeVar)
+import typing as t
 
+import typing_extensions as te
 from ground.base import Relation
 from ground.hints import Point
 
-_T = TypeVar('_T')
+_HashableT = t.TypeVar('_HashableT',
+                       bound=t.Hashable)
 
 
-def all_unique(values: Iterable[Hashable]) -> bool:
-    seen = set()
+def all_unique(values: t.Iterable[_HashableT]) -> bool:
+    seen: t.Set[_HashableT] = set()
     seen_add = seen.add
     for value in values:
         if value in seen:
@@ -47,5 +46,16 @@ def classify_overlap(test_start: Point,
                 else Relation.OVERLAP)
 
 
-def to_sorted_pair(start: _T, end: _T) -> Tuple[_T, _T]:
+class _Comparable(te.Protocol):
+    def __lt__(self, other: te.Self) -> bool:
+        ...
+
+
+_ComparableT = t.TypeVar('_ComparableT',
+                         bound=_Comparable)
+
+
+def to_sorted_pair(
+        start: _ComparableT, end: _ComparableT
+) -> t.Tuple[_ComparableT, _ComparableT]:
     return (start, end) if start < end else (end, start)
