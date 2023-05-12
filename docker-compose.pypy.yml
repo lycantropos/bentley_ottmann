@@ -10,10 +10,8 @@ services:
     image: lycantropos/bentley_ottmann-pypy:7.3.0
     volumes:
       - ./bentley_ottmann:/opt/bentley_ottmann/bentley_ottmann
-      - ./pytest.ini:/opt/bentley_ottmann/pytest.ini
+      - ./pyproject.toml:/opt/bentley_ottmann/pyproject.toml
       - ./README.md:/opt/bentley_ottmann/README.md
-      - ./requirements-tests.txt:/opt/bentley_ottmann/requirements-tests.txt
-      - ./requirements.txt:/opt/bentley_ottmann/requirements.txt
       - ./setup.py:/opt/bentley_ottmann/setup.py
       - ./tests:/opt/bentley_ottmann/tests
     entrypoint: pytest
