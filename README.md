@@ -43,42 +43,77 @@ Install
 python setup.py install
 ```
 
-Usage
------
+Absolutely, here's a comprehensive `Usage` section for the README documentation of your Bentley-Ottmann algorithm repository:
 
-With segments
+---
+
+## Usage
+
+The Bentley-Ottmann algorithm implemented in this repository is a robust method for detecting intersections in a set of line segments. It's particularly efficient for large sets of segments, offering a sweep line based approach for intersection detection. This section guides you through the basic usage of the different components of this algorithm.
+
+### Setting Up the Environment
+
+To use the Bentley-Ottmann implementation, first import the necessary modules from the `bentley_ottmann.core` package:
+
 ```python
->>> from ground.base import get_context
->>> context = get_context()
->>> Point, Segment = context.point_cls, context.segment_cls
->>> unit_segments = [Segment(Point(0, 0), Point(1, 0)), 
-...                  Segment(Point(0, 0), Point(0, 1))]
-
-```
-we can check if they intersect
-```python
->>> from bentley_ottmann.planar import segments_intersect
->>> segments_intersect(unit_segments)
-True
-
+from bentley_ottmann.core import sweep, LeftEvent, Segment, Point
 ```
 
-With contours
-```python
->>> Contour = context.contour_cls
->>> triangle = Contour([Point(0, 0), Point(1, 0), Point(0, 1)])
->>> degenerate_triangle = Contour([Point(0, 0), Point(2, 0), Point(1, 0)])
+### Preparing the Data
 
-```
-we can check if they are self-intersecting or not
-```python
->>> from bentley_ottmann.planar import contour_self_intersects
->>> contour_self_intersects(triangle)
-False
->>> contour_self_intersects(degenerate_triangle)
-True
+Prepare your line segments by creating instances of `Segment`. Each `Segment` consists of two `Point` objects representing its start and end:
 
+```python
+# Example segments
+segments = [
+    Segment(Point(0, 0), Point(1, 1)),
+    Segment(Point(1, 0), Point(0, 1)),
+    # Add more segments as needed
+]
 ```
+
+### Running the Algorithm
+
+Invoke the `sweep` function from the `base` module with your segments. The function yields `LeftEvent` objects, representing events on the left endpoints of the segments:
+
+```python
+# Processing the segments
+for event in sweep(segments, context=YourContextImplementation):
+    # Handle or inspect the event
+    print(f"Processed event at: {event.start}")
+```
+
+### Advanced Usage
+
+For more advanced usage, you can directly interact with other components of the algorithm:
+
+- **EventsQueue**: Manages the priority queue of events during the sweep-line process.
+- **SweepLine**: Maintains the state of the sweep line, tracking segments currently intersecting with the sweep line.
+- **Utilities**: Offers helper functions like `all_unique`, `classify_overlap`, and `to_sorted_pair` for geometric computations.
+
+Example of interacting with the SweepLine:
+
+```python
+from bentley_ottmann.core import SweepLine
+
+sweep_line = SweepLine(your_context)
+for segment in segments:
+    sweep_line.add(segment)
+    # Additional processing and updates to the sweep line
+    sweep_line.remove(segment)
+```
+
+### Context Implementation
+
+The algorithm requires a `Context` that can be found in `ground.base` which is supplied in [this repository](https://github.com/lycatropos/ground)
+
+### Examples
+
+For a more hands-on approach, refer to the example usage in the docstrings of each module, demonstrating specific functionalities and their applications in the context of the Bentley-Ottmann algorithm.
+
+---
+
+This section aims to provide users with clear and concise instructions on how to utilize the various components of your Bentley-Ottmann algorithm implementation, ensuring a smooth integration into their projects or studies involving computational geometry.
 
 Development
 -----------
