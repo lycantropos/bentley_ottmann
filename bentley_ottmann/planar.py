@@ -1,18 +1,20 @@
-import typing as _t
+from collections.abc import Sequence as _Sequence
 
-from ground.base import (Context as _Context,
-                         Relation as _Relation,
-                         get_context as _get_context)
-from ground.hints import (Contour as _Contour,
-                          Segment as _Segment)
+from ground.context import Context as _Context, get_context as _get_context
+from ground.enums import Relation as _Relation
+from ground.hints import Contour as _Contour, Segment as _Segment
 
-from .core.base import sweep as _sweep
-from .core.utils import all_unique as _all_unique
+from ._core.base import sweep as _sweep
+from ._core.hints import ScalarT as _ScalarT
+from ._core.utils import all_unique as _all_unique
 
 
-def contour_self_intersects(contour: _Contour,
-                            *,
-                            context: _t.Optional[_Context] = None) -> bool:
+def contour_self_intersects(
+    contour: _Contour[_ScalarT],
+    /,
+    *,
+    context: _Context[_ScalarT] | None = None,
+) -> bool:
     """
     Checks if contour has self-intersection.
 
@@ -43,32 +45,44 @@ def contour_self_intersects(contour: _Contour,
     >>> from ground.base import get_context
     >>> context = get_context()
     >>> Contour, Point = context.contour_cls, context.point_cls
-    >>> contour_self_intersects(Contour([Point(0, 0), Point(2, 0),
-    ...                                  Point(2, 2)]))
+    >>> contour_self_intersects(
+    ...     Contour([Point(0, 0), Point(2, 0), Point(2, 2)])
+    ... )
     False
-    >>> contour_self_intersects(Contour([Point(0, 0), Point(2, 0),
-    ...                                  Point(1, 0)]))
+    >>> contour_self_intersects(
+    ...     Contour([Point(0, 0), Point(2, 0), Point(1, 0)])
+    ... )
     True
     """
     vertices = contour.vertices
     if len(vertices) < 3:
-        raise ValueError('Contour {contour} is degenerate.'
-                         .format(contour=contour))
+        raise ValueError(f'Contour {contour} is degenerate.')
     if not _all_unique(vertices):
         return True
     if context is None:
         context = _get_context()
     segments = context.contour_segments(contour)
-    return not all(event.has_only_relations(_Relation.DISJOINT,
-                                            _Relation.TOUCH)
-                   and len(event.tangents) == 1
-                   for event in _sweep(segments,
-                                       context=context))
+    return not all(
+        event.relation in (_Relation.DISJOINT, _Relation.TOUCH)
+        for event in _sweep(
+            segments,
+            context.angle_orientation,
+            lambda first_start, first_end, second_start, second_end: (
+                context.segments_intersection(
+                    context.segment_cls(first_start, first_end),
+                    context.segment_cls(second_start, second_end),
+                )
+            ),
+        )
+    )
 
 
-def segments_intersect(segments: _t.Sequence[_Segment],
-                       *,
-                       context: _t.Optional[_Context] = None) -> bool:
+def segments_intersect(
+    segments: _Sequence[_Segment[_ScalarT]],
+    /,
+    *,
+    context: _Context[_ScalarT] | None = None,
+) -> bool:
     """
     Checks if segments have at least one intersection.
 
@@ -92,26 +106,50 @@ def segments_intersect(segments: _t.Sequence[_Segment],
     False
     >>> segments_intersect([Segment(Point(0, 0), Point(2, 2))])
     False
-    >>> segments_intersect([Segment(Point(0, 0), Point(2, 0)),
-    ...                     Segment(Point(0, 2), Point(2, 2))])
+    >>> segments_intersect(
+    ...     [
+    ...         Segment(Point(0, 0), Point(2, 0)),
+    ...         Segment(Point(0, 2), Point(2, 2)),
+    ...     ]
+    ... )
     False
-    >>> segments_intersect([Segment(Point(0, 0), Point(2, 2)),
-    ...                     Segment(Point(0, 0), Point(2, 2))])
+    >>> segments_intersect(
+    ...     [
+    ...         Segment(Point(0, 0), Point(2, 2)),
+    ...         Segment(Point(0, 0), Point(2, 2)),
+    ...     ]
+    ... )
     True
-    >>> segments_intersect([Segment(Point(0, 0), Point(2, 2)),
-    ...                     Segment(Point(2, 0), Point(0, 2))])
+    >>> segments_intersect(
+    ...     [
+    ...         Segment(Point(0, 0), Point(2, 2)),
+    ...         Segment(Point(2, 0), Point(0, 2)),
+    ...     ]
+    ... )
     True
     """
-    return not all(event.has_only_relations(_Relation.DISJOINT)
-                   for event in _sweep(segments,
-                                       context=(_get_context()
-                                                if context is None
-                                                else context)))
+    context = _get_context() if context is None else context
+    return not all(
+        event.relation is _Relation.DISJOINT
+        for event in _sweep(
+            segments,
+            context.angle_orientation,
+            lambda first_start, first_end, second_start, second_end: (
+                context.segments_intersection(
+                    context.segment_cls(first_start, first_end),
+                    context.segment_cls(second_start, second_end),
+                )
+            ),
+        )
+    )
 
 
-def segments_cross_or_overlap(segments: _t.Sequence[_Segment],
-                              *,
-                              context: _t.Optional[_Context] = None) -> bool:
+def segments_cross_or_overlap(
+    segments: _Sequence[_Segment[_ScalarT]],
+    /,
+    *,
+    context: _Context[_ScalarT] | None = None,
+) -> bool:
     """
     Checks if at least one pair of segments crosses or overlaps.
 
@@ -135,19 +173,39 @@ def segments_cross_or_overlap(segments: _t.Sequence[_Segment],
     False
     >>> segments_cross_or_overlap([Segment(Point(0, 0), Point(2, 2))])
     False
-    >>> segments_cross_or_overlap([Segment(Point(0, 0), Point(2, 0)),
-    ...                            Segment(Point(0, 2), Point(2, 2))])
+    >>> segments_cross_or_overlap(
+    ...     [
+    ...         Segment(Point(0, 0), Point(2, 0)),
+    ...         Segment(Point(0, 2), Point(2, 2)),
+    ...     ]
+    ... )
     False
-    >>> segments_cross_or_overlap([Segment(Point(0, 0), Point(2, 2)),
-    ...                            Segment(Point(0, 0), Point(2, 2))])
+    >>> segments_cross_or_overlap(
+    ...     [
+    ...         Segment(Point(0, 0), Point(2, 2)),
+    ...         Segment(Point(0, 0), Point(2, 2)),
+    ...     ]
+    ... )
     True
-    >>> segments_cross_or_overlap([Segment(Point(0, 0), Point(2, 2)),
-    ...                            Segment(Point(0, 2), Point(2, 0))])
+    >>> segments_cross_or_overlap(
+    ...     [
+    ...         Segment(Point(0, 0), Point(2, 2)),
+    ...         Segment(Point(0, 2), Point(2, 0)),
+    ...     ]
+    ... )
     True
     """
-    return not all(event.has_only_relations(_Relation.DISJOINT,
-                                            _Relation.TOUCH)
-                   for event in _sweep(segments,
-                                       context=(_get_context()
-                                                if context is None
-                                                else context)))
+    context = _get_context() if context is None else context
+    return not all(
+        event.relation in (_Relation.DISJOINT, _Relation.TOUCH)
+        for event in _sweep(
+            segments,
+            context.angle_orientation,
+            lambda first_start, first_end, second_start, second_end: (
+                context.segments_intersection(
+                    context.segment_cls(first_start, first_end),
+                    context.segment_cls(second_start, second_end),
+                )
+            ),
+        )
+    )

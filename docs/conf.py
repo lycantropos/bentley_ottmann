@@ -2,7 +2,7 @@
 #
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
-# http://www.sphinx-doc.org/en/master/config
+# https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # -- Path setup --------------------------------------------------------------
 
@@ -16,10 +16,11 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 from datetime import date
+
 import bentley_ottmann
 
 project = bentley_ottmann.__name__
-copyright = '{}, Azat Ibrakov'.format(date.today().year)
+copyright = f'{date.today().year}, Azat Ibrakov'  # noqa: A001
 author = 'Azat Ibrakov'
 
 # The full version, including alpha/beta/rc tags
@@ -30,10 +31,7 @@ release = bentley_ottmann.__version__
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-]
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.viewcode']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

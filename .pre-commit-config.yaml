@@ -1,0 +1,68 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-toml
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/jorisroovers/gitlint
+    rev: v0.19.1
+    hooks:
+      - id: gitlint
+        args:
+          - --ignore
+          - B6
+          - --msg-filename
+        stages: [ commit-msg ]
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.39.2
+    hooks:
+      - id: typos
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.8
+    hooks:
+      - id: actionlint
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.46.0
+    hooks:
+    - id: markdownlint-fix
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.5
+    hooks:
+      - id: ruff-format
+      - id: ruff-check
+        args:
+          - --fix
+          - --exit-non-zero-on-fix
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.18.2
+    hooks:
+      - id: mypy
+        args:
+          - --strict
+        additional_dependencies:
+          - "dendroid>=2.1.0,<3.0"
+          - "ground>=11.0.1,<12.0"
+          - "hypothesis>=6.148.2,<7.0"
+          - "prioq>=0.6.0,<1.0"
+          - "pytest>=9.0.1,<10.0"
+          - "reprit>=0.9.0,<1.0"
+          - "setuptools"
+          - "types-setuptools"
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.408
+    hooks:
+      - id: pyright
+        additional_dependencies:
+          - "dendroid>=2.1.0,<3.0"
+          - "ground>=11.0.1,<12.0"
+          - "hypothesis>=6.148.2,<7.0"
+          - "prioq>=0.6.0,<1.0"
+          - "pytest>=9.0.1,<10.0"
+          - "reprit>=0.9.0,<1.0"
+          - "setuptools"
+          - "types-setuptools"

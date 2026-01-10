@@ -1,8 +1,5 @@
-from typing import Callable
+from typing import TypeVar
 
-from ground.core.hints import (QuaternaryPointFunction,
-                               Range)
-from ground.hints import Point
+from ground.hints import Scalar
 
-TernaryPointFunction = Callable[[Point, Point, Point], Range]
-QuaternaryPointFunction = QuaternaryPointFunction
+ScalarT = TypeVar('ScalarT', bound=Scalar)
