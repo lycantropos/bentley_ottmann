@@ -2,6 +2,7 @@
 
 [![Github Actions](https://github.com/lycantropos/bentley_ottmann/workflows/CI/badge.svg)](https://github.com/lycantropos/bentley_ottmann/actions/workflows/ci.yml "Github Actions")
 [![Codecov](https://codecov.io/gh/lycantropos/bentley_ottmann/branch/master/graph/badge.svg)](https://codecov.io/gh/lycantropos/bentley_ottmann "Codecov")
+[![Documentation](https://readthedocs.org/projects/bentley_ottmann/badge/?version=latest)](https://bentley-ottmann.readthedocs.io/en/latest "Documentation")
 [![License](https://img.shields.io/github/license/lycantropos/bentley_ottmann.svg)](https://github.com/lycantropos/bentley_ottmann/blob/master/LICENSE "License")
 [![PyPI](https://badge.fury.io/py/bentley-ottmann.svg)](https://badge.fury.io/py/bentley-ottmann "PyPI")
 
