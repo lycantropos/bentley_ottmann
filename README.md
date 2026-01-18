@@ -49,8 +49,10 @@ With segments
 >>> from ground.context import get_context
 >>> context = get_context()
 >>> Point, Segment = context.point_cls, context.segment_cls
->>> unit_segments = [Segment(Point(0, 0), Point(1, 0)),
-...                  Segment(Point(0, 0), Point(0, 1))]
+>>> unit_segments = [
+...     Segment(Point(0, 0), Point(1, 0)),
+...     Segment(Point(0, 0), Point(0, 1))
+... ]
 
 ```
 
