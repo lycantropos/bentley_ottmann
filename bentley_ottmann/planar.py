@@ -42,7 +42,7 @@ def contour_self_intersects(
         if you don't want them to be treated as such
         -- filter out before passing as argument.
 
-    >>> from ground.base import get_context
+    >>> from ground.context import get_context
     >>> context = get_context()
     >>> Contour, Point = context.contour_cls, context.point_cls
     >>> contour_self_intersects(
@@ -99,7 +99,7 @@ def segments_intersect(
     :param context: geometrical context.
     :returns: true if segments intersection found, false otherwise.
 
-    >>> from ground.base import get_context
+    >>> from ground.context import get_context
     >>> context = get_context()
     >>> Point, Segment = context.point_cls, context.segment_cls
     >>> segments_intersect([])
@@ -166,7 +166,7 @@ def segments_cross_or_overlap(
     :param context: geometrical context.
     :returns: true if segments overlap or cross found, false otherwise.
 
-    >>> from ground.base import get_context
+    >>> from ground.context import get_context
     >>> context = get_context()
     >>> Point, Segment = context.point_cls, context.segment_cls
     >>> segments_cross_or_overlap([])
