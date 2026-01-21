@@ -1,3 +1,3 @@
 """Searching line segments & polygon edges intersections."""
 
-__version__ = '8.1.0'
+__version__ = '9.0.0'
