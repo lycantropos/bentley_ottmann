@@ -1,6 +1,6 @@
 from collections.abc import Sequence as _Sequence
 
-from ground.context import Context as _Context, get_context as _get_context
+from ground.context import Context as _Context
 from ground.enums import Relation as _Relation
 from ground.hints import Contour as _Contour, Segment as _Segment
 
@@ -10,10 +10,7 @@ from ._core.utils import all_unique as _all_unique
 
 
 def contour_self_intersects(
-    contour: _Contour[_ScalarT],
-    /,
-    *,
-    context: _Context[_ScalarT] | None = None,
+    contour: _Contour[_ScalarT], /, *, context: _Context[_ScalarT]
 ) -> bool:
     """
     Checks if contour has self-intersection.
@@ -42,15 +39,17 @@ def contour_self_intersects(
         if you don't want them to be treated as such
         -- filter out before passing as argument.
 
-    >>> from ground.context import get_context
-    >>> context = get_context()
+    >>> import math
+    >>> from fractions import Fraction
+    >>> from ground.context import Context
+    >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
     >>> Contour, Point = context.contour_cls, context.point_cls
     >>> contour_self_intersects(
-    ...     Contour([Point(0, 0), Point(2, 0), Point(2, 2)])
+    ...     Contour([Point(0, 0), Point(2, 0), Point(2, 2)]), context=context
     ... )
     False
     >>> contour_self_intersects(
-    ...     Contour([Point(0, 0), Point(2, 0), Point(1, 0)])
+    ...     Contour([Point(0, 0), Point(2, 0), Point(1, 0)]), context=context
     ... )
     True
     """
@@ -59,8 +58,6 @@ def contour_self_intersects(
         raise ValueError(f'Contour {contour} is degenerate.')
     if not _all_unique(vertices):
         return True
-    if context is None:
-        context = _get_context()
     segments = context.contour_segments(contour)
     return not all(
         event.relation in (_Relation.DISJOINT, _Relation.TOUCH)
@@ -78,10 +75,7 @@ def contour_self_intersects(
 
 
 def segments_intersect(
-    segments: _Sequence[_Segment[_ScalarT]],
-    /,
-    *,
-    context: _Context[_ScalarT] | None = None,
+    segments: _Sequence[_Segment[_ScalarT]], /, *, context: _Context[_ScalarT]
 ) -> bool:
     """
     Checks if segments have at least one intersection.
@@ -99,36 +93,42 @@ def segments_intersect(
     :param context: geometrical context.
     :returns: true if segments intersection found, false otherwise.
 
-    >>> from ground.context import get_context
-    >>> context = get_context()
+    >>> import math
+    >>> from fractions import Fraction
+    >>> from ground.context import Context
+    >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
     >>> Point, Segment = context.point_cls, context.segment_cls
-    >>> segments_intersect([])
+    >>> segments_intersect([], context=context)
     False
-    >>> segments_intersect([Segment(Point(0, 0), Point(2, 2))])
+    >>> segments_intersect(
+    ...     [Segment(Point(0, 0), Point(2, 2))], context=context
+    ... )
     False
     >>> segments_intersect(
     ...     [
     ...         Segment(Point(0, 0), Point(2, 0)),
     ...         Segment(Point(0, 2), Point(2, 2)),
-    ...     ]
+    ...     ],
+    ...     context=context,
     ... )
     False
     >>> segments_intersect(
     ...     [
     ...         Segment(Point(0, 0), Point(2, 2)),
     ...         Segment(Point(0, 0), Point(2, 2)),
-    ...     ]
+    ...     ],
+    ...     context=context,
     ... )
     True
     >>> segments_intersect(
     ...     [
     ...         Segment(Point(0, 0), Point(2, 2)),
     ...         Segment(Point(2, 0), Point(0, 2)),
-    ...     ]
+    ...     ],
+    ...     context=context,
     ... )
     True
     """
-    context = _get_context() if context is None else context
     return not all(
         event.relation is _Relation.DISJOINT
         for event in _sweep(
@@ -145,10 +145,7 @@ def segments_intersect(
 
 
 def segments_cross_or_overlap(
-    segments: _Sequence[_Segment[_ScalarT]],
-    /,
-    *,
-    context: _Context[_ScalarT] | None = None,
+    segments: _Sequence[_Segment[_ScalarT]], /, *, context: _Context[_ScalarT]
 ) -> bool:
     """
     Checks if at least one pair of segments crosses or overlaps.
@@ -166,36 +163,42 @@ def segments_cross_or_overlap(
     :param context: geometrical context.
     :returns: true if segments overlap or cross found, false otherwise.
 
-    >>> from ground.context import get_context
-    >>> context = get_context()
+    >>> import math
+    >>> from fractions import Fraction
+    >>> from ground.context import Context
+    >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
     >>> Point, Segment = context.point_cls, context.segment_cls
-    >>> segments_cross_or_overlap([])
+    >>> segments_cross_or_overlap([], context=context)
     False
-    >>> segments_cross_or_overlap([Segment(Point(0, 0), Point(2, 2))])
+    >>> segments_cross_or_overlap(
+    ...     [Segment(Point(0, 0), Point(2, 2))], context=context
+    ... )
     False
     >>> segments_cross_or_overlap(
     ...     [
     ...         Segment(Point(0, 0), Point(2, 0)),
     ...         Segment(Point(0, 2), Point(2, 2)),
-    ...     ]
+    ...     ],
+    ...     context=context,
     ... )
     False
     >>> segments_cross_or_overlap(
     ...     [
     ...         Segment(Point(0, 0), Point(2, 2)),
     ...         Segment(Point(0, 0), Point(2, 2)),
-    ...     ]
+    ...     ],
+    ...     context=context,
     ... )
     True
     >>> segments_cross_or_overlap(
     ...     [
     ...         Segment(Point(0, 0), Point(2, 2)),
     ...         Segment(Point(0, 2), Point(2, 0)),
-    ...     ]
+    ...     ],
+    ...     context=context,
     ... )
     True
     """
-    context = _get_context() if context is None else context
     return not all(
         event.relation in (_Relation.DISJOINT, _Relation.TOUCH)
         for event in _sweep(

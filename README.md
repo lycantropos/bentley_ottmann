@@ -47,8 +47,10 @@ python -m pip install -e '.'
 With segments
 
 ```python
->>> from ground.context import get_context
->>> context = get_context()
+>>> import math
+>>> from fractions import Fraction
+>>> from ground.context import Context
+>>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
 >>> Point, Segment = context.point_cls, context.segment_cls
 >>> unit_segments = [
 ...     Segment(Point(0, 0), Point(1, 0)),
@@ -61,7 +63,7 @@ we can check if they intersect
 
 ```python
 >>> from bentley_ottmann.planar import segments_intersect
->>> segments_intersect(unit_segments)
+>>> segments_intersect(unit_segments, context=context)
 True
 
 ```
@@ -79,9 +81,9 @@ we can check if they are self-intersecting or not
 
 ```python
 >>> from bentley_ottmann.planar import contour_self_intersects
->>> contour_self_intersects(triangle)
+>>> contour_self_intersects(triangle, context=context)
 False
->>> contour_self_intersects(degenerate_triangle)
+>>> contour_self_intersects(degenerate_triangle, context=context)
 True
 
 ```

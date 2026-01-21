@@ -15,7 +15,6 @@ settings.register_profile(
     deadline=(timedelta(hours=1) / max_examples if on_ci else None),
     max_examples=max_examples,
     suppress_health_check=[HealthCheck.too_slow],
-    verbosity=2,
 )
 
 # FIXME:
