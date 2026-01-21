@@ -12,15 +12,19 @@ from . import strategies
 
 
 @given(strategies.segments_lists)
-def test_basic(segments: list[Segment[ScalarT]]) -> None:
-    result = segments_intersect(segments)
+def test_basic(
+    context: Context[ScalarT], segments: list[Segment[ScalarT]]
+) -> None:
+    result = segments_intersect(segments, context=context)
 
     assert isinstance(result, bool)
 
 
 @given(strategies.empty_segments_lists)
-def test_base_case(segments: list[Segment[ScalarT]]) -> None:
-    result = segments_intersect(segments)
+def test_base_case(
+    context: Context[ScalarT], segments: list[Segment[ScalarT]]
+) -> None:
+    result = segments_intersect(segments, context=context)
 
     assert not result
 
@@ -31,8 +35,8 @@ def test_step(
 ) -> None:
     first_segment, *rest_segments = segments
 
-    result = segments_intersect(rest_segments)
-    next_result = segments_intersect(segments)
+    result = segments_intersect(rest_segments, context=context)
+    next_result = segments_intersect(segments, context=context)
 
     assert next_result is (
         result
@@ -45,29 +49,39 @@ def test_step(
 
 
 @given(strategies.segments_lists)
-def test_reversed(segments: list[Segment[ScalarT]]) -> None:
-    result = segments_intersect(segments)
+def test_reversed(
+    context: Context[ScalarT], segments: list[Segment[ScalarT]]
+) -> None:
+    result = segments_intersect(segments, context=context)
 
-    assert result is segments_intersect(segments[::-1])
+    assert result is segments_intersect(segments[::-1], context=context)
 
 
 @given(strategies.segments_lists)
-def test_reversed_endpoints(segments: list[Segment[ScalarT]]) -> None:
-    result = segments_intersect(segments)
+def test_reversed_endpoints(
+    context: Context[ScalarT], segments: list[Segment[ScalarT]]
+) -> None:
+    result = segments_intersect(segments, context=context)
 
     assert result is segments_intersect(
-        [reverse_segment(segment) for segment in segments]
+        [reverse_segment(segment) for segment in segments], context=context
     )
 
 
 @given(strategies.segments_lists)
-def test_reversed_coordinates(segments: list[Segment[ScalarT]]) -> None:
-    result = segments_intersect(segments)
+def test_reversed_coordinates(
+    context: Context[ScalarT], segments: list[Segment[ScalarT]]
+) -> None:
+    result = segments_intersect(segments, context=context)
 
-    assert result is segments_intersect(reverse_segments_coordinates(segments))
+    assert result is segments_intersect(
+        reverse_segments_coordinates(segments), context=context
+    )
 
 
 @given(strategies.degenerate_segments_lists)
-def test_degenerate_segments(segments: list[Segment[ScalarT]]) -> None:
+def test_degenerate_segments(
+    context: Context[ScalarT], segments: list[Segment[ScalarT]]
+) -> None:
     with pytest.raises(ValueError):
-        segments_intersect(segments)
+        segments_intersect(segments, context=context)

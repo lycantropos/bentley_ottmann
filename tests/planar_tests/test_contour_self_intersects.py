@@ -18,8 +18,8 @@ from . import strategies
 
 
 @given(strategies.contours)
-def test_basic(contour: Contour[ScalarT]) -> None:
-    result = contour_self_intersects(contour)
+def test_basic(context: Context[ScalarT], contour: Contour[ScalarT]) -> None:
+    result = contour_self_intersects(contour, context=context)
 
     assert isinstance(result, bool)
 
@@ -28,7 +28,7 @@ def test_basic(contour: Contour[ScalarT]) -> None:
 def test_base_case(
     context: Context[ScalarT], contour: Contour[ScalarT]
 ) -> None:
-    result = contour_self_intersects(contour)
+    result = contour_self_intersects(contour, context=context)
 
     left_vertex, mid_vertex, right_vertex = sorted(contour.vertices)
     assert result is context.segment_contains_point(
@@ -41,8 +41,8 @@ def test_step(context: Context[ScalarT], contour: Contour[ScalarT]) -> None:
     first_vertex, rest_contour = pop_left_vertex(contour)
     rest_vertices = rest_contour.vertices
 
-    result = contour_self_intersects(rest_contour)
-    next_result = contour_self_intersects(contour)
+    result = contour_self_intersects(rest_contour, context=context)
+    next_result = contour_self_intersects(contour, context=context)
 
     first_edge = context.segment_cls(first_vertex, rest_vertices[0])
     last_edge = context.segment_cls(rest_vertices[-1], first_vertex)
@@ -105,22 +105,30 @@ def test_step(context: Context[ScalarT], contour: Contour[ScalarT]) -> None:
 
 
 @given(strategies.contours)
-def test_reversed(contour: Contour[ScalarT]) -> None:
-    result = contour_self_intersects(contour)
+def test_reversed(
+    context: Context[ScalarT], contour: Contour[ScalarT]
+) -> None:
+    result = contour_self_intersects(contour, context=context)
 
-    assert result is contour_self_intersects(reverse_contour(contour))
+    assert result is contour_self_intersects(
+        reverse_contour(contour), context=context
+    )
 
 
 @given(strategies.contours)
-def test_reversed_coordinates(contour: Contour[ScalarT]) -> None:
-    result = contour_self_intersects(contour)
+def test_reversed_coordinates(
+    context: Context[ScalarT], contour: Contour[ScalarT]
+) -> None:
+    result = contour_self_intersects(contour, context=context)
 
     assert result is contour_self_intersects(
-        reverse_contour_coordinates(contour)
+        reverse_contour_coordinates(contour), context=context
     )
 
 
 @given(strategies.degenerate_contours)
-def test_degenerate_contour(contour: Contour[ScalarT]) -> None:
+def test_degenerate_contour(
+    context: Context[ScalarT], contour: Contour[ScalarT]
+) -> None:
     with pytest.raises(ValueError):
-        contour_self_intersects(contour)
+        contour_self_intersects(contour, context=context)

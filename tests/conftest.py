@@ -1,11 +1,13 @@
+import math
 import os
 import time
 from collections.abc import Callable, Iterator
 from datetime import timedelta
+from fractions import Fraction
 from typing import Any, cast
 
 import pytest
-from ground.context import Context, get_context
+from ground.context import Context
 from hypothesis import HealthCheck, settings
 
 on_ci = bool(os.getenv('CI'))
@@ -53,4 +55,4 @@ def pytest_sessionfinish(
 
 @pytest.fixture(scope='session')
 def context() -> Context[Any]:
-    return get_context()
+    return Context(coordinate_factory=Fraction, sqrt=math.sqrt)

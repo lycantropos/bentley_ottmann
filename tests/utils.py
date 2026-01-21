@@ -1,10 +1,11 @@
+import math
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from fractions import Fraction
 from functools import partial
 from types import MappingProxyType
 from typing import Any, TypeVar
 
-from ground.context import get_context, set_context
+from ground.context import Context
 from ground.hints import Contour, Point, Segment
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
@@ -14,8 +15,7 @@ from tests.hints import ScalarT
 Domain = TypeVar('Domain')
 Range = TypeVar('Range')
 Strategy = SearchStrategy
-context = get_context().replace(coordinate_factory=Fraction)
-set_context(context)
+context: Context[Any] = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
 
 MAX_SCALAR = 10**20
 MIN_SCALAR = -MAX_SCALAR
