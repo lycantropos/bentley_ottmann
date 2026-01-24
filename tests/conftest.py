@@ -15,6 +15,7 @@ max_examples = settings().max_examples
 settings.register_profile(
     'default',
     deadline=(timedelta(hours=1) / max_examples if on_ci else None),
+    derandomize=False,
     max_examples=max_examples,
     suppress_health_check=[HealthCheck.too_slow],
 )
