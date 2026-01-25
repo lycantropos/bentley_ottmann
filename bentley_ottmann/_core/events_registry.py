@@ -131,10 +131,10 @@ class EventsRegistry(Generic[ScalarT]):
             self._endpoints, self._opposites, event, self._orienteer
         )
 
-    def __bool__(self) -> bool:
+    def __bool__(self, /) -> bool:
         return bool(self._events_queue_data)
 
-    def __iter__(self) -> Iterator[Event]:
+    def __iter__(self, /) -> Iterator[Event]:
         while self:
             event = self._pop()
             if is_event_left(event):
@@ -424,7 +424,7 @@ class EventsRegistry(Generic[ScalarT]):
             min_collinear_segment_id
         )
 
-    def _pop(self) -> Event:
+    def _pop(self, /) -> Event:
         return self._events_queue_data.pop()
 
     def _push(self, event: Event, /) -> None:

@@ -11,7 +11,7 @@ class Ordered(Protocol):
 _HashableT = TypeVar('_HashableT', bound=Hashable)
 
 
-def all_unique(values: Iterable[_HashableT]) -> bool:
+def all_unique(values: Iterable[_HashableT], /) -> bool:
     seen: set[_HashableT] = set()
     seen_add = seen.add
     for value in values:

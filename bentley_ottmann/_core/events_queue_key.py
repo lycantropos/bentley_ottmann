@@ -34,7 +34,7 @@ class EventsQueueKey(Generic[ScalarT]):
         )
         return self
 
-    def __lt__(self, other: Self) -> bool:
+    def __lt__(self, other: Self, /) -> bool:
         """
         Checks if the event should be processed before the other.
         """
