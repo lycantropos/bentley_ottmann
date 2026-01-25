@@ -122,15 +122,16 @@ def segments_ids_containing_point_to_intersections(
         elif not events_registry.are_collinear(
             first_segment_id, second_segment_id
         ):
-            if (
-                first_start == point
-                or first_end == point
-                or second_start == point
-                or second_end == point
-            ):
-                relation = Relation.TOUCH
-            else:
-                relation = Relation.CROSS
+            relation = (
+                Relation.TOUCH
+                if (
+                    first_start == point
+                    or first_end == point
+                    or second_start == point
+                    or second_end == point
+                )
+                else Relation.CROSS
+            )
             start = end = point
         elif max(first_start, second_start) == min(first_end, second_end):
             relation = Relation.TOUCH

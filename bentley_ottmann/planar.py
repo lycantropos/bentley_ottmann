@@ -1,4 +1,6 @@
 from collections.abc import Sequence as _Sequence
+from itertools import groupby
+from operator import attrgetter
 
 from ground.context import Context as _Context
 from ground.enums import Relation as _Relation
@@ -60,16 +62,33 @@ def contour_self_intersects(
         return True
     segments = context.contour_segments(contour)
     return not all(
-        intersection.relation in (_Relation.DISJOINT, _Relation.TOUCH)
-        for intersection in _sweep(
-            segments,
-            context.angle_orientation,
-            lambda first_start, first_end, second_start, second_end: (
-                context.segments_intersection(
-                    context.segment_cls(first_start, first_end),
-                    context.segment_cls(second_start, second_end),
+        (
+            (
+                (
+                    first_same_start_intersection := next(
+                        same_start_intersections, None
+                    )
                 )
+                is not None
+            )
+            and next(same_start_intersections, None) is None
+            and (
+                first_same_start_intersection.relation
+                in (_Relation.DISJOINT, _Relation.TOUCH)
+            )
+        )
+        for _, same_start_intersections in groupby(
+            _sweep(
+                segments,
+                context.angle_orientation,
+                lambda first_start, first_end, second_start, second_end: (
+                    context.segments_intersection(
+                        context.segment_cls(first_start, first_end),
+                        context.segment_cls(second_start, second_end),
+                    )
+                ),
             ),
+            key=attrgetter('start'),
         )
     )
 
@@ -201,16 +220,14 @@ def segments_cross_or_overlap(
     """
     return not all(
         intersection.relation in (_Relation.DISJOINT, _Relation.TOUCH)
-        for intersection in list(
-            _sweep(
-                segments,
-                context.angle_orientation,
-                lambda first_start, first_end, second_start, second_end: (
-                    context.segments_intersection(
-                        context.segment_cls(first_start, first_end),
-                        context.segment_cls(second_start, second_end),
-                    )
-                ),
-            )
+        for intersection in _sweep(
+            segments,
+            context.angle_orientation,
+            lambda first_start, first_end, second_start, second_end: (
+                context.segments_intersection(
+                    context.segment_cls(first_start, first_end),
+                    context.segment_cls(second_start, second_end),
+                )
+            ),
         )
     )
