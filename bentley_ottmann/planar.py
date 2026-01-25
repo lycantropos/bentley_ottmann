@@ -1,6 +1,6 @@
 from collections.abc import Sequence as _Sequence
-from itertools import groupby
-from operator import attrgetter
+from itertools import groupby as _groupby
+from operator import attrgetter as _attrgetter
 
 from ground.context import Context as _Context
 from ground.enums import Relation as _Relation
@@ -77,7 +77,7 @@ def contour_self_intersects(
                 in (_Relation.DISJOINT, _Relation.TOUCH)
             )
         )
-        for _, same_start_intersections in groupby(
+        for _, same_start_intersections in _groupby(
             _sweep(
                 segments,
                 context.angle_orientation,
@@ -88,7 +88,7 @@ def contour_self_intersects(
                     )
                 ),
             ),
-            key=attrgetter('start'),
+            key=_attrgetter('start'),
         )
     )
 
