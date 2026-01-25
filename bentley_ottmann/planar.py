@@ -60,8 +60,8 @@ def contour_self_intersects(
         return True
     segments = context.contour_segments(contour)
     return not all(
-        event.relation in (_Relation.DISJOINT, _Relation.TOUCH)
-        for event in _sweep(
+        intersection.relation in (_Relation.DISJOINT, _Relation.TOUCH)
+        for intersection in _sweep(
             segments,
             context.angle_orientation,
             lambda first_start, first_end, second_start, second_end: (
@@ -130,8 +130,8 @@ def segments_intersect(
     True
     """
     return not all(
-        event.relation is _Relation.DISJOINT
-        for event in _sweep(
+        intersection.relation is _Relation.DISJOINT
+        for intersection in _sweep(
             segments,
             context.angle_orientation,
             lambda first_start, first_end, second_start, second_end: (
@@ -200,15 +200,17 @@ def segments_cross_or_overlap(
     True
     """
     return not all(
-        event.relation in (_Relation.DISJOINT, _Relation.TOUCH)
-        for event in _sweep(
-            segments,
-            context.angle_orientation,
-            lambda first_start, first_end, second_start, second_end: (
-                context.segments_intersection(
-                    context.segment_cls(first_start, first_end),
-                    context.segment_cls(second_start, second_end),
-                )
-            ),
+        intersection.relation in (_Relation.DISJOINT, _Relation.TOUCH)
+        for intersection in list(
+            _sweep(
+                segments,
+                context.angle_orientation,
+                lambda first_start, first_end, second_start, second_end: (
+                    context.segments_intersection(
+                        context.segment_cls(first_start, first_end),
+                        context.segment_cls(second_start, second_end),
+                    )
+                ),
+            )
         )
     )
