@@ -1,36 +1,33 @@
 from operator import ne
 
 from ground.hints import Point, Segment
-from hypothesis import strategies
+from hypothesis import strategies as st
 
 from tests.hints import ScalarT
-from tests.utils import (
-    MAX_SCALAR,
-    MIN_SCALAR,
-    Strategy,
-    context,
-    pack,
-    to_pairs,
-)
+from tests.utils import MAX_SCALAR, MIN_SCALAR, context, pack, to_pair_strategy
 
-scalars_strategies = strategies.just(
-    strategies.fractions(MIN_SCALAR, MAX_SCALAR)
-)
+scalar_strategy_strategy = st.just(st.fractions(MIN_SCALAR, MAX_SCALAR))
 
 
-def scalars_to_segments(
-    scalars: Strategy[ScalarT],
-) -> Strategy[Segment[ScalarT]]:
+def scalar_to_segment_strategy(
+    scalar_strategy: st.SearchStrategy[ScalarT], /
+) -> st.SearchStrategy[Segment[ScalarT]]:
     return (
-        to_pairs(scalars_to_points(scalars))
+        to_pair_strategy(scalar_to_point_strategy(scalar_strategy))
         .filter(pack(ne))
         .map(pack(context.segment_cls))
     )
 
 
-def scalars_to_points(scalars: Strategy[ScalarT]) -> Strategy[Point[ScalarT]]:
-    return strategies.builds(context.point_cls, scalars, scalars)
+def scalar_to_point_strategy(
+    scalar_strategy: st.SearchStrategy[ScalarT], /
+) -> st.SearchStrategy[Point[ScalarT]]:
+    return st.builds(context.point_cls, scalar_strategy, scalar_strategy)
 
 
-points_strategies = scalars_strategies.map(scalars_to_points)
-segments_strategies = scalars_strategies.map(scalars_to_segments)
+point_strategy_strategy = scalar_strategy_strategy.map(
+    scalar_to_point_strategy
+)
+segment_strategy_strategy = scalar_strategy_strategy.map(
+    scalar_to_segment_strategy
+)

@@ -7,22 +7,22 @@ from typing import Any, TypeVar
 
 from ground.context import Context
 from ground.hints import Contour, Point, Segment
-from hypothesis import strategies
-from hypothesis.strategies import SearchStrategy
+from hypothesis import strategies as st
 
 from tests.hints import ScalarT
 
 Domain = TypeVar('Domain')
 Range = TypeVar('Range')
-Strategy = SearchStrategy
 context: Context[Any] = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
 
 MAX_SCALAR = 10**20
 MIN_SCALAR = -MAX_SCALAR
 
 
-def to_pairs(strategy: Strategy[Domain], /) -> Strategy[tuple[Domain, Domain]]:
-    return strategies.tuples(strategy, strategy)
+def to_pair_strategy(
+    strategy: st.SearchStrategy[Domain], /
+) -> st.SearchStrategy[tuple[Domain, Domain]]:
+    return st.tuples(strategy, strategy)
 
 
 def identity(value: Domain, /) -> Domain:

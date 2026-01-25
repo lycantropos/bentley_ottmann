@@ -1,4 +1,4 @@
 from .base import (
-    points_strategies as points_strategies,
-    segments_strategies as segments_strategies,
+    point_strategy_strategy as point_strategy_strategy,
+    segment_strategy_strategy as segment_strategy_strategy,
 )

@@ -8,10 +8,15 @@ from bentley_ottmann.planar import segments_intersect
 from tests.hints import ScalarT
 from tests.utils import reverse_segment, reverse_segments_coordinates
 
-from . import strategies
+from .strategies import (
+    degenerate_segment_sequence_strategy,
+    empty_segment_sequence_strategy,
+    non_empty_segment_sequence_strategy,
+    segment_sequence_strategy,
+)
 
 
-@given(strategies.segments_lists)
+@given(segment_sequence_strategy)
 def test_basic(
     context: Context[ScalarT], segments: list[Segment[ScalarT]]
 ) -> None:
@@ -20,7 +25,7 @@ def test_basic(
     assert isinstance(result, bool)
 
 
-@given(strategies.empty_segments_lists)
+@given(empty_segment_sequence_strategy)
 def test_base_case(
     context: Context[ScalarT], segments: list[Segment[ScalarT]]
 ) -> None:
@@ -29,7 +34,7 @@ def test_base_case(
     assert not result
 
 
-@given(strategies.non_empty_segments_lists)
+@given(non_empty_segment_sequence_strategy)
 def test_step(
     context: Context[ScalarT], segments: list[Segment[ScalarT]]
 ) -> None:
@@ -48,7 +53,7 @@ def test_step(
     )
 
 
-@given(strategies.segments_lists)
+@given(segment_sequence_strategy)
 def test_reversed(
     context: Context[ScalarT], segments: list[Segment[ScalarT]]
 ) -> None:
@@ -57,7 +62,7 @@ def test_reversed(
     assert result is segments_intersect(segments[::-1], context=context)
 
 
-@given(strategies.segments_lists)
+@given(segment_sequence_strategy)
 def test_reversed_endpoints(
     context: Context[ScalarT], segments: list[Segment[ScalarT]]
 ) -> None:
@@ -68,7 +73,7 @@ def test_reversed_endpoints(
     )
 
 
-@given(strategies.segments_lists)
+@given(segment_sequence_strategy)
 def test_reversed_coordinates(
     context: Context[ScalarT], segments: list[Segment[ScalarT]]
 ) -> None:
@@ -79,7 +84,7 @@ def test_reversed_coordinates(
     )
 
 
-@given(strategies.degenerate_segments_lists)
+@given(degenerate_segment_sequence_strategy)
 def test_degenerate_segments(
     context: Context[ScalarT], segments: list[Segment[ScalarT]]
 ) -> None:

@@ -14,17 +14,22 @@ from tests.utils import (
     reverse_contour_coordinates,
 )
 
-from . import strategies
+from .strategies import (
+    contour_strategy,
+    degenerate_contour_strategy,
+    non_triangular_contour_strategy,
+    triangular_contour_strategy,
+)
 
 
-@given(strategies.contours)
+@given(contour_strategy)
 def test_basic(context: Context[ScalarT], contour: Contour[ScalarT]) -> None:
     result = contour_self_intersects(contour, context=context)
 
     assert isinstance(result, bool)
 
 
-@given(strategies.triangular_contours)
+@given(triangular_contour_strategy)
 def test_base_case(
     context: Context[ScalarT], contour: Contour[ScalarT]
 ) -> None:
@@ -36,7 +41,7 @@ def test_base_case(
     )
 
 
-@given(strategies.non_triangular_contours)
+@given(non_triangular_contour_strategy)
 def test_step(context: Context[ScalarT], contour: Contour[ScalarT]) -> None:
     first_vertex, rest_contour = pop_left_vertex(contour)
     rest_vertices = rest_contour.vertices
@@ -104,7 +109,7 @@ def test_step(context: Context[ScalarT], contour: Contour[ScalarT]) -> None:
     )
 
 
-@given(strategies.contours)
+@given(contour_strategy)
 def test_reversed(
     context: Context[ScalarT], contour: Contour[ScalarT]
 ) -> None:
@@ -115,7 +120,7 @@ def test_reversed(
     )
 
 
-@given(strategies.contours)
+@given(contour_strategy)
 def test_reversed_coordinates(
     context: Context[ScalarT], contour: Contour[ScalarT]
 ) -> None:
@@ -126,7 +131,7 @@ def test_reversed_coordinates(
     )
 
 
-@given(strategies.degenerate_contours)
+@given(degenerate_contour_strategy)
 def test_degenerate_contour(
     context: Context[ScalarT], contour: Contour[ScalarT]
 ) -> None:
