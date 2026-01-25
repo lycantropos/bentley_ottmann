@@ -54,6 +54,10 @@ class Intersection(Generic[ScalarT]):
         end: hints.Point[ScalarT],
         /,
     ) -> Self:
+        assert first_segment_id != second_segment_id, (
+            first_segment_id,
+            second_segment_id,
+        )
         self = super().__new__(cls)
         (
             self._end,
@@ -114,8 +118,7 @@ def segments_ids_containing_point_to_intersections(
         second_start = events_registry.to_segment_start(second_segment_id)
         second_end = events_registry.to_segment_end(second_segment_id)
         if first_segment_id == second_segment_id:
-            start, end = first_start, first_end
-            relation = Relation.EQUAL
+            continue
         elif not events_registry.are_collinear(
             first_segment_id, second_segment_id
         ):
