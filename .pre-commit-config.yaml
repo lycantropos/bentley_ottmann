@@ -19,19 +19,19 @@ repos:
           - --msg-filename
         stages: [ commit-msg ]
   - repo: https://github.com/crate-ci/typos
-    rev: v1.39.2
+    rev: v1.48.0
     hooks:
       - id: typos
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.8
+    rev: v1.7.12
     hooks:
       - id: actionlint
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.46.0
+    rev: v0.49.1
     hooks:
     - id: markdownlint-fix
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.5
+    rev: v0.16.0
     hooks:
       - id: ruff-format
       - id: ruff-check
@@ -39,7 +39,7 @@ repos:
           - --fix
           - --exit-non-zero-on-fix
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.18.2
+    rev: v2.3.0
     hooks:
       - id: mypy
         args:
@@ -54,7 +54,8 @@ repos:
           - "setuptools"
           - "types-setuptools"
   - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.408
+    # `v1.1.411` introduced some bug it seems
+    rev: v1.1.410
     hooks:
       - id: pyright
         additional_dependencies:
