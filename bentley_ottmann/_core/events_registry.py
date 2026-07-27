@@ -101,7 +101,7 @@ class EventsRegistry(Generic[ScalarT]):
         self,
         orienteer: Orienteer[ScalarT],
         segments_intersector: SegmentsIntersector[ScalarT],
-        unique: bool,  # noqa: FBT001
+        unique: bool,  # ruff: ignore[boolean-type-hint-positional-argument]
         /,
     ) -> None:
         self._orienteer, self._segments_intersector, self._unique = (
